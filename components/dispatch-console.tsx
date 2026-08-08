@@ -1,7 +1,7 @@
 'use client'
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase'
 import { useMemo, useRef, useState } from 'react'
-import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search } from 'lucide-react'
+import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone } from 'lucide-react'
 
 const LIVE_LOCATION = 'live-location'
 
@@ -54,6 +54,12 @@ export function DispatchConsole() {
   const [fleet, setFleet] = useState(fleets[0].id)
   const [date, setDate] = useState('')
   const [tour, setTour] = useState(tourOptions[0].id)
+  
+  // Müşteri bilgileri state'leri
+  const [customerName, setCustomerName] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+
   const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [geoError, setGeoError] = useState('')
@@ -107,69 +113,77 @@ export function DispatchConsole() {
     }
   }
 
-const handleReserve = async () => {
-  const phoneNumber = "4792997190"
+  const handleReserve = async () => {
+    const phoneNumber = "4792997190"
 
-  // 1. Supabase Veritabanına Kaydet
-  try {
-    const selectedFleet = fleets.find((f) => f.id === fleet)
-    const selectedTour = tourOptions.find((t) => t.id === tour)
-    
-    const pickupText = pickup === LIVE_LOCATION && coords 
-      ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
-      : pickup
+    // 1. Supabase Veritabanına Dinamik Kayıt
+    try {
+      const selectedFleet = fleets.find((f) => f.id === fleet)
+      const selectedTour = tourOptions.find((t) => t.id === tour)
+      
+      const pickupText = pickup === LIVE_LOCATION && coords 
+        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
+        : pickup
 
-    await supabase.from('bookings').insert([
-      {
-        customer_name: 'Guest User', // Formda isim alanı eklenene kadar varsayılan
-        customer_email: 'pending@articsafaritour.com',
-        booking_type: mode === 'taxi' ? 'transfer' : 'tour',
-        item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
-        booking_date: date || new Date().toISOString().split('T')[0],
-        total_price: price,
-        notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
-        status: 'pending'
-      }
-    ])
-  } catch (err) {
-    console.error('Supabase kayit hatasi:', err)
-  }
+      await supabase.from('bookings').insert([
+        {
+          customer_name: customerName.trim() || 'Guest User',
+          customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
+          customer_phone: customerPhone.trim() || null,
+          booking_type: mode === 'taxi' ? 'transfer' : 'tour',
+          item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
+          booking_date: date || new Date().toISOString().split('T')[0],
+          total_price: price,
+          notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
+          status: 'pending'
+        }
+      ])
+    } catch (err) {
+      console.error('Supabase kayit hatasi:', err)
+    }
 
-  // 2. WhatsApp Mesajını Oluştur ve Gönder
-  let plainText = ""
+    // 2. WhatsApp Mesajını Oluştur ve Gönder
+    let plainText = ""
 
-  if (mode === 'taxi') {
-    const selectedFleet = fleets.find((f) => f.id === fleet)
-    
-    const pickupText = pickup === LIVE_LOCATION && coords 
-      ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
-      : pickup
+    if (mode === 'taxi') {
+      const selectedFleet = fleets.find((f) => f.id === fleet)
+      
+      const pickupText = pickup === LIVE_LOCATION && coords 
+        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
+        : pickup
 
-    plainText = 
+      plainText = 
 `*ARTIC SAFARI - VIP TRANSFER BOOKING*
 ----------------------------------------
+Customer: ${customerName || 'Guest'}
+Email: ${customerEmail || 'N/A'}
+Phone: ${customerPhone || 'N/A'}
 Pickup: ${pickupText}
 Dropoff: ${dropoff || 'Not specified'}
 Vehicle: ${selectedFleet?.label} Fleet (${selectedFleet?.hint} Passengers)
 Estimated Total: ${formatKr(price)}
 ----------------------------------------
 Please confirm availability and dispatch driver.`
-  } else {
-    const selectedTour = tourOptions.find((t) => t.id === tour)
+    } else {
+      const selectedTour = tourOptions.find((t) => t.id === tour)
 
-    plainText = 
+      plainText = 
 `*ARTIC SAFARI - TOUR RESERVATION*
 ----------------------------------------
+Customer: ${customerName || 'Guest'}
+Email: ${customerEmail || 'N/A'}
+Phone: ${customerPhone || 'N/A'}
 Tour Package: ${selectedTour?.label}
 Selected Date: ${date || 'Not specified'}
 Total Price: ${formatKr(price)}
 ----------------------------------------
 Please confirm booking for this date.`
+    }
+
+    const encodedMessage = encodeURIComponent(plainText)
+    window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, '_blank')
   }
 
-  const encodedMessage = encodeURIComponent(plainText)
-  window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, '_blank')
-}
   return (
     <div className="glass animate-float-up rounded-3xl border border-white/10 p-2 shadow-2xl shadow-black/40" style={{ animationDelay: '0.3s' }}>
       <div className="rounded-[1.35rem] border border-white/[0.06] bg-black/20 p-4 sm:p-5">
@@ -206,6 +220,39 @@ Please confirm booking for this date.`
           ))}
         </div>
 
+        {/* Müşteri İletişim Bilgileri Alanı */}
+        <div className="mb-3 grid gap-3 md:grid-cols-3">
+          <Field icon={<User className="h-4 w-4" />} label="Full Name">
+            <input
+              type="text"
+              placeholder="John Doe"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+            />
+          </Field>
+
+          <Field icon={<Mail className="h-4 w-4" />} label="Email Address">
+            <input
+              type="email"
+              placeholder="john@example.com"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+            />
+          </Field>
+
+          <Field icon={<Phone className="h-4 w-4" />} label="Phone Number">
+            <input
+              type="tel"
+              placeholder="+47 000 00 000"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+            />
+          </Field>
+        </div>
+
         {mode === 'taxi' ? (
           <div className="grid gap-3 md:grid-cols-3">
             <Field icon={<MapPin className="h-4 w-4" />} label="Pickup Point">
@@ -221,7 +268,7 @@ Please confirm booking for this date.`
                 ))}
               </select>
               {pickup === LIVE_LOCATION && (
-                <span className="text-[11px] normal-case tracking-normal mt-1">
+                <span className="mt-1 text-[11px] normal-case tracking-normal">
                   {geoStatus === 'locating' && (
                     <span className="text-muted-foreground">Locating you…</span>
                   )}
