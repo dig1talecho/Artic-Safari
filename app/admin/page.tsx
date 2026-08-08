@@ -33,10 +33,10 @@ interface Booking {
   assigned_driver: string | null
 }
 
-const USERS = [
-  { pin: '1984', name: 'General Admin', role: 'admin' },
-  { pin: '1001', name: 'Driver Johan', role: 'driver' },
-  { pin: '1002', name: 'Driver Astrid', role: 'driver' },
+const getSystemUsers = () => [
+  { pin: process.env.NEXT_PUBLIC_ADMIN_PIN || 'admin.artic#2026', name: 'General Admin', role: 'admin' },
+  { pin: process.env.NEXT_PUBLIC_DRIVER_1_PIN || 'johan-tour!84', name: process.env.NEXT_PUBLIC_DRIVER_1_NAME || 'Driver Johan', role: 'driver' },
+  { pin: process.env.NEXT_PUBLIC_DRIVER_2_PIN || 'astrid_safari#99', name: process.env.NEXT_PUBLIC_DRIVER_2_NAME || 'Driver Astrid', role: 'driver' },
 ]
 
 export default function AdminDashboard() {
@@ -51,7 +51,8 @@ export default function AdminDashboard() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    const matchedUser = USERS.find((u) => u.pin === pinInput)
+    const users = getSystemUsers()
+    const matchedUser = users.find((u) => u.pin === pinInput.trim())
     if (matchedUser) {
       setCurrentUser({ name: matchedUser.name, role: matchedUser.role })
       setPinError(false)
@@ -133,7 +134,7 @@ export default function AdminDashboard() {
               <Lock className="h-6 w-6" />
             </div>
             <h1 className="text-xl font-bold text-white">Artic Safari Operations</h1>
-            <p className="mt-1 text-xs text-slate-400">Enter your Admin or Driver PIN code</p>
+            <p className="mt-1 text-xs text-slate-400">Enter your secure access password</p>
           </div>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
@@ -141,22 +142,16 @@ export default function AdminDashboard() {
               <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="password"
-                maxLength={6}
-                placeholder="PIN Code"
+                placeholder="Enter password..."
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-center font-mono text-lg tracking-widest text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
               />
             </div>
 
             {pinError && (
-              <p className="text-center text-xs font-medium text-rose-400">Incorrect PIN code</p>
+              <p className="text-center text-xs font-medium text-rose-400">Incorrect password</p>
             )}
-
-            <div className="text-[11px] text-slate-500 text-center space-y-1">
-              <p>Demo PINs — Admin: <span className="font-mono text-slate-300">1984</span></p>
-              <p>Driver Johan: <span className="font-mono text-slate-300">1001</span> | Driver Astrid: <span className="font-mono text-slate-300">1002</span></p>
-            </div>
 
             <button
               type="submit"
@@ -308,7 +303,7 @@ export default function AdminDashboard() {
                         className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-aurora focus:outline-none"
                       >
                         <option value="" className="bg-slate-900">Assign Driver...</option>
-                        {USERS.filter(u => u.role === 'driver').map(d => (
+                        {getSystemUsers().filter(u => u.role === 'driver').map(d => (
                           <option key={d.pin} value={d.name} className="bg-slate-900">{d.name}</option>
                         ))}
                       </select>
@@ -336,7 +331,7 @@ export default function AdminDashboard() {
                     {booking.status !== 'cancelled' && (
                       <button
                         onClick={() => updateStatus(booking.id, 'cancelled')}
-                        className="rounded-xl bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500 hover:text-white transition-all"
+                        className="rounded-xl bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition-all"
                       >
                         Cancel
                       </button>
