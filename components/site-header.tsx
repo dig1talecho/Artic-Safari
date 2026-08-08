@@ -1,4 +1,4 @@
-import { Snowflake } from 'lucide-react'
+import { Snowflake, User } from 'lucide-react'
 
 const links = [
   { label: 'Tours', href: '#tours' },
@@ -30,12 +30,21 @@ export function SiteHeader() {
         ))}
       </nav>
 
-      <a
-        href="#tours"
-        className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-foreground backdrop-blur-xl transition-colors hover:border-aurora/40 hover:text-aurora"
-      >
-        Book Now
-      </a>
+      <div className="flex items-center gap-3">
+        <a
+          href="/dashboard"
+          className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-foreground backdrop-blur-xl transition-colors hover:border-aurora/40 hover:text-aurora sm:flex"
+        >
+          <User className="h-3.5 w-3.5" />
+          My Bookings
+        </a>
+        <a
+          href="#tours"
+          className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-foreground backdrop-blur-xl transition-colors hover:border-aurora/40 hover:text-aurora"
+        >
+          Book Now
+        </a>
+      </div>
     </header>
   )
 }
