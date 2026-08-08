@@ -84,7 +84,8 @@ function SignInForm() {
 
     setSending(false)
     if (error) {
-      setError('Something went wrong sending your link. Please try again.')
+      console.error('Supabase signInWithOtp error:', error)
+      setError(error.message || 'Something went wrong sending your link. Please try again.')
     } else {
       setSent(true)
     }
