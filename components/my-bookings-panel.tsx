@@ -1,8 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import {
   Mail,
+  Lock,
+  User,
+  Phone,
   Sparkles,
   Calendar,
   CheckCircle2,
@@ -17,6 +21,7 @@ import {
 
 import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/use-session'
+import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { Card, CardEyebrow, CardTitle, CardIcon, CardHeader } from '@/components/ui/card'
 import { GlowPanel, GlowPanelContent } from '@/components/ui/glow-panel'
 import { Badge } from '@/components/ui/badge'
@@ -61,35 +66,212 @@ function statusBadge(status: Booking['status']) {
   )
 }
 
+function LabeledField({
+  label,
+  icon,
+  children,
+}: {
+  label: string
+  icon: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
+      <div className="relative">
+        <span className="absolute left-3 top-3 h-4 w-4 text-muted-foreground">{icon}</span>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function SignInForm() {
   const [email, setEmail] = useState('')
-  const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
+  const [signingIn, setSigningIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!email.trim() || !password) return
 
-    setSending(true)
+    setSigningIn(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
-      },
+      password,
     })
 
-    setSending(false)
+    setSigningIn(false)
     if (error) {
-      console.error('Supabase signInWithOtp error:', error)
-      setError(error.message || 'Something went wrong sending your link. Please try again.')
-    } else {
-      setSent(true)
+      console.error('Supabase signInWithPassword error:', error)
+      setError(error.message || 'Something went wrong signing in. Please try again.')
     }
   }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <LabeledField label="Email" icon={<Mail className="h-4 w-4" />}>
+        <Input
+          required
+          type="email"
+          placeholder="john@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      <LabeledField label="Password" icon={<Lock className="h-4 w-4" />}>
+        <Input
+          required
+          type="password"
+          placeholder="Your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
+      <button
+        type="submit"
+        disabled={signingIn}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
+      >
+        {signingIn ? 'Signing in...' : 'Sign in'}
+        {!signingIn && <ArrowRight className="h-4 w-4" />}
+      </button>
+    </form>
+  )
+}
+
+function SignUpForm({ onSignedUp }: { onSignedUp: () => void }) {
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [pendingConfirmation, setPendingConfirmation] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!fullName.trim() || !phone.trim() || !email.trim() || !password) return
+
+    setSubmitting(true)
+    setError(null)
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+    })
+
+    if (signUpError) {
+      console.error('Supabase signUp error:', signUpError)
+      setError(signUpError.message || 'Something went wrong creating your account. Please try again.')
+      setSubmitting(false)
+      return
+    }
+
+    if (!data.session || !data.user) {
+      // Email confirmation is still enabled on the Supabase project.
+      setPendingConfirmation(true)
+      setSubmitting(false)
+      return
+    }
+
+    const { error: profileError } = await supabase.from('customer_profiles').insert([
+      {
+        id: data.user.id,
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      },
+    ])
+
+    setSubmitting(false)
+
+    if (profileError) {
+      console.error('Supabase customer_profiles insert error:', profileError)
+      setError(profileError.message || 'Your account was created but saving your profile failed.')
+      return
+    }
+
+    onSignedUp()
+  }
+
+  if (pendingConfirmation) {
+    return (
+      <div className="py-6 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-aurora/20 text-aurora">
+          <Mail className="h-6 w-6" />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Check your inbox to confirm <span className="text-foreground">{email}</span>, then sign in.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <LabeledField label="Full Name" icon={<User className="h-4 w-4" />}>
+        <Input
+          required
+          type="text"
+          placeholder="John Doe"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      <LabeledField label="Phone" icon={<Phone className="h-4 w-4" />}>
+        <Input
+          required
+          type="tel"
+          placeholder="+47 000 00 000"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      <LabeledField label="Email" icon={<Mail className="h-4 w-4" />}>
+        <Input
+          required
+          type="email"
+          placeholder="john@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      <LabeledField label="Password" icon={<Lock className="h-4 w-4" />}>
+        <Input
+          required
+          type="password"
+          placeholder="Choose a password"
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="pl-10"
+        />
+      </LabeledField>
+      {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
+      <button
+        type="submit"
+        disabled={submitting}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
+      >
+        {submitting ? 'Creating account...' : 'Create account'}
+        {!submitting && <ArrowRight className="h-4 w-4" />}
+      </button>
+    </form>
+  )
+}
+
+function AuthForms() {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
 
   return (
     <Card glow="violet" className="mx-auto max-w-md">
@@ -101,59 +283,50 @@ function SignInForm() {
           </CardIcon>
           <div>
             <CardEyebrow>My Dashboard</CardEyebrow>
-            <CardTitle>Sign in to view your bookings</CardTitle>
+            <CardTitle>
+              {mode === 'signin' ? 'Sign in to view your bookings' : 'Create your account'}
+            </CardTitle>
           </div>
         </CardHeader>
 
-        {sent ? (
-          <div className="py-6 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-aurora/20 text-aurora">
-              <Mail className="h-6 w-6" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Check your inbox — we&apos;ve sent a secure sign-in link to{' '}
-              <span className="text-foreground">{email}</span>.
-            </p>
-          </div>
+        <div className="mb-5 flex rounded-xl border border-white/10 bg-black/20 p-1">
+          <button
+            type="button"
+            onClick={() => setMode('signin')}
+            className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+              mode === 'signin'
+                ? 'bg-aurora text-accent-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('signup')}
+            className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+              mode === 'signup'
+                ? 'bg-aurora text-accent-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        {mode === 'signin' ? (
+          <SignInForm />
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <p className="text-sm text-pretty leading-relaxed text-muted-foreground">
-              Enter the email you used when booking. We&apos;ll send you a magic link — no
-              password needed.
-            </p>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  required
-                  type="email"
-                  placeholder="john@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
-            <button
-              type="submit"
-              disabled={sending}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
-            >
-              {sending ? 'Sending link...' : 'Send magic link'}
-              {!sending && <ArrowRight className="h-4 w-4" />}
-            </button>
-          </form>
+          <SignUpForm onSignedUp={() => setMode('signin')} />
         )}
       </div>
     </Card>
   )
 }
 
-function BookingsList({ email }: { email: string }) {
+function BookingsList({ session }: { session: Session }) {
+  const email = session.user.email as string
+  const { profile } = useCustomerProfile(session)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -194,7 +367,7 @@ function BookingsList({ email }: { email: string }) {
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-aurora">My Dashboard</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            Your bookings
+            {profile?.full_name ? `Welcome back, ${profile.full_name}` : 'Your bookings'}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">Signed in as {email}</p>
         </div>
@@ -318,9 +491,9 @@ export function MyBookingsPanel() {
           <Skeleton className="h-64 w-full" />
         </div>
       ) : session?.user?.email ? (
-        <BookingsList email={session.user.email} />
+        <BookingsList session={session} />
       ) : (
-        <SignInForm />
+        <AuthForms />
       )}
     </section>
   )
