@@ -15,7 +15,12 @@ import {
   Search,
   Lock,
   KeyRound,
-  Car
+  Car,
+  TrendingUp,
+  DollarSign,
+  ShieldAlert,
+  Activity,
+  Layers
 } from 'lucide-react'
 
 interface Booking {
@@ -125,6 +130,18 @@ export default function AdminDashboard() {
     return matchesSearch && matchesStatus
   })
 
+  // Analiz ve İstatistik Hesaplamaları
+  const totalRevenue = bookings
+    .filter(b => b.status !== 'cancelled')
+    .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
+
+  const confirmedRevenue = bookings
+    .filter(b => b.status === 'confirmed')
+    .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
+
+  const pendingCount = bookings.filter(b => b.status === 'pending').length
+  const unassignedCount = bookings.filter(b => !b.assigned_driver && b.status !== 'cancelled').length
+
   if (!currentUser) {
     return (
       <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
@@ -166,18 +183,20 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+    <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
+      <div className="mx-auto max-w-7xl space-y-8">
+        
+        {/* Üst Bar */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight text-white">Artic Safari — Operations</h1>
-              <span className="rounded-full bg-aurora/10 border border-aurora/30 px-3 py-0.5 text-xs font-semibold text-aurora uppercase">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">Artic Safari — Live Control</h1>
+              <span className="rounded-full bg-aurora/10 border border-aurora/30 px-3 py-1 text-xs font-semibold text-aurora uppercase tracking-wider">
                 {currentUser.role}: {currentUser.name}
               </span>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              {currentUser.role === 'admin' ? 'Full management & dispatch dashboard' : 'Driver assigned bookings view'}
+              {currentUser.role === 'admin' ? 'Real-time financial tracking, tour dispatch, and operational analytics' : 'Driver active tour management view'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -186,7 +205,7 @@ export default function AdminDashboard() {
               className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              Sync Data
             </button>
             <button
               onClick={() => setCurrentUser(null)}
@@ -197,23 +216,77 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
+        {/* Canlı Analiz ve Finans Kartları (KPIs) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Volume (Gross)</span>
+              <DollarSign className="h-5 w-5 text-aurora" />
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-white">{totalRevenue.toLocaleString()} NOK</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Includes pending & confirmed</p>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-aurora/50 to-transparent" />
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Secured Revenue</span>
+              <TrendingUp className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-emerald-400">{confirmedRevenue.toLocaleString()} NOK</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Confirmed bookings only</p>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400/50 to-transparent" />
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending Approvals</span>
+              <Clock3 className="h-5 w-5 text-amber-400" />
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-amber-400">{pendingCount}</span>
+              <span className="text-xs text-slate-400">requests</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Requires status confirmation</p>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400/50 to-transparent" />
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Unassigned Tours</span>
+              <ShieldAlert className="h-5 w-5 text-rose-400" />
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-rose-400">{unassignedCount}</span>
+              <span className="text-xs text-slate-400">tours</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Waiting for driver dispatch</p>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400/50 to-transparent" />
+          </div>
+        </div>
+
+        {/* Filtre ve Arama Alanı */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900/30 p-4 rounded-2xl border border-white/10">
+          <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by customer name, email, or package..."
+              placeholder="Search by customer, email, package..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-slate-900/60 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-slate-900/80 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
             />
           </div>
-          <div className="flex rounded-xl border border-white/10 bg-slate-900/60 p-1">
+          <div className="flex rounded-xl border border-white/10 bg-slate-900/80 p-1 w-full sm:w-auto overflow-x-auto">
             {['all', 'pending', 'confirmed', 'cancelled'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                className={`rounded-lg px-4 py-1.5 text-xs font-medium capitalize transition-colors whitespace-nowrap ${
                   filterStatus === status
                     ? 'bg-aurora text-black font-semibold'
                     : 'text-slate-400 hover:text-white'
@@ -225,123 +298,160 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-slate-400">Loading bookings...</div>
-        ) : filteredBookings.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-white/10 rounded-2xl text-slate-400">
-            No bookings found matching your filters.
+        {/* Canlı Takip Tablosu (Live Operations Table) */}
+        <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden shadow-2xl">
+          <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-aurora animate-pulse" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white">Live Booking Feed & Dispatch</h2>
+            </div>
+            <span className="text-xs text-slate-400">Showing {filteredBookings.length} entries</span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex flex-col border border-white/10 rounded-2xl bg-slate-900/40 p-5 gap-4 md:flex-row md:items-center md:justify-between hover:border-white/20 transition-all"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        booking.status === 'confirmed'
-                          ? 'bg-aurora/20 text-aurora'
-                          : booking.status === 'cancelled'
-                          ? 'bg-rose-500/20 text-rose-400'
-                          : 'bg-amber-500/20 text-amber-400'
-                      }`}
-                    >
-                      {booking.status === 'confirmed' && <CheckCircle2 className="h-3 w-3" />}
-                      {booking.status === 'cancelled' && <XCircle className="h-3 w-3" />}
-                      {booking.status === 'pending' && <Clock3 className="h-3 w-3" />}
-                      {booking.status}
-                    </span>
 
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-white/5 border border-white/10 text-slate-300">
-                      <Car className="h-3 w-3 text-aurora" />
-                      {booking.assigned_driver ? `Assigned to: ${booking.assigned_driver}` : 'Unassigned'}
-                    </span>
-
-                    <h3 className="text-lg font-semibold text-white">{booking.item_title}</h3>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <User className="h-3.5 w-3.5 text-slate-500" />
-                      {booking.customer_name}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Mail className="h-3.5 w-3.5 text-slate-500" />
-                      {booking.customer_email}
-                    </span>
-                    {booking.customer_phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3.5 w-3.5 text-slate-500" />
-                        {booking.customer_phone}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                      {booking.booking_date}
-                    </span>
-                    {booking.notes && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-slate-500" />
-                        {booking.notes}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between md:justify-end gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-white/10">
-                  <div className="flex items-center gap-2">
-                    {currentUser.role === 'admin' ? (
-                      <select
-                        value={booking.assigned_driver || ''}
-                        onChange={(e) => assignDriver(booking.id, e.target.value || null)}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white focus:border-aurora focus:outline-none"
-                      >
-                        <option value="" className="bg-slate-900">Assign Driver...</option>
-                        {getSystemUsers().filter(u => u.role === 'driver').map(d => (
-                          <option key={d.pin} value={d.name} className="bg-slate-900">{d.name}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      !booking.assigned_driver && (
-                        <button
-                          onClick={() => assignDriver(booking.id, currentUser.name)}
-                          className="rounded-xl bg-aurora/10 border border-aurora/30 px-3 py-2 text-xs font-semibold text-aurora hover:bg-aurora hover:text-black transition-all"
+          {loading ? (
+            <div className="text-center py-20 text-slate-400">Loading live data stream...</div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="text-center py-20 text-slate-400 border-dashed border-white/10">
+              No matching tour records found.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="py-3.5 px-6">Status / Package</th>
+                    <th className="py-3.5 px-6">Customer Details</th>
+                    <th className="py-3.5 px-6">Schedule</th>
+                    <th className="py-3.5 px-6">Assigned Driver</th>
+                    <th className="py-3.5 px-6 text-right">Price (NOK)</th>
+                    <th className="py-3.5 px-6 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-sm">
+                  {filteredBookings.map((booking) => (
+                    <tr key={booking.id} className="hover:bg-white/[0.02] transition-colors group">
+                      
+                      {/* Durum ve Tur Adı */}
+                      <td className="py-4 px-6 space-y-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            booking.status === 'confirmed'
+                              ? 'bg-aurora/20 text-aurora border border-aurora/30'
+                              : booking.status === 'cancelled'
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          }`}
                         >
-                          Take Tour
-                        </button>
-                      )
-                    )}
-                  </div>
+                          {booking.status === 'confirmed' && <CheckCircle2 className="h-3 w-3" />}
+                          {booking.status === 'cancelled' && <XCircle className="h-3 w-3" />}
+                          {booking.status === 'pending' && <Clock3 className="h-3 w-3" />}
+                          {booking.status}
+                        </span>
+                        <div className="font-semibold text-white group-hover:text-aurora transition-colors">
+                          {booking.item_title}
+                        </div>
+                      </td>
 
-                  <div className="flex items-center gap-2">
-                    {booking.status !== 'confirmed' && (
-                      <button
-                        onClick={() => updateStatus(booking.id, 'confirmed')}
-                        className="rounded-xl bg-aurora/20 border border-aurora/30 px-3 py-2 text-xs font-semibold text-aurora hover:bg-aurora hover:text-black transition-all"
-                      >
-                        Confirm
-                      </button>
-                    )}
-                    {booking.status !== 'cancelled' && (
-                      <button
-                        onClick={() => updateStatus(booking.id, 'cancelled')}
-                        className="rounded-xl bg-rose-500/20 border border-rose-500/30 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition-all"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                      {/* Müşteri Bilgileri */}
+                      <td className="py-4 px-6 space-y-1 text-xs text-slate-300">
+                        <div className="flex items-center gap-1.5 font-medium text-white">
+                          <User className="h-3.5 w-3.5 text-slate-500" />
+                          {booking.customer_name}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <Mail className="h-3.5 w-3.5 text-slate-500" />
+                          {booking.customer_email}
+                        </div>
+                        {booking.customer_phone && (
+                          <div className="flex items-center gap-1.5 text-slate-400">
+                            <Phone className="h-3.5 w-3.5 text-slate-500" />
+                            {booking.customer_phone}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Tarih ve Notlar */}
+                      <td className="py-4 px-6 space-y-1 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5 text-slate-200">
+                          <Calendar className="h-3.5 w-3.5 text-aurora" />
+                          {booking.booking_date}
+                        </div>
+                        {booking.notes && (
+                          <div className="flex items-center gap-1.5 text-slate-500 italic max-w-xs truncate">
+                            <Clock className="h-3.5 w-3.5" />
+                            {booking.notes}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Şoför Atama */}
+                      <td className="py-4 px-6">
+                        {currentUser.role === 'admin' ? (
+                          <select
+                            value={booking.assigned_driver || ''}
+                            onChange={(e) => assignDriver(booking.id, e.target.value || null)}
+                            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-aurora focus:outline-none"
+                          >
+                            <option value="">Unassigned</option>
+                            {getSystemUsers().filter(u => u.role === 'driver').map(d => (
+                              <option key={d.pin} value={d.name}>{d.name}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold bg-white/5 border border-white/10 text-slate-300">
+                              <Car className="h-3 w-3 text-aurora" />
+                              {booking.assigned_driver || 'Unassigned'}
+                            </span>
+                            {!booking.assigned_driver && (
+                              <button
+                                onClick={() => assignDriver(booking.id, currentUser.name)}
+                                className="rounded-xl bg-aurora/10 border border-aurora/30 px-3 py-1 text-xs font-semibold text-aurora hover:bg-aurora hover:text-black transition-all"
+                              >
+                                Take Tour
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Tutar */}
+                      <td className="py-4 px-6 text-right font-mono font-semibold text-white">
+                        {Number(booking.total_price || 0).toLocaleString()} <span className="text-xs text-slate-400">NOK</span>
+                      </td>
+
+                      {/* İşlemler (Onayla / İptal Et) */}
+                      <td className="py-4 px-6 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {booking.status !== 'confirmed' && (
+                            <button
+                              onClick={() => updateStatus(booking.id, 'confirmed')}
+                              title="Confirm Booking"
+                              className="rounded-xl bg-aurora/10 border border-aurora/30 p-2 text-aurora hover:bg-aurora hover:text-black transition-all"
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </button>
+                          )}
+                          {booking.status !== 'cancelled' && (
+                            <button
+                              onClick={() => updateStatus(booking.id, 'cancelled')}
+                              title="Cancel Booking"
+                              className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-2 text-rose-400 hover:bg-rose-500/20 transition-all"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
       </div>
     </main>
   )
