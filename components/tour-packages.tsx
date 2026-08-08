@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
 import {
   Plane,
   Sparkles,
@@ -138,6 +139,14 @@ export function TourPackages() {
   // Booking modal state
   const [selectedPackage, setSelectedPackage] = useState<BookingDetails | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  // Form input state'leri
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
 
   const transferPrice = transfer === 'small' ? '490 kr' : '850 kr'
   const sommaroyaPrice = sommaroya === 'small' ? '5,000 kr' : '9,000 kr'
@@ -145,15 +154,52 @@ export function TourPackages() {
   const handleBooking = (title: string, price: string, option?: string) => {
     setSelectedPackage({ title, price, option })
     setIsSubmitted(false)
+    setFullName('')
+    setEmail('')
+    setPhone('')
+    setDate('')
+    setTime('')
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitted(true)
-    setTimeout(() => {
-      setSelectedPackage(null)
-      setIsSubmitted(false)
-    }, 2500)
+    if (!selectedPackage) return
+
+    setLoading(true)
+
+    // Fiyat metninden sadece sayısal değeri ayıkla (Örn: "15,000 kr" -> 15000)
+    const numericPrice = parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0
+
+    try {
+      const { data, error } = await supabase.from('bookings').insert([
+        {
+          customer_name: fullName.trim() || 'Guest User',
+          customer_email: email.trim() || 'pending@articsafaritour.com',
+          customer_phone: phone.trim() || null,
+          booking_type: selectedPackage.title.includes('Transfer') ? 'transfer' : 'tour',
+          item_title: `${selectedPackage.title}${selectedPackage.option ? ` (${selectedPackage.option})` : ''}`,
+          booking_date: date || new Date().toISOString().split('T')[0],
+          total_price: numericPrice,
+          notes: time ? `Preferred Time: ${time}` : 'Direct package booking',
+          status: 'pending'
+        }
+      ])
+
+      if (error) {
+        console.error('Modal Supabase hatasi:', error)
+      } else {
+        console.log('Modal Supabase kayit basarili:', data)
+      }
+    } catch (err) {
+      console.error('Modal Supabase beklenmeyen hata:', err)
+    } finally {
+      setLoading(false)
+      setIsSubmitted(true)
+      setTimeout(() => {
+        setSelectedPackage(null)
+        setIsSubmitted(false)
+      }, 2500)
+    }
   }
 
   return (
@@ -352,6 +398,8 @@ export function TourPackages() {
                         required
                         type="text"
                         placeholder="John Doe"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                         className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
                       />
                     </div>
@@ -366,6 +414,8 @@ export function TourPackages() {
                           required
                           type="email"
                           placeholder="john@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
                         />
                       </div>
@@ -378,6 +428,8 @@ export function TourPackages() {
                           required
                           type="tel"
                           placeholder="+47 000 00 000"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
                           className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
                         />
                       </div>
@@ -392,7 +444,9 @@ export function TourPackages() {
                         <input
                           required
                           type="date"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none [color-scheme:dark]"
                         />
                       </div>
                     </div>
@@ -402,7 +456,9 @@ export function TourPackages() {
                         <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <input
                           type="time"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+                          value={time}
+                          onChange={(e) => setTime(e.target.value)}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none [color-scheme:dark]"
                         />
                       </div>
                     </div>
@@ -410,9 +466,10 @@ export function TourPackages() {
 
                   <button
                     type="submit"
-                    className="mt-6 w-full rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90"
+                    disabled={loading}
+                    className="mt-6 w-full rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
                   >
-                    Confirm Booking
+                    {loading ? 'Saving...' : 'Confirm Booking'}
                   </button>
                 </form>
               </>
