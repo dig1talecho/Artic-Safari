@@ -1,20 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { 
-  Calendar, 
-  Clock, 
-  Mail, 
-  Phone, 
-  User, 
-  CheckCircle2, 
-  XCircle, 
-  Clock3, 
+import { useSession } from '@/lib/use-session'
+import { useStaffProfile } from '@/lib/use-staff-profile'
+import {
+  Calendar,
+  Clock,
+  Mail,
+  Phone,
+  User,
+  CheckCircle2,
+  XCircle,
+  Clock3,
   RefreshCw,
   Search,
   Lock,
-  KeyRound,
+  LogOut,
   Car,
   TrendingUp,
   DollarSign,
@@ -40,34 +42,63 @@ interface Booking {
   payment_status?: 'paid' | 'pending' | 'refunded'
 }
 
-const getSystemUsers = () => [
-  { pin: process.env.NEXT_PUBLIC_ADMIN_PIN || 'admin.artic#2026', name: 'General Admin', role: 'admin' },
-  { pin: process.env.NEXT_PUBLIC_DRIVER_1_PIN || 'johan-tour!84', name: process.env.NEXT_PUBLIC_DRIVER_1_NAME || 'Driver Johan', role: 'driver' },
-  { pin: process.env.NEXT_PUBLIC_DRIVER_2_PIN || 'astrid_safari#99', name: process.env.NEXT_PUBLIC_DRIVER_2_NAME || 'Driver Astrid', role: 'driver' },
-]
+interface DriverOption {
+  id: string
+  display_name: string
+}
 
 export default function AdminDashboard() {
-  const [currentUser, setCurrentUser] = useState<{ name: string; role: string } | null>(null)
-  const [pinInput, setPinInput] = useState('')
-  const [pinError, setPinError] = useState(false)
+  const { session, loading: sessionLoading } = useSession()
+  const { profile, loading: profileLoading } = useStaffProfile(session)
+
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginError, setLoginError] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
 
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [driverOptions, setDriverOptions] = useState<DriverOption[]>([])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const currentUser = profile ? { name: profile.display_name, role: profile.role } : null
+
+  useEffect(() => {
+    if (currentUser) fetchBookings()
+  }, [currentUser?.name, currentUser?.role])
+
+  useEffect(() => {
+    if (currentUser?.role !== 'admin') return
+    supabase
+      .from('staff_profiles')
+      .select('id, display_name')
+      .eq('role', 'driver')
+      .then(({ data, error }) => {
+        if (!error) setDriverOptions(data ?? [])
+      })
+  }, [currentUser?.role])
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const users = getSystemUsers()
-    const matchedUser = users.find((u) => u.pin === pinInput.trim())
-    if (matchedUser) {
-      setCurrentUser({ name: matchedUser.name, role: matchedUser.role })
-      setPinError(false)
-      fetchBookings()
-    } else {
-      setPinError(true)
-      setPinInput('')
+    setLoggingIn(true)
+    setLoginError(false)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail.trim(),
+      password: loginPassword,
+    })
+
+    setLoggingIn(false)
+    if (error) {
+      setLoginError(true)
+      setLoginPassword('')
     }
+  }
+
+  const handleSignOut = () => {
+    supabase.auth.signOut()
+    setBookings([])
   }
 
   const fetchBookings = async () => {
@@ -166,6 +197,36 @@ export default function AdminDashboard() {
   const pendingCount = bookings.filter(b => b.status === 'pending').length
   const unassignedCount = bookings.filter(b => !b.assigned_driver && b.status !== 'cancelled').length
 
+  if (sessionLoading || (session && profileLoading)) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <p className="text-sm text-slate-400">Loading...</p>
+      </main>
+    )
+  }
+
+  if (session && !profile) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl backdrop-blur-md text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400">
+            <ShieldAlert className="h-6 w-6" />
+          </div>
+          <h1 className="text-xl font-bold text-white">Not Authorized</h1>
+          <p className="mt-1 text-xs text-slate-400">
+            This account has no operations access. Contact an administrator.
+          </p>
+          <button
+            onClick={handleSignOut}
+            className="mt-6 w-full rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm font-medium hover:bg-white/10"
+          >
+            Sign Out
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   if (!currentUser) {
     return (
       <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
@@ -175,30 +236,41 @@ export default function AdminDashboard() {
               <Lock className="h-6 w-6" />
             </div>
             <h1 className="text-xl font-bold text-white">Artic Safari Operations</h1>
-            <p className="mt-1 text-xs text-slate-400">Enter your secure access password</p>
+            <p className="mt-1 text-xs text-slate-400">Sign in with your staff account</p>
           </div>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div className="relative">
-              <KeyRound className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="email"
+                placeholder="you@articsafaritour.com"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="password"
-                placeholder="Enter password..."
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
               />
             </div>
 
-            {pinError && (
-              <p className="text-center text-xs font-medium text-rose-400">Incorrect password</p>
+            {loginError && (
+              <p className="text-center text-xs font-medium text-rose-400">Invalid email or password</p>
             )}
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-aurora py-2.5 text-sm font-semibold text-black transition-all hover:bg-aurora/90"
+              disabled={loggingIn}
+              className="w-full rounded-xl bg-aurora py-2.5 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
             >
-              Sign In
+              {loggingIn ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
         </div>
@@ -232,9 +304,10 @@ export default function AdminDashboard() {
               Sync Data
             </button>
             <button
-              onClick={() => setCurrentUser(null)}
-              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20"
+              onClick={handleSignOut}
+              className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20"
             >
+              <LogOut className="h-4 w-4" />
               Log Out
             </button>
           </div>
@@ -432,8 +505,8 @@ export default function AdminDashboard() {
                             className="rounded-xl border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-aurora focus:outline-none"
                           >
                             <option value="">Unassigned</option>
-                            {getSystemUsers().filter(u => u.role === 'driver').map(d => (
-                              <option key={d.pin} value={d.name}>{d.name}</option>
+                            {driverOptions.map(d => (
+                              <option key={d.id} value={d.display_name}>{d.display_name}</option>
                             ))}
                           </select>
                         ) : (
