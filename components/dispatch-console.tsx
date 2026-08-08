@@ -1,5 +1,5 @@
 'use client'
-
+import { supabase } from '@/lib/supabase';
 import { useMemo, useRef, useState } from 'react'
 import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search } from 'lucide-react'
 
@@ -107,8 +107,35 @@ export function DispatchConsole() {
     }
   }
 
-const handleReserve = () => {
+const handleReserve = async () => {
   const phoneNumber = "4792997190"
+
+  // 1. Supabase Veritabanına Kaydet
+  try {
+    const selectedFleet = fleets.find((f) => f.id === fleet)
+    const selectedTour = tourOptions.find((t) => t.id === tour)
+    
+    const pickupText = pickup === LIVE_LOCATION && coords 
+      ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
+      : pickup
+
+    await supabase.from('bookings').insert([
+      {
+        customer_name: 'Guest User', // Formda isim alanı eklenene kadar varsayılan
+        customer_email: 'pending@articsafaritour.com',
+        booking_type: mode === 'taxi' ? 'transfer' : 'tour',
+        item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
+        booking_date: date || new Date().toISOString().split('T')[0],
+        total_price: price,
+        notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
+        status: 'pending'
+      }
+    ])
+  } catch (err) {
+    console.error('Supabase kayit hatasi:', err)
+  }
+
+  // 2. WhatsApp Mesajını Oluştur ve Gönder
   let plainText = ""
 
   if (mode === 'taxi') {
@@ -140,7 +167,6 @@ Total Price: ${formatKr(price)}
 Please confirm booking for this date.`
   }
 
-  // encodeURIComponent tüm özel karakterleri ve satır başlarını güvenli şekilde dönüştürür
   const encodedMessage = encodeURIComponent(plainText)
   window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, '_blank')
 }
