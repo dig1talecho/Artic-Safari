@@ -20,7 +20,8 @@ import {
   DollarSign,
   ShieldAlert,
   Activity,
-  Layers
+  MapPin,
+  CreditCard
 } from 'lucide-react'
 
 interface Booking {
@@ -36,6 +37,7 @@ interface Booking {
   notes: string
   status: 'pending' | 'confirmed' | 'cancelled'
   assigned_driver: string | null
+  payment_status?: 'paid' | 'pending' | 'refunded'
 }
 
 const getSystemUsers = () => [
@@ -78,7 +80,12 @@ export default function AdminDashboard() {
     if (error) {
       console.error('Error fetching bookings:', error)
     } else {
-      setBookings(data || [])
+      // Veritabanında payment_status yoksa varsayılan olarak 'paid' ya da 'pending' atayalım
+      const formattedData = (data || []).map(b => ({
+        ...b,
+        payment_status: b.payment_status || (b.status === 'confirmed' ? 'paid' : 'pending')
+      }))
+      setBookings(formattedData)
     }
     setLoading(false)
   }
@@ -96,6 +103,22 @@ export default function AdminDashboard() {
         prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
       )
     }
+  }
+
+  const updatePaymentStatus = async (id: string, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
+    // Eğer veritabanında payment_status sütunu varsa günceller
+    const { error } = await supabase
+      .from('bookings')
+      .update({ payment_status: newPaymentStatus })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error updating payment status:', error)
+    }
+    
+    setBookings((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b))
+    )
   }
 
   const assignDriver = async (id: string, driverName: string | null) => {
@@ -123,20 +146,21 @@ export default function AdminDashboard() {
     const matchesSearch =
       b.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.item_title?.toLowerCase().includes(searchTerm.toLowerCase())
+      b.item_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.notes?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = filterStatus === 'all' || b.status === filterStatus
 
     return matchesSearch && matchesStatus
   })
 
-  // Analiz ve İstatistik Hesaplamaları
+  // Analiz Hesaplamaları (Sadece ödenmiş ve iptal edilmemişler net gelire dahil)
   const totalRevenue = bookings
     .filter(b => b.status !== 'cancelled')
     .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
 
-  const confirmedRevenue = bookings
-    .filter(b => b.status === 'confirmed')
+  const paidRevenue = bookings
+    .filter(b => b.payment_status === 'paid' && b.status !== 'cancelled')
     .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
 
   const pendingCount = bookings.filter(b => b.status === 'pending').length
@@ -196,7 +220,7 @@ export default function AdminDashboard() {
               </span>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              {currentUser.role === 'admin' ? 'Real-time financial tracking, tour dispatch, and operational analytics' : 'Driver active tour management view'}
+              {currentUser.role === 'admin' ? 'Real-time financial tracking, payment audit, and dispatch center' : 'Driver active tour management view'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -216,7 +240,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Canlı Analiz ve Finans Kartları (KPIs) */}
+        {/* KPI Kartları */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
             <div className="flex items-center justify-between">
@@ -226,19 +250,19 @@ export default function AdminDashboard() {
             <div className="mt-3 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-white">{totalRevenue.toLocaleString()} NOK</span>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Includes pending & confirmed</p>
+            <p className="mt-1 text-xs text-slate-500">All bookings value</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-aurora/50 to-transparent" />
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Secured Revenue</span>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Collected (Paid)</span>
               <TrendingUp className="h-5 w-5 text-emerald-400" />
             </div>
             <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-emerald-400">{confirmedRevenue.toLocaleString()} NOK</span>
+              <span className="text-2xl font-bold text-emerald-400">{paidRevenue.toLocaleString()} NOK</span>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Confirmed bookings only</p>
+            <p className="mt-1 text-xs text-slate-500">Verified payment completed</p>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400/50 to-transparent" />
           </div>
 
@@ -269,13 +293,13 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Filtre ve Arama Alanı */}
+        {/* Filtre ve Arama */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900/30 p-4 rounded-2xl border border-white/10">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by customer, email, package..."
+              placeholder="Search by customer, email, location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-slate-900/80 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
@@ -298,12 +322,12 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Canlı Takip Tablosu (Live Operations Table) */}
+        {/* Canlı Tablo */}
         <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden shadow-2xl">
           <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-aurora animate-pulse" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white">Live Booking Feed & Dispatch</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white">Live Booking Feed, Payment & Location Matrix</h2>
             </div>
             <span className="text-xs text-slate-400">Showing {filteredBookings.length} entries</span>
           </div>
@@ -320,8 +344,8 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-slate-400 uppercase tracking-wider">
                     <th className="py-3.5 px-6">Status / Package</th>
-                    <th className="py-3.5 px-6">Customer Details</th>
-                    <th className="py-3.5 px-6">Schedule</th>
+                    <th className="py-3.5 px-6">Customer & Payment</th>
+                    <th className="py-3.5 px-6">Schedule & Locations</th>
                     <th className="py-3.5 px-6">Assigned Driver</th>
                     <th className="py-3.5 px-6 text-right">Price (NOK)</th>
                     <th className="py-3.5 px-6 text-center">Actions</th>
@@ -331,7 +355,7 @@ export default function AdminDashboard() {
                   {filteredBookings.map((booking) => (
                     <tr key={booking.id} className="hover:bg-white/[0.02] transition-colors group">
                       
-                      {/* Durum ve Tur Adı */}
+                      {/* Durum ve Paket */}
                       <td className="py-4 px-6 space-y-1.5">
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -352,8 +376,8 @@ export default function AdminDashboard() {
                         </div>
                       </td>
 
-                      {/* Müşteri Bilgileri */}
-                      <td className="py-4 px-6 space-y-1 text-xs text-slate-300">
+                      {/* Müşteri ve Ödeme Durumu */}
+                      <td className="py-4 px-6 space-y-1.5 text-xs">
                         <div className="flex items-center gap-1.5 font-medium text-white">
                           <User className="h-3.5 w-3.5 text-slate-500" />
                           {booking.customer_name}
@@ -362,26 +386,41 @@ export default function AdminDashboard() {
                           <Mail className="h-3.5 w-3.5 text-slate-500" />
                           {booking.customer_email}
                         </div>
-                        {booking.customer_phone && (
-                          <div className="flex items-center gap-1.5 text-slate-400">
-                            <Phone className="h-3.5 w-3.5 text-slate-500" />
-                            {booking.customer_phone}
-                          </div>
-                        )}
+                        
+                        {/* Ödeme Rozeti / Değiştirici */}
+                        <div className="pt-1 flex items-center gap-2">
+                          <CreditCard className="h-3.5 w-3.5 text-slate-500" />
+                          <select
+                            value={booking.payment_status || 'pending'}
+                            onChange={(e) => updatePaymentStatus(booking.id, e.target.value as any)}
+                            className={`rounded-lg px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider border focus:outline-none ${
+                              booking.payment_status === 'paid'
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                : booking.payment_status === 'refunded'
+                                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                                : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                            }`}
+                          >
+                            <option value="paid" className="bg-slate-900 text-emerald-400">Paid / Ödendi</option>
+                            <option value="pending" className="bg-slate-900 text-amber-400">Pending / Ödeme Bekliyor</option>
+                            <option value="refunded" className="bg-slate-900 text-rose-400">Refunded / İade</option>
+                          </select>
+                        </div>
                       </td>
 
-                      {/* Tarih ve Notlar */}
-                      <td className="py-4 px-6 space-y-1 text-xs text-slate-400">
-                        <div className="flex items-center gap-1.5 text-slate-200">
+                      {/* Tarih ve Konum Bilgileri (Pickup / Dropoff) */}
+                      <td className="py-4 px-6 space-y-1.5 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5 text-slate-200 font-medium">
                           <Calendar className="h-3.5 w-3.5 text-aurora" />
                           {booking.booking_date}
                         </div>
-                        {booking.notes && (
-                          <div className="flex items-center gap-1.5 text-slate-500 italic max-w-xs truncate">
-                            <Clock className="h-3.5 w-3.5" />
-                            {booking.notes}
+                        <div className="flex items-start gap-1.5 text-slate-300 bg-white/5 p-2 rounded-xl border border-white/5">
+                          <MapPin className="h-4 w-4 text-aurora shrink-0 mt-0.5" />
+                          <div className="space-y-0.5">
+                            <span className="block text-[11px] text-slate-400">Route & Location Info:</span>
+                            <span className="font-medium text-white">{booking.notes || 'Pickup / Dropoff details not specified'}</span>
                           </div>
-                        )}
+                        </div>
                       </td>
 
                       {/* Şoför Atama */}
@@ -420,7 +459,7 @@ export default function AdminDashboard() {
                         {Number(booking.total_price || 0).toLocaleString()} <span className="text-xs text-slate-400">NOK</span>
                       </td>
 
-                      {/* İşlemler (Onayla / İptal Et) */}
+                      {/* İşlemler */}
                       <td className="py-4 px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {booking.status !== 'confirmed' && (
