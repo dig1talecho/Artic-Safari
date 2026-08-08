@@ -116,7 +116,7 @@ export function DispatchConsole() {
   const handleReserve = async () => {
     const phoneNumber = "4792997190"
 
-    // 1. Supabase Veritabanına Dinamik Kayıt
+    // 1. Supabase Veritabanına Dinamik Kayıt ve Hata Yakalama
     try {
       const selectedFleet = fleets.find((f) => f.id === fleet)
       const selectedTour = tourOptions.find((t) => t.id === tour)
@@ -125,7 +125,7 @@ export function DispatchConsole() {
         ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
         : pickup
 
-      await supabase.from('bookings').insert([
+      const { data, error } = await supabase.from('bookings').insert([
         {
           customer_name: customerName.trim() || 'Guest User',
           customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
@@ -138,8 +138,14 @@ export function DispatchConsole() {
           status: 'pending'
         }
       ])
+
+      if (error) {
+        console.error('Supabase detayli hata:', error)
+      } else {
+        console.log('Supabase kayit basarili:', data)
+      }
     } catch (err) {
-      console.error('Supabase kayit hatasi:', err)
+      console.error('Supabase beklenmeyen hata:', err)
     }
 
     // 2. WhatsApp Mesajını Oluştur ve Gönder
