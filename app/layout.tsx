@@ -20,11 +20,38 @@ const fraunces = Fraunces({
   style: ['normal', 'italic'],
 })
 
+const siteUrl = 'https://www.articsafaritour.com'
+const title = 'Artic Safari — VIP Northern Lights Tours & Private Transfers'
+const description =
+  'Exclusive Northern Lights expeditions and private VIP airport transfers in Northern Norway. Chase the aurora in first-class comfort.'
+
 export const metadata: Metadata = {
-  title: 'Artic Safari — VIP Northern Lights Tours & Private Transfers',
-  description:
-    'Exclusive Northern Lights expeditions and private VIP airport transfers in Northern Norway. Chase the aurora in first-class comfort.',
+  metadataBase: new URL(siteUrl),
+  title,
+  description,
   generator: 'v0.app',
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: 'Artic Safari',
+    images: [
+      {
+        url: '/aurora-hero.png',
+        width: 1600,
+        height: 720,
+        alt: 'Northern lights over an Arctic Norwegian fjord at night',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+    images: ['/aurora-hero.png'],
+  },
 }
 
 export const viewport: Viewport = {

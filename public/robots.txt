@@ -39,3 +39,5 @@ Allow: /
 # Common Crawl (used to train many LLMs)
 User-agent: CCBot
 Allow: /
+
+Sitemap: https://www.articsafaritour.com/sitemap.xml
