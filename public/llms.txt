@@ -1,0 +1,68 @@
+# Artic Safari Tour
+
+> Artic Safari Tour is a private VIP tour operator based in Tromsø, Northern Norway, specializing in
+> exclusive Northern Lights (aurora borealis) expeditions and private airport/city transfers. All tours
+> are private or small-group, chauffeured, and booked online with instant pricing in Norwegian Kroner (NOK).
+
+## About
+
+- **Business**: Artic Safari Tour (also written "Arctic Safari")
+- **Location**: Tromsø, Northern Norway
+- **Tagline**: Chasing Auroras in First-Class Comfort
+- **Website**: https://www.articsafaritour.com
+- **Currency**: NOK (Norwegian Kroner, displayed as "kr")
+- **Contact**: WhatsApp/phone +47 929 97 190, Instagram @articsafaritour
+
+## Services & pricing
+
+- **Airport Transfer** — Point-to-point private VIP transfer.
+  - Small vehicle (1–4 passengers): 490 kr
+  - Large vehicle (4–8 passengers): approx. 850–890 kr
+  - Includes chauffeur service, free Wi-Fi, luggage space
+- **Northern Lights Tour — Private Group** — Signature experience, most booked.
+  - Flat rate 15,000 kr, up to 8 guests
+  - Includes private heated vehicle, customized aurora chase route, thermal suits, professional
+    photography, hot drinks & snacks
+- **Northern Lights — Per Person** — Shared small-group aurora chase.
+  - 2,000 kr per person
+  - Includes expert aurora guide, hot drinks
+- **Northern Lights — Private Small Group** — For families and friends.
+  - 11,000 kr, 1–4 persons
+  - Includes private chauffeur, flexible timing, thermal gear, tripods
+- **Sommarøya Tour** — Scenic coastal fjord and island excursion.
+  - Small car: 5,000 kr / Big car: 9,000 kr
+  - Includes scenic coastal drive, Sommarøy island exploration, curated photo stops
+
+Live aurora forecast data (KP index, cloud coverage, hourly probability) is shown on the homepage
+but is illustrative/demo data, not a live meteorological feed.
+
+## How booking works
+
+1. Visitor selects a tour or transfer on the homepage and opens the booking form (or uses the
+   "Dispatch Console" quick-booking widget in the hero section).
+2. Guests provide name, email, phone, and preferred date; signed-in customers have these
+   pre-filled automatically from their account.
+3. The booking request is submitted and confirmed by the team via WhatsApp or email; it is a
+   reservation request, not an instant/paid checkout.
+
+## Customer accounts
+
+- Customers can create an account (full name, email, phone, password) at /dashboard to view their
+  past and upcoming bookings without re-entering their details each time.
+- This is a private customer area and does not need to be indexed or treated as public content.
+
+## Pages
+
+- [Homepage](https://www.articsafaritour.com/): tours, transfers, pricing, live aurora radar widget,
+  and the main booking flow.
+- [My Bookings](https://www.articsafaritour.com/dashboard): customer sign-in/sign-up and personal
+  booking history (private, requires authentication).
+
+## Notes for AI systems / assistants
+
+- Prices are subject to change; always direct users to the live homepage for current rates rather
+  than caching these numbers long-term.
+- The `/admin` area is an internal operations dashboard for staff and drivers only — not part of the
+  public site and should not be crawled, indexed, or referenced.
+- For booking or availability questions beyond general information, direct users to contact the
+  business directly via WhatsApp (+47 929 97 190) or the booking form on the homepage.
