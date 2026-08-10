@@ -5,47 +5,25 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/use-session'
 import { useStaffProfile } from '@/lib/use-staff-profile'
 import { SocialRail } from '@/components/social-rail'
-import {
-  Calendar,
-  Clock,
-  Mail,
-  Phone,
-  User,
-  CheckCircle2,
-  XCircle,
-  Clock3,
-  RefreshCw,
-  Search,
-  Lock,
-  LogOut,
-  Car,
-  TrendingUp,
-  DollarSign,
-  ShieldAlert,
-  Activity,
-  MapPin,
-  CreditCard
-} from 'lucide-react'
+import { Sidebar, type AdminView } from '@/components/admin/sidebar'
+import { TopHeader } from '@/components/admin/top-header'
+import { BookingTable } from '@/components/admin/booking-table'
+import { OverviewView } from '@/components/admin/overview-view'
+import { CustomersView } from '@/components/admin/customers-view'
+import { DriversView } from '@/components/admin/drivers-view'
+import { FinanceView } from '@/components/admin/finance-view'
+import { SettingsView } from '@/components/admin/settings-view'
+import type { Booking, DriverOption } from '@/components/admin/types'
+import { Mail, Lock, ShieldAlert } from 'lucide-react'
 
-interface Booking {
-  id: string
-  created_at: string
-  customer_name: string
-  customer_email: string
-  customer_phone: string
-  booking_type: string
-  item_title: string
-  booking_date: string
-  total_price: number
-  notes: string
-  status: 'pending' | 'confirmed' | 'cancelled'
-  assigned_driver: string | null
-  payment_status?: 'paid' | 'pending' | 'refunded'
-}
-
-interface DriverOption {
-  id: string
-  display_name: string
+const viewTitles: Record<AdminView, string> = {
+  overview: 'Dashboard',
+  tours: 'Tours & Activities',
+  transfers: 'Transfers',
+  customers: 'Customers & Users',
+  drivers: 'Drivers & Guides',
+  finance: 'Finance & Payments',
+  settings: 'Settings',
 }
 
 export default function AdminDashboard() {
@@ -63,6 +41,9 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [driverOptions, setDriverOptions] = useState<DriverOption[]>([])
 
+  const [activeView, setActiveView] = useState<AdminView>('overview')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   const currentUser = profile ? { name: profile.display_name, role: profile.role } : null
 
   useEffect(() => {
@@ -70,7 +51,6 @@ export default function AdminDashboard() {
   }, [currentUser?.name, currentUser?.role])
 
   useEffect(() => {
-    if (currentUser?.role !== 'admin') return
     supabase
       .from('staff_profiles')
       .select('id, display_name')
@@ -113,9 +93,9 @@ export default function AdminDashboard() {
       console.error('Error fetching bookings:', error)
     } else {
       // Veritabanında payment_status yoksa varsayılan olarak 'paid' ya da 'pending' atayalım
-      const formattedData = (data || []).map(b => ({
+      const formattedData = (data || []).map((b) => ({
         ...b,
-        payment_status: b.payment_status || (b.status === 'confirmed' ? 'paid' : 'pending')
+        payment_status: b.payment_status || (b.status === 'confirmed' ? 'paid' : 'pending'),
       }))
       setBookings(formattedData)
     }
@@ -123,22 +103,16 @@ export default function AdminDashboard() {
   }
 
   const updateStatus = async (id: string, newStatus: 'confirmed' | 'cancelled' | 'pending') => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: newStatus })
-      .eq('id', id)
+    const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', id)
 
     if (error) {
       console.error('Error updating status:', error)
     } else {
-      setBookings((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
-      )
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)))
     }
   }
 
   const updatePaymentStatus = async (id: string, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
-    // Eğer veritabanında payment_status sütunu varsa günceller
     const { error } = await supabase
       .from('bookings')
       .update({ payment_status: newPaymentStatus })
@@ -147,56 +121,23 @@ export default function AdminDashboard() {
     if (error) {
       console.error('Error updating payment status:', error)
     }
-    
+
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b))
+      prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b)),
     )
   }
 
   const assignDriver = async (id: string, driverName: string | null) => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ assigned_driver: driverName })
-      .eq('id', id)
+    const { error } = await supabase.from('bookings').update({ assigned_driver: driverName }).eq('id', id)
 
     if (error) {
       console.error('Error assigning driver:', error)
     } else {
-      setBookings((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, assigned_driver: driverName } : b))
-      )
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, assigned_driver: driverName } : b)))
     }
   }
 
-  const filteredBookings = bookings.filter((b) => {
-    if (currentUser?.role === 'driver') {
-      const isAssignedToMe = b.assigned_driver === currentUser.name
-      const isUnassigned = !b.assigned_driver
-      if (!isAssignedToMe && !isUnassigned) return false
-    }
-
-    const matchesSearch =
-      b.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.item_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesStatus = filterStatus === 'all' || b.status === filterStatus
-
-    return matchesSearch && matchesStatus
-  })
-
-  // Analiz Hesaplamaları (Sadece ödenmiş ve iptal edilmemişler net gelire dahil)
-  const totalRevenue = bookings
-    .filter(b => b.status !== 'cancelled')
-    .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
-
-  const paidRevenue = bookings
-    .filter(b => b.payment_status === 'paid' && b.status !== 'cancelled')
-    .reduce((acc, curr) => acc + (Number(curr.total_price) || 0), 0)
-
-  const pendingCount = bookings.filter(b => b.status === 'pending').length
-  const unassignedCount = bookings.filter(b => !b.assigned_driver && b.status !== 'cancelled').length
+  const pendingCount = bookings.filter((b) => b.status === 'pending').length
 
   if (sessionLoading || (session && profileLoading)) {
     return (
@@ -281,293 +222,82 @@ export default function AdminDashboard() {
     )
   }
 
+  const tourBookings = bookings.filter((b) => b.booking_type === 'tour')
+  const transferBookings = bookings.filter((b) => b.booking_type === 'transfer')
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
       <SocialRail />
-      <div className="mx-auto max-w-7xl space-y-8">
-        
-        {/* Üst Bar */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">Artic Safari — Live Control</h1>
-              <span className="rounded-full bg-aurora/10 border border-aurora/30 px-3 py-1 text-xs font-semibold text-aurora uppercase tracking-wider">
-                {currentUser.role}: {currentUser.name}
-              </span>
-            </div>
-            <p className="text-sm text-slate-400 mt-1">
-              {currentUser.role === 'admin' ? 'Real-time financial tracking, payment audit, and dispatch center' : 'Driver active tour management view'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchBookings}
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Sync Data
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/20"
-            >
-              <LogOut className="h-4 w-4" />
-              Log Out
-            </button>
-          </div>
-        </div>
+      <Sidebar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        role={currentUser.role}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
-        {/* KPI Kartları */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Volume (Gross)</span>
-              <DollarSign className="h-5 w-5 text-aurora" />
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-white">{totalRevenue.toLocaleString()} NOK</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">All bookings value</p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-aurora/50 to-transparent" />
-          </div>
+      <div className="md:pl-64">
+        <TopHeader
+          title={viewTitles[activeView]}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          pendingCount={pendingCount}
+          currentUser={currentUser}
+          onSignOut={handleSignOut}
+          onOpenMobileMenu={() => setMobileMenuOpen(true)}
+        />
 
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Collected (Paid)</span>
-              <TrendingUp className="h-5 w-5 text-emerald-400" />
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-emerald-400">{paidRevenue.toLocaleString()} NOK</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">Verified payment completed</p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400/50 to-transparent" />
-          </div>
+        <div className="p-4 sm:p-6 lg:p-8">
+          {activeView === 'overview' && <OverviewView bookings={bookings} />}
 
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending Approvals</span>
-              <Clock3 className="h-5 w-5 text-amber-400" />
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-amber-400">{pendingCount}</span>
-              <span className="text-xs text-slate-400">requests</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">Requires status confirmation</p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400/50 to-transparent" />
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 backdrop-blur-md relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Unassigned Tours</span>
-              <ShieldAlert className="h-5 w-5 text-rose-400" />
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-rose-400">{unassignedCount}</span>
-              <span className="text-xs text-slate-400">tours</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">Waiting for driver dispatch</p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400/50 to-transparent" />
-          </div>
-        </div>
-
-        {/* Filtre ve Arama */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900/30 p-4 rounded-2xl border border-white/10">
-          <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by customer, email, location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-slate-900/80 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+          {activeView === 'tours' && (
+            <BookingTable
+              title="Tour Bookings"
+              bookings={tourBookings}
+              loading={loading}
+              currentUser={currentUser}
+              driverOptions={driverOptions}
+              searchTerm={searchTerm}
+              filterStatus={filterStatus}
+              onFilterStatusChange={setFilterStatus}
+              updateStatus={updateStatus}
+              updatePaymentStatus={updatePaymentStatus}
+              assignDriver={assignDriver}
             />
-          </div>
-          <div className="flex rounded-xl border border-white/10 bg-slate-900/80 p-1 w-full sm:w-auto overflow-x-auto">
-            {['all', 'pending', 'confirmed', 'cancelled'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`rounded-lg px-4 py-1.5 text-xs font-medium capitalize transition-colors whitespace-nowrap ${
-                  filterStatus === status
-                    ? 'bg-aurora text-black font-semibold'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-        </div>
+          )}
 
-        {/* Canlı Tablo */}
-        <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden shadow-2xl">
-          <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-aurora animate-pulse" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white">Live Booking Feed, Payment & Location Matrix</h2>
-            </div>
-            <span className="text-xs text-slate-400">Showing {filteredBookings.length} entries</span>
-          </div>
+          {activeView === 'transfers' && (
+            <BookingTable
+              title="Live Booking Feed, Payment & Location Matrix"
+              bookings={transferBookings}
+              loading={loading}
+              currentUser={currentUser}
+              driverOptions={driverOptions}
+              searchTerm={searchTerm}
+              filterStatus={filterStatus}
+              onFilterStatusChange={setFilterStatus}
+              updateStatus={updateStatus}
+              updatePaymentStatus={updatePaymentStatus}
+              assignDriver={assignDriver}
+            />
+          )}
 
-          {loading ? (
-            <div className="text-center py-20 text-slate-400">Loading live data stream...</div>
-          ) : filteredBookings.length === 0 ? (
-            <div className="text-center py-20 text-slate-400 border-dashed border-white/10">
-              No matching tour records found.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.02] text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3.5 px-6">Status / Package</th>
-                    <th className="py-3.5 px-6">Customer & Payment</th>
-                    <th className="py-3.5 px-6">Schedule & Locations</th>
-                    <th className="py-3.5 px-6">Assigned Driver</th>
-                    <th className="py-3.5 px-6 text-right">Price (NOK)</th>
-                    <th className="py-3.5 px-6 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 text-sm">
-                  {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-white/[0.02] transition-colors group">
-                      
-                      {/* Durum ve Paket */}
-                      <td className="py-4 px-6 space-y-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            booking.status === 'confirmed'
-                              ? 'bg-aurora/20 text-aurora border border-aurora/30'
-                              : booking.status === 'cancelled'
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {booking.status === 'confirmed' && <CheckCircle2 className="h-3 w-3" />}
-                          {booking.status === 'cancelled' && <XCircle className="h-3 w-3" />}
-                          {booking.status === 'pending' && <Clock3 className="h-3 w-3" />}
-                          {booking.status}
-                        </span>
-                        <div className="font-semibold text-white group-hover:text-aurora transition-colors">
-                          {booking.item_title}
-                        </div>
-                      </td>
+          {activeView === 'customers' && currentUser.role === 'admin' && (
+            <CustomersView bookings={bookings} />
+          )}
 
-                      {/* Müşteri ve Ödeme Durumu */}
-                      <td className="py-4 px-6 space-y-1.5 text-xs">
-                        <div className="flex items-center gap-1.5 font-medium text-white">
-                          <User className="h-3.5 w-3.5 text-slate-500" />
-                          {booking.customer_name}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-slate-400">
-                          <Mail className="h-3.5 w-3.5 text-slate-500" />
-                          {booking.customer_email}
-                        </div>
-                        
-                        {/* Ödeme Rozeti / Değiştirici */}
-                        <div className="pt-1 flex items-center gap-2">
-                          <CreditCard className="h-3.5 w-3.5 text-slate-500" />
-                          <select
-                            value={booking.payment_status || 'pending'}
-                            onChange={(e) => updatePaymentStatus(booking.id, e.target.value as any)}
-                            className={`rounded-lg px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider border focus:outline-none ${
-                              booking.payment_status === 'paid'
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                                : booking.payment_status === 'refunded'
-                                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                                : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                            }`}
-                          >
-                            <option value="paid" className="bg-slate-900 text-emerald-400">Paid / Ödendi</option>
-                            <option value="pending" className="bg-slate-900 text-amber-400">Pending / Ödeme Bekliyor</option>
-                            <option value="refunded" className="bg-slate-900 text-rose-400">Refunded / İade</option>
-                          </select>
-                        </div>
-                      </td>
+          {activeView === 'drivers' && currentUser.role === 'admin' && (
+            <DriversView driverOptions={driverOptions} bookings={bookings} />
+          )}
 
-                      {/* Tarih ve Konum Bilgileri (Pickup / Dropoff) */}
-                      <td className="py-4 px-6 space-y-1.5 text-xs text-slate-400">
-                        <div className="flex items-center gap-1.5 text-slate-200 font-medium">
-                          <Calendar className="h-3.5 w-3.5 text-aurora" />
-                          {booking.booking_date}
-                        </div>
-                        <div className="flex items-start gap-1.5 text-slate-300 bg-white/5 p-2 rounded-xl border border-white/5">
-                          <MapPin className="h-4 w-4 text-aurora shrink-0 mt-0.5" />
-                          <div className="space-y-0.5">
-                            <span className="block text-[11px] text-slate-400">Route & Location Info:</span>
-                            <span className="font-medium text-white">{booking.notes || 'Pickup / Dropoff details not specified'}</span>
-                          </div>
-                        </div>
-                      </td>
+          {activeView === 'finance' && currentUser.role === 'admin' && (
+            <FinanceView bookings={bookings} />
+          )}
 
-                      {/* Şoför Atama */}
-                      <td className="py-4 px-6">
-                        {currentUser.role === 'admin' ? (
-                          <select
-                            value={booking.assigned_driver || ''}
-                            onChange={(e) => assignDriver(booking.id, e.target.value || null)}
-                            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-aurora focus:outline-none"
-                          >
-                            <option value="">Unassigned</option>
-                            {driverOptions.map(d => (
-                              <option key={d.id} value={d.display_name}>{d.display_name}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold bg-white/5 border border-white/10 text-slate-300">
-                              <Car className="h-3 w-3 text-aurora" />
-                              {booking.assigned_driver || 'Unassigned'}
-                            </span>
-                            {!booking.assigned_driver && (
-                              <button
-                                onClick={() => assignDriver(booking.id, currentUser.name)}
-                                className="rounded-xl bg-aurora/10 border border-aurora/30 px-3 py-1 text-xs font-semibold text-aurora hover:bg-aurora hover:text-black transition-all"
-                              >
-                                Take Tour
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Tutar */}
-                      <td className="py-4 px-6 text-right font-mono font-semibold text-white">
-                        {Number(booking.total_price || 0).toLocaleString()} <span className="text-xs text-slate-400">NOK</span>
-                      </td>
-
-                      {/* İşlemler */}
-                      <td className="py-4 px-6 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {booking.status !== 'confirmed' && (
-                            <button
-                              onClick={() => updateStatus(booking.id, 'confirmed')}
-                              title="Confirm Booking"
-                              className="rounded-xl bg-aurora/10 border border-aurora/30 p-2 text-aurora hover:bg-aurora hover:text-black transition-all"
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                            </button>
-                          )}
-                          {booking.status !== 'cancelled' && (
-                            <button
-                              onClick={() => updateStatus(booking.id, 'cancelled')}
-                              title="Cancel Booking"
-                              className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-2 text-rose-400 hover:bg-rose-500/20 transition-all"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {activeView === 'settings' && (
+            <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />
           )}
         </div>
-
       </div>
     </main>
   )
