@@ -1,4 +1,24 @@
-export function AuroraBackground() {
+interface AuroraBackgroundProps {
+  variant?: 'dark' | 'light'
+}
+
+export function AuroraBackground({ variant = 'dark' }: AuroraBackgroundProps) {
+  if (variant === 'light') {
+    return (
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        {/* base ivory */}
+        <div className="absolute inset-0 bg-[var(--home-bg)]" />
+        {/* soft gold glow top-right */}
+        <div className="animate-aurora-drift absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-[var(--home-gold)]/10 blur-[140px]" />
+        {/* soft pine glow bottom-left */}
+        <div
+          className="animate-aurora-drift absolute -bottom-52 left-[-10rem] h-[38rem] w-[38rem] rounded-full bg-[var(--home-accent)]/[0.06] blur-[150px]"
+          style={{ animationDelay: '3s' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {/* base obsidian */}

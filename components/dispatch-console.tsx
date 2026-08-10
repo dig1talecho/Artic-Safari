@@ -54,7 +54,7 @@ export function DispatchConsole() {
   const [fleet, setFleet] = useState(fleets[0].id)
   const [date, setDate] = useState('')
   const [tour, setTour] = useState(tourOptions[0].id)
-  
+
   // Müşteri bilgileri state'leri
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
@@ -120,9 +120,9 @@ export function DispatchConsole() {
     try {
       const selectedFleet = fleets.find((f) => f.id === fleet)
       const selectedTour = tourOptions.find((t) => t.id === tour)
-      
-      const pickupText = pickup === LIVE_LOCATION && coords 
-        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
+
+      const pickupText = pickup === LIVE_LOCATION && coords
+        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})`
         : pickup
 
       const { data, error } = await supabase.from('bookings').insert([
@@ -153,12 +153,12 @@ export function DispatchConsole() {
 
     if (mode === 'taxi') {
       const selectedFleet = fleets.find((f) => f.id === fleet)
-      
-      const pickupText = pickup === LIVE_LOCATION && coords 
-        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})` 
+
+      const pickupText = pickup === LIVE_LOCATION && coords
+        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})`
         : pickup
 
-      plainText = 
+      plainText =
 `*ARTIC SAFARI - VIP TRANSFER BOOKING*
 ----------------------------------------
 Customer: ${customerName || 'Guest'}
@@ -173,7 +173,7 @@ Please confirm availability and dispatch driver.`
     } else {
       const selectedTour = tourOptions.find((t) => t.id === tour)
 
-      plainText = 
+      plainText =
 `*ARTIC SAFARI - TOUR RESERVATION*
 ----------------------------------------
 Customer: ${customerName || 'Guest'}
@@ -191,14 +191,17 @@ Please confirm booking for this date.`
   }
 
   return (
-    <div className="glass animate-float-up rounded-3xl border border-white/10 p-2 shadow-2xl shadow-black/40" style={{ animationDelay: '0.3s' }}>
-      <div className="rounded-[1.35rem] border border-white/[0.06] bg-black/20 p-4 sm:p-5">
+    <div
+      className="animate-float-up rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-2 shadow-[0_20px_60px_-16px_rgba(33,31,27,0.18)]"
+      style={{ animationDelay: '0.3s' }}
+    >
+      <div className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--home-muted)]">
             Dispatch Console
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-aurora">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-aurora" />
+          <span className="flex items-center gap-1.5 text-xs text-[var(--home-accent)]">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--home-gold)]" />
             Live pricing
           </span>
         </div>
@@ -206,7 +209,7 @@ Please confirm booking for this date.`
         <div
           role="tablist"
           aria-label="Dispatch mode"
-          className="mb-4 grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/[0.02] p-1"
+          className="mb-4 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] p-1"
         >
           {modes.map((m) => (
             <button
@@ -215,10 +218,10 @@ Please confirm booking for this date.`
               type="button"
               aria-selected={mode === m.id}
               onClick={() => setMode(m.id)}
-              className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+              className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                 mode === m.id
-                  ? 'bg-violet text-primary-foreground shadow-[0_0_24px_-6px_rgba(110,58,255,0.8)]'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-[var(--home-accent)] text-white'
+                  : 'text-[var(--home-muted)] hover:text-[var(--home-foreground)]'
               }`}
             >
               {m.label}
@@ -231,30 +234,33 @@ Please confirm booking for this date.`
           <Field icon={<User className="h-4 w-4" />} label="Full Name">
             <input
               type="text"
+              autoComplete="name"
               placeholder="John Doe"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
             />
           </Field>
 
           <Field icon={<Mail className="h-4 w-4" />} label="Email Address">
             <input
               type="email"
+              autoComplete="email"
               placeholder="john@example.com"
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
             />
           </Field>
 
           <Field icon={<Phone className="h-4 w-4" />} label="Phone Number">
             <input
               type="tel"
+              autoComplete="tel"
               placeholder="+47 000 00 000"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
             />
           </Field>
         </div>
@@ -265,7 +271,7 @@ Please confirm booking for this date.`
               <select
                 value={pickup}
                 onChange={(e) => handlePickupChange(e.target.value)}
-                className="w-full bg-transparent text-sm text-foreground outline-none [&>option]:bg-card"
+                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [&>option]:bg-white"
               >
                 {pickups.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -276,10 +282,10 @@ Please confirm booking for this date.`
               {pickup === LIVE_LOCATION && (
                 <span className="mt-1 text-[11px] normal-case tracking-normal">
                   {geoStatus === 'locating' && (
-                    <span className="text-muted-foreground">Locating you…</span>
+                    <span className="text-[var(--home-muted)]">Locating you…</span>
                   )}
                   {geoStatus === 'success' && coords && (
-                    <span className="font-mono text-aurora tabular-nums">
+                    <span className="font-mono text-[var(--home-accent)] tabular-nums">
                       {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
                     </span>
                   )}
@@ -306,14 +312,14 @@ Please confirm booking for this date.`
                     type="button"
                     aria-pressed={fleet === f.id}
                     onClick={() => setFleet(f.id)}
-                    className={`flex-1 rounded-lg px-2 py-1 text-xs font-medium transition-all ${
+                    className={`flex-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors ${
                       fleet === f.id
-                        ? 'bg-violet/20 text-foreground ring-1 ring-violet/60'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-[var(--home-accent-soft)] text-[var(--home-foreground)] ring-1 ring-[var(--home-accent)]/40'
+                        : 'text-[var(--home-muted)] hover:text-[var(--home-foreground)]'
                     }`}
                   >
                     {f.label}
-                    <span className="ml-1 text-muted-foreground">{f.hint}</span>
+                    <span className="ml-1 text-[var(--home-muted)]">{f.hint}</span>
                   </button>
                 ))}
               </div>
@@ -325,7 +331,7 @@ Please confirm booking for this date.`
               <select
                 value={tour}
                 onChange={(e) => setTour(e.target.value)}
-                className="w-full bg-transparent text-sm text-foreground outline-none [&>option]:bg-card"
+                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [&>option]:bg-white"
               >
                 {tourOptions.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -340,23 +346,23 @@ Please confirm booking for this date.`
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-transparent text-sm text-foreground outline-none [color-scheme:dark]"
+                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [color-scheme:light]"
               />
             </Field>
           </div>
         )}
 
         <div className="mt-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-baseline gap-2 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3">
-            <span className="text-xs text-muted-foreground">Instant estimate</span>
-            <span className="font-mono text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+          <div className="flex items-baseline gap-2 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3">
+            <span className="text-xs text-[var(--home-muted)]">Instant estimate</span>
+            <span className="font-mono text-2xl font-semibold tracking-tight text-[var(--home-foreground)] tabular-nums">
               {formatKr(price)}
             </span>
           </div>
           <button
             type="button"
             onClick={handleReserve}
-            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-aurora px-6 py-3.5 text-sm font-semibold text-accent-foreground transition-all hover:shadow-[0_0_30px_-4px_rgba(0,255,163,0.6)]"
+            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             Reserve Dispatch
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -400,17 +406,18 @@ function AddressAutocomplete({
 
   return (
     <div ref={containerRef} onBlur={handleBlur} className="relative">
-      <label className="flex flex-col gap-1.5 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 transition-colors focus-within:border-violet/50">
-        <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-          <span className="text-violet">
+      <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-colors focus-within:border-[var(--home-accent)]">
+        <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
+          <span className="text-[var(--home-accent)]">
             <Navigation className="h-4 w-4" />
           </span>
           Dropoff Destination
         </span>
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Search className="h-4 w-4 shrink-0 text-[var(--home-muted)]" />
           <input
             type="text"
+            autoComplete="off"
             value={value}
             onChange={(e) => {
               onChange(e.target.value)
@@ -422,29 +429,28 @@ function AddressAutocomplete({
             role="combobox"
             aria-expanded={open}
             aria-autocomplete="list"
-            autoComplete="off"
-            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+            className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
           />
-          {selected && value && <MapPin className="h-4 w-4 shrink-0 text-aurora" />}
+          {selected && value && <MapPin className="h-4 w-4 shrink-0 text-[var(--home-accent)]" />}
         </div>
       </label>
 
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="glass absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-2xl border border-white/10 bg-card/95 py-1 shadow-2xl shadow-black/50"
+          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(33,31,27,0.2)]"
         >
           {results.map((p) => (
             <li key={p.name} role="option" aria-selected={value === p.name}>
               <button
                 type="button"
                 onClick={() => handleSelect(p.name)}
-                className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.06]"
+                className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[var(--home-surface-soft)]"
               >
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--home-accent)]" />
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm text-foreground">{p.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">{p.address}</span>
+                  <span className="truncate text-sm text-[var(--home-foreground)]">{p.name}</span>
+                  <span className="truncate text-xs text-[var(--home-muted)]">{p.address}</span>
                 </span>
               </button>
             </li>
@@ -452,7 +458,7 @@ function AddressAutocomplete({
         </ul>
       )}
       {open && value.trim() && results.length === 0 && (
-        <div className="glass absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-white/10 bg-card/95 px-3 py-2.5 text-xs text-muted-foreground shadow-2xl shadow-black/50">
+        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(33,31,27,0.2)]">
           No matches for “{value}”
         </div>
       )}
@@ -470,9 +476,9 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <label className="flex flex-col gap-1.5 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 transition-colors focus-within:border-violet/50">
-      <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-        <span className="text-violet">{icon}</span>
+    <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-colors focus-within:border-[var(--home-accent)]">
+      <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
+        <span className="text-[var(--home-accent)]">{icon}</span>
         {label}
       </span>
       {children}

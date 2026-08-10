@@ -7,6 +7,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-fraunces), Georgia, serif;
   --color-violet: var(--violet);
   --color-aurora: var(--aurora);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -165,6 +166,32 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Homepage-only light "luxury" theme. Scoped entirely to .home-theme so
+   /dashboard and /admin (which use the :root tokens above) are unaffected. */
+.home-theme {
+  color-scheme: light;
+  --home-bg: #faf7f1;
+  --home-surface: #ffffff;
+  --home-surface-soft: #f3eee4;
+  --home-foreground: #211f1b;
+  --home-muted: #746c5e;
+  --home-border: #e6dfd1;
+  --home-accent: #1f4d3d;
+  --home-accent-soft: #e8f0ec;
+  --home-gold: #b4934f;
+  --home-gold-soft: #f3ecdc;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-drift,
+  .animate-float-up,
+  .animate-shimmer,
+  .live-dot,
+  .glow-border::before {
+    animation: none !important;
   }
 }
 
