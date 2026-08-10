@@ -362,7 +362,7 @@ Please confirm booking for this date.`
           <button
             type="button"
             onClick={handleReserve}
-            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
           >
             Reserve Dispatch
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

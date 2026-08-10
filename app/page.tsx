@@ -3,6 +3,7 @@ import { SiteHeader } from '@/components/site-header'
 import { Hero } from '@/components/hero'
 import { TourPackages } from '@/components/tour-packages'
 import { AuroraRadar } from '@/components/aurora-radar'
+import { FaqSection } from '@/components/faq-section'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { SocialRail } from '@/components/social-rail'
 
@@ -14,6 +15,7 @@ export default function Page() {
       <Hero />
       <TourPackages />
       <AuroraRadar />
+      <FaqSection />
       <FloatingActionBar />
       <SocialRail variant="light" />
       <footer className="relative z-10 mx-auto w-full max-w-7xl border-t border-[var(--home-border)] px-5 py-10 text-center text-sm text-[var(--home-muted)]">

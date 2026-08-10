@@ -44,14 +44,14 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
         <div className="flex items-center gap-3">
           <a
             href="/dashboard"
-            className="hidden items-center gap-1.5 rounded-full border border-[var(--home-border)] px-4 py-2 text-[13px] font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] sm:flex"
+            className="hidden items-center gap-1.5 rounded-full border border-[var(--home-border)] px-4 py-2 text-[13px] font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96] sm:flex"
           >
             <User className="h-3.5 w-3.5" />
             My Bookings
           </a>
           <a
             href="/#tours"
-            className="rounded-full bg-[var(--home-accent)] px-5 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+            className="rounded-full bg-[var(--home-accent)] px-5 py-2.5 text-[13px] font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
           >
             Book Now
           </a>

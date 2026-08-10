@@ -244,7 +244,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Airport Transfer', transferPrice, transfer === 'small' ? '1-4 Persons' : '4-8 Persons')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
+            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
           >
             Book Transfer
           </button>
@@ -288,7 +288,7 @@ export function TourPackages() {
               <button
                 type="button"
                 onClick={() => handleBooking('Northern Lights — Private Group', '15,000 kr', 'Up to 8 guests')}
-                className="w-full rounded-2xl bg-[var(--home-accent)] py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-90 sm:w-auto sm:px-8"
+                className="w-full rounded-2xl bg-[var(--home-accent)] py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] sm:w-auto sm:px-8"
               >
                 Reserve Private Group
               </button>
@@ -308,7 +308,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Northern Lights — Per Person', '2,000 kr / person')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
+            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
           >
             Book Ticket
           </button>
@@ -334,7 +334,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Northern Lights — Private Small Group', '11,000 kr', '1 to 4 persons')}
-            className="mt-6 w-full rounded-2xl bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-accent)] hover:text-white"
+            className="mt-6 w-full rounded-2xl bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-accent)] hover:text-white active:scale-[0.96]"
           >
             Book Small Group
           </button>
@@ -358,7 +358,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Sommarøya Tour', sommaroyaPrice, sommaroya === 'small' ? 'Small Car' : 'Big Car')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
+            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
           >
             Book Scenic Tour
           </button>
@@ -495,7 +495,7 @@ export function TourPackages() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="mt-6 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    className="mt-6 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
                   >
                     {loading ? 'Saving…' : 'Confirm Booking'}
                   </button>

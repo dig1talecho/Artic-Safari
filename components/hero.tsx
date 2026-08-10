@@ -39,14 +39,14 @@ export function Hero() {
         >
           <a
             href="#tours"
-            className="group inline-flex items-center gap-2 rounded-full bg-[var(--home-accent)] px-7 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="group inline-flex items-center gap-2 rounded-full bg-[var(--home-accent)] px-7 py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
           >
             Book VIP Tour
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
             href="#tours"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--home-border)] px-7 py-3.5 text-sm font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)]"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--home-border)] px-7 py-3.5 text-sm font-medium text-[var(--home-foreground)] transition-[border-color,scale] hover:border-[var(--home-accent)] active:scale-[0.96]"
           >
             Quick Transfer
           </a>
@@ -55,7 +55,7 @@ export function Hero() {
 
       {/* Hero image band */}
       <div
-        className="animate-float-up relative mx-auto mt-14 overflow-hidden rounded-[1.75rem]"
+        className="animate-float-up relative mx-auto mt-14 overflow-hidden rounded-[1.75rem] ring-1 ring-inset ring-black/10"
         style={{ animationDelay: '0.3s' }}
       >
         <Image
