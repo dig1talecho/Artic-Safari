@@ -1,9 +1,10 @@
+import Image from 'next/image'
 import { Snowflake, User } from 'lucide-react'
 
 const links = [
-  { label: 'Tours', href: '#tours' },
-  { label: 'Aurora Radar', href: '#radar' },
-  { label: 'Transfers', href: '#tours' },
+  { label: 'Tours', href: '/#tours' },
+  { label: 'Aurora Radar', href: '/#radar' },
+  { label: 'Transfers', href: '/#tours' },
 ]
 
 interface SiteHeaderProps {
@@ -14,10 +15,15 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
   if (variant === 'light') {
     return (
       <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-7">
-        <a href="#" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] text-[var(--home-accent)]">
-            <Snowflake className="h-4 w-4" />
-          </span>
+        <a href="/" className="flex items-center gap-2.5">
+          <Image
+            src="/logo.png"
+            alt="Artic Safari Tour"
+            width={40}
+            height={40}
+            className="h-10 w-10 object-contain"
+            priority
+          />
           <span className="font-[family-name:var(--font-display)] text-[16px] tracking-tight text-[var(--home-foreground)]">
             Artic <span className="italic text-[var(--home-muted)]">Safari</span>
           </span>
@@ -44,7 +50,7 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
             My Bookings
           </a>
           <a
-            href="#tours"
+            href="/#tours"
             className="rounded-full bg-[var(--home-accent)] px-5 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
           >
             Book Now
@@ -56,7 +62,7 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
 
   return (
     <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-6">
-      <a href="#" className="flex items-center gap-2.5">
+      <a href="/" className="flex items-center gap-2.5">
         <span className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-aurora">
           <Snowflake className="h-5 w-5" />
         </span>
@@ -86,7 +92,7 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
           My Bookings
         </a>
         <a
-          href="#tours"
+          href="/#tours"
           className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-foreground backdrop-blur-xl transition-colors hover:border-aurora/40 hover:text-aurora"
         >
           Book Now

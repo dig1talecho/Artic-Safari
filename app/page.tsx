@@ -4,6 +4,7 @@ import { Hero } from '@/components/hero'
 import { TourPackages } from '@/components/tour-packages'
 import { AuroraRadar } from '@/components/aurora-radar'
 import { FloatingActionBar } from '@/components/floating-action-bar'
+import { SocialRail } from '@/components/social-rail'
 
 export default function Page() {
   return (
@@ -14,6 +15,7 @@ export default function Page() {
       <TourPackages />
       <AuroraRadar />
       <FloatingActionBar />
+      <SocialRail variant="light" />
       <footer className="relative z-10 mx-auto w-full max-w-7xl border-t border-[var(--home-border)] px-5 py-10 text-center text-sm text-[var(--home-muted)]">
         Artic Safari — Nordic VIP Private Tours &amp; Transit · Tromsø, Northern Norway
       </footer>

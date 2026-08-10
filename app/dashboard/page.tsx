@@ -1,6 +1,7 @@
 import { AuroraBackground } from '@/components/aurora-background'
 import { SiteHeader } from '@/components/site-header'
 import { MyBookingsPanel } from '@/components/my-bookings-panel'
+import { SocialRail } from '@/components/social-rail'
 
 export default function DashboardPage() {
   return (
@@ -8,6 +9,7 @@ export default function DashboardPage() {
       <AuroraBackground />
       <SiteHeader />
       <MyBookingsPanel />
+      <SocialRail />
     </main>
   )
 }
