@@ -7,12 +7,12 @@ export function Hero() {
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:pt-16">
       {/* Live status pill */}
       <div className="animate-float-up flex justify-center">
-        <div className="inline-flex items-center gap-2.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(33,31,27,0.04)]">
+        <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(11,31,42,0.04)]">
           <span className="live-dot h-2 w-2 rounded-full bg-[var(--home-gold)]" />
-          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--home-foreground)]">
+          <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--home-foreground)]">
             <Activity className="h-3.5 w-3.5 text-[var(--home-accent)]" />
             High Aurora Activity Expected Tonight
-            <span className="font-mono text-[var(--home-accent)]">(KP 5.6)</span>
+            <span className="font-mono text-[var(--home-gold)]">(KP 5.6)</span>
           </span>
         </div>
       </div>
@@ -20,11 +20,11 @@ export function Hero() {
       {/* Headline */}
       <div className="mx-auto mt-10 max-w-4xl text-center">
         <h1
-          className="animate-float-up text-balance font-[family-name:var(--font-display)] text-4xl font-normal leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl"
+          className="animate-float-up text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl"
           style={{ animationDelay: '0.1s' }}
         >
           Chasing Auroras in{' '}
-          <span className="italic text-[var(--home-accent)]">First-Class Comfort</span>
+          <span className="text-[var(--home-accent)]">First-Class Comfort</span>
         </h1>
         <p
           className="animate-float-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-[var(--home-muted)] sm:text-lg"
@@ -39,14 +39,14 @@ export function Hero() {
         >
           <a
             href="#tours"
-            className="group inline-flex items-center gap-2 rounded-full bg-[var(--home-accent)] px-7 py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
+            className="group inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8]"
           >
             Book VIP Tour
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
             href="#tours"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--home-border)] px-7 py-3.5 text-sm font-medium text-[var(--home-foreground)] transition-[border-color,scale] hover:border-[var(--home-accent)] active:scale-[0.96]"
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-[var(--home-foreground)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Quick Transfer
           </a>

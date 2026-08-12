@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
+import { Geist, Geist_Mono, Archivo_Black } from 'next/font/google'
 import { AuthRedirectHandler } from '@/components/auth-redirect-handler'
 import './globals.css'
 
@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
 })
 
-const fraunces = Fraunces({
+const archivoBlack = Archivo_Black({
   subsets: ['latin'],
-  variable: '--font-fraunces',
-  style: ['normal', 'italic'],
+  variable: '--font-archivo-black',
+  weight: '400',
 })
 
 const siteUrl = 'https://www.articsafaritour.com'
@@ -67,7 +67,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} bg-background`}
+      className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} bg-background`}
     >
       <body className="font-sans antialiased">
         <AuthRedirectHandler />

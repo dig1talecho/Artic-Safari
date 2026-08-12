@@ -192,7 +192,7 @@ Please confirm booking for this date.`
 
   return (
     <div
-      className="animate-float-up rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-2 shadow-[0_20px_60px_-16px_rgba(33,31,27,0.18)]"
+      className="animate-float-up rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-2 shadow-[0_20px_60px_-16px_rgba(11,31,42,0.18)]"
       style={{ animationDelay: '0.3s' }}
     >
       <div className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5">
@@ -362,7 +362,7 @@ Please confirm booking for this date.`
           <button
             type="button"
             onClick={handleReserve}
-            className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8]"
           >
             Reserve Dispatch
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -438,7 +438,7 @@ function AddressAutocomplete({
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(33,31,27,0.2)]"
+          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(11,31,42,0.2)]"
         >
           {results.map((p) => (
             <li key={p.name} role="option" aria-selected={value === p.name}>
@@ -458,7 +458,7 @@ function AddressAutocomplete({
         </ul>
       )}
       {open && value.trim() && results.length === 0 && (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(33,31,27,0.2)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(11,31,42,0.2)]">
           No matches for “{value}”
         </div>
       )}

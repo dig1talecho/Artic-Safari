@@ -24,8 +24,8 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
             className="h-10 w-10 object-contain"
             priority
           />
-          <span className="font-[family-name:var(--font-display)] text-[16px] tracking-tight text-[var(--home-foreground)]">
-            Artic <span className="italic text-[var(--home-muted)]">Safari</span>
+          <span className="font-[family-name:var(--font-display)] text-[15px] uppercase tracking-tight text-[var(--home-foreground)]">
+            Artic <span className="text-[var(--home-accent)]">Safari</span>
           </span>
         </a>
 
@@ -51,7 +51,7 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
           </a>
           <a
             href="/#tours"
-            className="rounded-full bg-[var(--home-accent)] px-5 py-2.5 text-[13px] font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
+            className="rounded-xl bg-[var(--home-accent)] px-5 py-2.5 text-[13px] font-bold uppercase tracking-wide text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96]"
           >
             Book Now
           </a>

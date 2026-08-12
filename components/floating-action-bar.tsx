@@ -3,7 +3,7 @@ import { MessageCircle, Phone, Headset } from 'lucide-react'
 export function FloatingActionBar() {
   return (
     <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
-      <div className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] p-1.5 shadow-[0_16px_40px_-12px_rgba(33,31,27,0.25)]">
+      <div className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] p-1.5 shadow-[0_16px_40px_-12px_rgba(11,31,42,0.25)]">
         <a
           href="https://wa.me/+4792997190"
           aria-label="Chat with us on WhatsApp"

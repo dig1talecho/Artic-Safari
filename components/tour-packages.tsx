@@ -50,7 +50,7 @@ function Card({
       : 'hover:border-[var(--home-accent)]/40'
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(33,31,27,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-12px_rgba(33,31,27,0.16)] ${ring} ${className}`}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16)] ${ring} ${className}`}
     >
       {children}
     </div>
@@ -244,7 +244,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Airport Transfer', transferPrice, transfer === 'small' ? '1-4 Persons' : '4-8 Persons')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
+            className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Transfer
           </button>
@@ -259,7 +259,7 @@ export function TourPackages() {
                 eyebrow="Signature Experience"
                 title="Northern Lights Tour — Private Group"
               />
-              <span className="shrink-0 rounded-full border border-[var(--home-gold)]/40 bg-[var(--home-gold-soft)] px-3 py-1.5 text-xs font-medium text-[var(--home-gold)]">
+              <span className="shrink-0 rounded-md bg-[var(--home-gold)] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
                 Most Booked
               </span>
             </div>
@@ -288,7 +288,7 @@ export function TourPackages() {
               <button
                 type="button"
                 onClick={() => handleBooking('Northern Lights — Private Group', '15,000 kr', 'Up to 8 guests')}
-                className="w-full rounded-2xl bg-[var(--home-accent)] py-3.5 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] sm:w-auto sm:px-8"
+                className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8] sm:w-auto sm:px-8"
               >
                 Reserve Private Group
               </button>
@@ -308,7 +308,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Northern Lights — Per Person', '2,000 kr / person')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
+            className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Ticket
           </button>
@@ -334,7 +334,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Northern Lights — Private Small Group', '11,000 kr', '1 to 4 persons')}
-            className="mt-6 w-full rounded-2xl bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-accent)] hover:text-white active:scale-[0.96]"
+            className="mt-6 w-full rounded-xl bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-accent)] hover:text-white active:scale-[0.96]"
           >
             Book Small Group
           </button>
@@ -358,7 +358,7 @@ export function TourPackages() {
           <button
             type="button"
             onClick={() => handleBooking('Sommarøya Tour', sommaroyaPrice, sommaroya === 'small' ? 'Small Car' : 'Big Car')}
-            className="mt-6 w-full rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 text-sm font-medium text-[var(--home-foreground)] transition-[color,border-color,scale] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)] active:scale-[0.96]"
+            className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Scenic Tour
           </button>
@@ -368,7 +368,7 @@ export function TourPackages() {
       {/* Booking Modal */}
       {selectedPackage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--home-foreground)]/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(33,31,27,0.35)]">
+          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(11,31,42,0.35)]">
             <button
               onClick={() => setSelectedPackage(null)}
               className="absolute right-4 top-4 rounded-full p-2 text-[var(--home-muted)] hover:bg-[var(--home-surface-soft)] hover:text-[var(--home-foreground)]"
@@ -495,7 +495,7 @@ export function TourPackages() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="mt-6 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-medium text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
+                    className="mt-6 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
                   >
                     {loading ? 'Saving…' : 'Confirm Booking'}
                   </button>

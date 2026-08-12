@@ -7,7 +7,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-archivo-black), Arial Black, sans-serif;
   --color-violet: var(--violet);
   --color-aurora: var(--aurora);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -169,20 +169,20 @@
   }
 }
 
-/* Homepage-only light "luxury" theme. Scoped entirely to .home-theme so
+/* Homepage-only "bold adventure" theme. Scoped entirely to .home-theme so
    /dashboard and /admin (which use the :root tokens above) are unaffected. */
 .home-theme {
   color-scheme: light;
-  --home-bg: #faf7f1;
+  --home-bg: #ffffff;
   --home-surface: #ffffff;
-  --home-surface-soft: #f3eee4;
-  --home-foreground: #211f1b;
-  --home-muted: #746c5e;
-  --home-border: #e6dfd1;
-  --home-accent: #1f4d3d;
-  --home-accent-soft: #e8f0ec;
-  --home-gold: #b4934f;
-  --home-gold-soft: #f3ecdc;
+  --home-surface-soft: #e8f4fb;
+  --home-foreground: #0b1f2a;
+  --home-muted: #4a6b7a;
+  --home-border: #cfe7f2;
+  --home-accent: #0ea5e9;
+  --home-accent-soft: #dff1fb;
+  --home-gold: #ff6b35;
+  --home-gold-soft: #ffe4d6;
 }
 
 @media (prefers-reduced-motion: reduce) {

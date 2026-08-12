@@ -86,7 +86,7 @@ export function FaqSection() {
         </h2>
       </div>
 
-      <div className="rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] px-6 shadow-[0_2px_24px_-8px_rgba(33,31,27,0.08)] sm:px-8">
+      <div className="rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] px-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] sm:px-8">
         {faqs.map((faq, index) => (
           <FaqItem
             key={faq.question}
