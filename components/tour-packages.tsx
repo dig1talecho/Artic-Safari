@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
+import { useSpamGuard } from '@/lib/use-spam-guard'
 import {
   Plane,
   Sparkles,
@@ -166,6 +167,7 @@ export function TourPackages() {
   const { session } = useSession()
   const { profile: customerProfile } = useCustomerProfile(session)
   const isSignedIn = Boolean(customerProfile)
+  const spamGuard = useSpamGuard()
 
   const [transfer, setTransfer] = useState<(typeof transferSizes)[number]['id']>('small')
   const [sommaroya, setSommaroya] = useState<(typeof sommaroyaCars)[number]['id']>('small')
@@ -174,6 +176,7 @@ export function TourPackages() {
   const [selectedPackage, setSelectedPackage] = useState<BookingDetails | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
 
   // Form input state'leri
   const [fullName, setFullName] = useState('')
@@ -194,11 +197,23 @@ export function TourPackages() {
     setPhone(customerProfile?.phone ?? '')
     setDate('')
     setTime('')
+    setStep(1)
+    spamGuard.reset()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedPackage) return
+
+    if (spamGuard.isSpam()) {
+      // Silently skip the insert for bot-like submissions without tipping them off.
+      setIsSubmitted(true)
+      setTimeout(() => {
+        setSelectedPackage(null)
+        setIsSubmitted(false)
+      }, 2500)
+      return
+    }
 
     setLoading(true)
 
@@ -436,104 +451,219 @@ export function TourPackages() {
                   </div>
                 </div>
 
+                {/* Step progress */}
+                <div className="mb-6 flex items-center gap-2">
+                  {(['Date & Time', 'Your Details', 'Confirm'] as const).map((label, i) => {
+                    const stepNum = (i + 1) as 1 | 2 | 3
+                    return (
+                      <div key={label} className="flex flex-1 items-center gap-2">
+                        <div
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                            step >= stepNum
+                              ? 'bg-[var(--home-accent)] text-white'
+                              : 'bg-[var(--home-surface-soft)] text-[var(--home-muted)]'
+                          }`}
+                        >
+                          {step > stepNum ? <Check className="h-3 w-3" /> : stepNum}
+                        </div>
+                        <span
+                          className={`hidden text-xs font-medium sm:block ${
+                            step >= stepNum ? 'text-[var(--home-foreground)]' : 'text-[var(--home-muted)]'
+                          }`}
+                        >
+                          {label}
+                        </span>
+                        {stepNum < 3 && <div className="h-px flex-1 bg-[var(--home-border)]" />}
+                      </div>
+                    )
+                  })}
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {isSignedIn ? (
-                    <div className="rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] p-3.5">
-                      <p className="text-[11px] uppercase tracking-wider text-[var(--home-accent)]">Booking as</p>
-                      <p className="mt-1 text-sm font-medium text-[var(--home-foreground)]">{fullName}</p>
-                      <p className="text-xs text-[var(--home-muted)]">
-                        {email}
-                        {phone ? ` · ${phone}` : ''}
-                      </p>
-                    </div>
-                  ) : (
+                  <input
+                    type="text"
+                    name="company"
+                    value={spamGuard.honeypot}
+                    onChange={(e) => spamGuard.setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    className="sr-only"
+                  />
+
+                  {step === 1 && (
                     <>
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Full Name</label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                          <input
-                            required
-                            type="text"
-                            autoComplete="name"
-                            placeholder="John Doe"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
-                          />
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Date</label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                            <input
+                              required
+                              type="date"
+                              value={date}
+                              onChange={(e) => setDate(e.target.value)}
+                              className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none [color-scheme:light]"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Preferred Time</label>
+                          <div className="relative">
+                            <Clock className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                            <input
+                              type="time"
+                              value={time}
+                              onChange={(e) => setTime(e.target.value)}
+                              className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none [color-scheme:light]"
+                            />
+                          </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                          <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Email</label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                            <input
-                              required
-                              type="email"
-                              autoComplete="email"
-                              placeholder="john@example.com"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
-                            />
-                          </div>
+                      <button
+                        type="button"
+                        disabled={!date}
+                        onClick={() => setStep(2)}
+                        className="mt-2 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      >
+                        Continue
+                      </button>
+                    </>
+                  )}
+
+                  {step === 2 && (
+                    <>
+                      {isSignedIn ? (
+                        <div className="rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] p-3.5">
+                          <p className="text-[11px] uppercase tracking-wider text-[var(--home-accent)]">Booking as</p>
+                          <p className="mt-1 text-sm font-medium text-[var(--home-foreground)]">{fullName}</p>
+                          <p className="text-xs text-[var(--home-muted)]">
+                            {email}
+                            {phone ? ` · ${phone}` : ''}
+                          </p>
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Phone</label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                            <input
-                              required
-                              type="tel"
-                              autoComplete="tel"
-                              placeholder="+47 000 00 000"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
-                            />
+                      ) : (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Full Name</label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                              <input
+                                required
+                                type="text"
+                                autoComplete="name"
+                                placeholder="John Doe"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
+                              />
+                            </div>
                           </div>
-                        </div>
+
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Email</label>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                                <input
+                                  required
+                                  type="email"
+                                  autoComplete="email"
+                                  placeholder="john@example.com"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Phone</label>
+                              <div className="relative">
+                                <Phone className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                                <input
+                                  required
+                                  type="tel"
+                                  autoComplete="tel"
+                                  placeholder="+47 000 00 000"
+                                  value={phone}
+                                  onChange={(e) => setPhone(e.target.value)}
+                                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setStep(1)}
+                          className="rounded-xl border-2 border-[var(--home-foreground)] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-foreground)] hover:text-white"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!isSignedIn && (!fullName || !email || !phone)}
+                          onClick={() => setStep(3)}
+                          className="flex-1 rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          Continue
+                        </button>
                       </div>
                     </>
                   )}
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Date</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                        <input
-                          required
-                          type="date"
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                          className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none [color-scheme:light]"
-                        />
+                  {step === 3 && (
+                    <>
+                      <div className="space-y-2 rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 text-sm">
+                        <div className="flex justify-between text-[var(--home-foreground)]">
+                          <span className="text-[var(--home-muted)]">Package</span>
+                          <span className="font-medium">{selectedPackage.title}</span>
+                        </div>
+                        <div className="flex justify-between text-[var(--home-foreground)]">
+                          <span className="text-[var(--home-muted)]">Date</span>
+                          <span className="font-medium">
+                            {date}
+                            {time ? ` · ${time}` : ''}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[var(--home-foreground)]">
+                          <span className="text-[var(--home-muted)]">Contact</span>
+                          <span className="text-right font-medium">
+                            {fullName}
+                            <br />
+                            {email}
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t border-[var(--home-border)] pt-2 text-[var(--home-foreground)]">
+                          <span className="text-[var(--home-muted)]">Price</span>
+                          <span className="font-mono font-semibold text-[var(--home-accent)]">
+                            {selectedPackage.price}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--home-muted)] mb-1">Preferred Time</label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                        <input
-                          type="time"
-                          value={time}
-                          onChange={(e) => setTime(e.target.value)}
-                          className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none [color-scheme:light]"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="mt-6 w-full rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-[opacity,scale] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
-                  >
-                    {loading ? 'Saving…' : 'Confirm Booking'}
-                  </button>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setStep(2)}
+                          className="rounded-xl border-2 border-[var(--home-foreground)] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-foreground)] hover:text-white"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          {loading ? 'Saving…' : 'Confirm Booking'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </form>
               </>
             )}

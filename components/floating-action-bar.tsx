@@ -1,9 +1,18 @@
-import { MessageCircle, Phone, Headset } from 'lucide-react'
+import { MessageCircle, Phone, Headset, CalendarCheck } from 'lucide-react'
 
 export function FloatingActionBar() {
   return (
     <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
       <div className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] p-1.5 shadow-[0_16px_40px_-12px_rgba(11,31,42,0.25)]">
+        <a
+          href="#tours"
+          aria-label="Book now"
+          className="flex items-center gap-2 rounded-full bg-[var(--home-gold)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+        >
+          <CalendarCheck className="h-4 w-4" />
+          Book Now
+        </a>
+        <span className="mx-0.5 h-6 w-px bg-[var(--home-border)]" />
         <a
           href="https://wa.me/+4792997190"
           aria-label="Chat with us on WhatsApp"

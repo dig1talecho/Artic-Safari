@@ -1,6 +1,12 @@
 import Image from 'next/image'
-import { Activity, ArrowRight } from 'lucide-react'
+import { Activity, ArrowRight, ShieldCheck, Zap, MessageCircle } from 'lucide-react'
 import { DispatchConsole } from './dispatch-console'
+
+const trustBadges = [
+  { icon: ShieldCheck, label: 'Secure Booking' },
+  { icon: Zap, label: 'Instant Confirmation Request' },
+  { icon: MessageCircle, label: 'WhatsApp Support' },
+] as const
 
 export function Hero() {
   return (
@@ -78,6 +84,19 @@ export function Hero() {
       {/* Dispatch console overlapping */}
       <div className="relative z-10 mx-auto -mt-16 max-w-4xl px-1 sm:-mt-20">
         <DispatchConsole />
+      </div>
+
+      {/* Trust badges */}
+      <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-1">
+        {trustBadges.map(({ icon: Icon, label }) => (
+          <span
+            key={label}
+            className="flex items-center gap-1.5 text-xs font-medium text-[var(--home-muted)]"
+          >
+            <Icon className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+            {label}
+          </span>
+        ))}
       </div>
     </section>
   )

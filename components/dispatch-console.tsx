@@ -1,5 +1,6 @@
 'use client'
 import { supabase } from '@/lib/supabase'
+import { useSpamGuard } from '@/lib/use-spam-guard'
 import { useMemo, useRef, useState } from 'react'
 import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone } from 'lucide-react'
 
@@ -48,6 +49,7 @@ function formatKr(value: number) {
 type GeoStatus = 'idle' | 'locating' | 'success' | 'error'
 
 export function DispatchConsole() {
+  const spamGuard = useSpamGuard()
   const [mode, setMode] = useState<Mode>('taxi')
   const [pickup, setPickup] = useState(pickups[0].value)
   const [dropoff, setDropoff] = useState('')
@@ -114,6 +116,11 @@ export function DispatchConsole() {
   }
 
   const handleReserve = async () => {
+    if (spamGuard.isSpam()) {
+      // Silently skip bot-like submissions — no insert, no WhatsApp redirect.
+      return
+    }
+
     const phoneNumber = "4792997190"
 
     // 1. Supabase Veritabanına Dinamik Kayıt ve Hata Yakalama
@@ -196,6 +203,16 @@ Please confirm booking for this date.`
       style={{ animationDelay: '0.3s' }}
     >
       <div className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5">
+        <input
+          type="text"
+          name="company"
+          value={spamGuard.honeypot}
+          onChange={(e) => spamGuard.setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          className="sr-only"
+        />
         <div className="mb-4 flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--home-muted)]">
             Dispatch Console
