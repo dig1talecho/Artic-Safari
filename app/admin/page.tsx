@@ -25,6 +25,7 @@ import { FinanceView } from '@/components/admin/finance-view'
 import { ReviewsView } from '@/components/admin/reviews-view'
 import { GalleryView } from '@/components/admin/gallery-view'
 import { SettingsView } from '@/components/admin/settings-view'
+import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import type { Booking, DriverOption } from '@/components/admin/types'
 import { Mail, Lock, ShieldAlert } from 'lucide-react'
 
@@ -329,8 +330,7 @@ export default function AdminDashboard() {
           )}
 
           {activeView === 'transfers' && (
-            <BookingTable
-              title="Live Booking Feed, Payment & Location Matrix"
+            <TransferOpsView
               bookings={transferBookings}
               loading={loading}
               currentUser={currentUser}
@@ -338,6 +338,7 @@ export default function AdminDashboard() {
               searchTerm={searchTerm}
               filterStatus={filterStatus}
               onFilterStatusChange={setFilterStatus}
+              syncStatus={syncStatus}
               updateStatus={updateStatus}
               updatePaymentStatus={updatePaymentStatus}
               assignDriver={assignDriver}

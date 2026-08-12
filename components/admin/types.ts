@@ -7,6 +7,7 @@ export interface Booking {
   booking_type: string
   item_title: string
   booking_date: string
+  scheduled_time: string | null
   total_price: number
   notes: string
   status: 'pending' | 'confirmed' | 'cancelled'
