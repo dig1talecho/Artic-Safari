@@ -19,18 +19,24 @@ export function Hero() {
 
       {/* Headline */}
       <div className="mx-auto mt-10 max-w-4xl text-center">
+        <p
+          className="animate-float-up text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]"
+          style={{ animationDelay: '0.05s' }}
+        >
+          Chasing Auroras in First-Class Comfort
+        </p>
         <h1
-          className="animate-float-up text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl"
+          className="animate-float-up mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl"
           style={{ animationDelay: '0.1s' }}
         >
-          Chasing Auroras in{' '}
-          <span className="text-[var(--home-accent)]">First-Class Comfort</span>
+          Private Northern Lights{' '}
+          <span className="text-[var(--home-accent)]">Tours in Tromsø</span>
         </h1>
         <p
           className="animate-float-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-[var(--home-muted)] sm:text-lg"
           style={{ animationDelay: '0.2s' }}
         >
-          Exclusive Northern Lights expeditions and private VIP airport transfers in Northern Norway.
+          Exclusive private Northern Lights tours and VIP airport transfers in Tromsø, Northern Norway.
         </p>
 
         <div
@@ -60,7 +66,7 @@ export function Hero() {
       >
         <Image
           src="/aurora-hero.png"
-          alt="Northern lights over an Arctic Norwegian fjord at night"
+          alt="Private Northern Lights tour over an Arctic fjord near Tromsø, Norway"
           width={1600}
           height={720}
           priority

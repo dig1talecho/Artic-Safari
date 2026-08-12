@@ -21,9 +21,9 @@ const archivoBlack = Archivo_Black({
 })
 
 const siteUrl = 'https://www.articsafaritour.com'
-const title = 'Artic Safari — VIP Northern Lights Tours & Private Transfers'
+const title = 'Private Northern Lights Tours Tromsø | Artic Safari'
 const description =
-  'Exclusive Northern Lights expeditions and private VIP airport transfers in Northern Norway. Chase the aurora in first-class comfort.'
+  'Chase the aurora in first-class comfort. Private Northern Lights tours & VIP airport transfers in Tromsø, Norway. Book your Arctic expedition today.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
