@@ -71,10 +71,10 @@ export function Hero() {
         style={{ animationDelay: '0.3s' }}
       >
         <Image
-          src="/aurora-hero.png"
+          src="/aurora-hero.webp"
           alt="Private Northern Lights tour over an Arctic fjord near Tromsø, Norway"
-          width={1600}
-          height={720}
+          width={1024}
+          height={1024}
           priority
           className="h-[260px] w-full object-cover sm:h-[420px]"
         />

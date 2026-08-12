@@ -1,41 +1,18 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-interface GalleryPhoto {
-  id: string
-  public_url: string
-  caption: string | null
-}
+export async function CustomerGallerySection() {
+  const { data, error } = await supabase
+    .from('gallery_photos')
+    .select('id, public_url, caption')
+    .order('created_at', { ascending: false })
+    .limit(8)
 
-export function CustomerGallerySection() {
-  const [photos, setPhotos] = useState<GalleryPhoto[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    let active = true
-
-    supabase
-      .from('gallery_photos')
-      .select('id, public_url, caption')
-      .order('created_at', { ascending: false })
-      .limit(8)
-      .then(({ data, error }) => {
-        if (!active) return
-        if (!error) setPhotos(data ?? [])
-        setLoaded(true)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [])
+  const photos = error ? [] : (data ?? [])
 
   // Honest empty state: nothing is shown until the business has uploaded real photos.
-  if (!loaded || photos.length === 0) return null
+  if (photos.length === 0) return null
 
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-20">

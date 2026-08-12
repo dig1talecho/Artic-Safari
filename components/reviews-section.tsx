@@ -1,42 +1,17 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { Star, Quote } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-interface Review {
-  id: string
-  customer_name: string
-  rating: number
-  comment: string
-  created_at: string
-}
+export async function ReviewsSection() {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, customer_name, rating, comment, created_at')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
 
-export function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    let active = true
-
-    supabase
-      .from('reviews')
-      .select('id, customer_name, rating, comment, created_at')
-      .eq('published', true)
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (!active) return
-        if (!error) setReviews(data ?? [])
-        setLoaded(true)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [])
+  const reviews = error ? [] : (data ?? [])
 
   // Honest empty state: nothing is shown until there's at least one real review.
-  if (!loaded || reviews.length === 0) return null
+  if (reviews.length === 0) return null
 
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-20">
