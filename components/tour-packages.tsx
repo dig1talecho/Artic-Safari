@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
@@ -53,6 +54,31 @@ function Card({
       className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16)] ${ring} ${className}`}
     >
       {children}
+    </div>
+  )
+}
+
+function CardImage({
+  src,
+  alt,
+  tall = false,
+}: {
+  src: string
+  alt: string
+  tall?: boolean
+}) {
+  return (
+    <div
+      className={`relative -mx-6 -mt-6 mb-5 overflow-hidden ${tall ? 'h-44 sm:h-56' : 'h-36 sm:h-40'}`}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        loading="lazy"
+        className="object-cover"
+        sizes="(min-width: 768px) 500px, 100vw"
+      />
     </div>
   )
 }
@@ -227,6 +253,7 @@ export function TourPackages() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         {/* Card 1 — Airport Transfer (toggle) */}
         <Card className="md:col-span-2" glow="gold">
+          <CardImage src="/gallery/airport-transfer.jpg" alt="Private VIP vehicles used for premium airport transfer service" />
           <CardHead icon={<Plane className="h-5 w-5" />} eyebrow="Point to Point" title="Airport Transfer" />
           <SegToggle options={transferSizes} value={transfer} onChange={setTransfer} />
           <div className="mt-4">
@@ -253,6 +280,11 @@ export function TourPackages() {
         {/* Card 2 — Private Group (hero) */}
         <Card className="md:col-span-4 md:row-span-2">
           <div className="relative flex h-full flex-col">
+            <CardImage
+              src="/gallery/northern-lights-private-group.jpg"
+              alt="Private group watching the Northern Lights over a fjord near Tromsø"
+              tall
+            />
             <div className="flex items-start justify-between gap-4">
               <CardHead
                 icon={<Sparkles className="h-5 w-5" />}
@@ -298,6 +330,7 @@ export function TourPackages() {
 
         {/* Card 3 — Per Person */}
         <Card className="md:col-span-2" glow="gold">
+          <CardImage src="/gallery/northern-lights-per-person.jpg" alt="Small group of travelers on a shared Northern Lights tour in Norway" />
           <CardHead icon={<User className="h-5 w-5" />} eyebrow="Solo & Couples" title="Northern Lights — Per Person" />
           <Price value="2,000 kr" suffix="/ person" />
           <ul className="mt-5 space-y-2.5">
@@ -316,6 +349,7 @@ export function TourPackages() {
 
         {/* Card 4 — Private Small Group */}
         <Card className="md:col-span-3">
+          <CardImage src="/gallery/northern-lights-small-group.jpg" alt="Vivid purple and green aurora borealis over snowy mountains near Tromsø" />
           <CardHead
             icon={<Users className="h-5 w-5" />}
             eyebrow="Family & Friends"
@@ -342,6 +376,7 @@ export function TourPackages() {
 
         {/* Card 5 — Sommarøya (vehicle selector) */}
         <Card className="md:col-span-3" glow="gold">
+          <CardImage src="/gallery/sommaroya-tour.jpg" alt="Coastal road and fjord landscape on the way to Sommarøy, Norway" />
           <CardHead icon={<Waves className="h-5 w-5" />} eyebrow="Coastal Scenic" title="Sommarøya Tour" />
           <SegToggle options={sommaroyaCars} value={sommaroya} onChange={setSommaroya} />
           <div className="mt-4 flex items-baseline justify-between">

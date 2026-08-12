@@ -26,7 +26,7 @@ export const tours: TourData[] = [
     priceNote: '1–4 passengers, large vehicle available for 4–8',
     features: ['Direct airport transfer', 'Chauffeur service', 'Free Wi-Fi', 'Generous luggage space'],
     image: '/gallery/airport-transfer.jpg',
-    imageAlt: 'Private VIP vehicle for airport transfer in Tromsø, Norway',
+    imageAlt: 'Private VIP vehicles used for premium airport transfer service (representative image)',
   },
   {
     slug: 'northern-lights-private-group',
@@ -77,7 +77,7 @@ export const tours: TourData[] = [
     priceNote: '1 to 4 persons',
     features: ['Private chauffeur', 'Flexible timing', 'Thermal gear', 'Tripods provided'],
     image: '/gallery/northern-lights-small-group.jpg',
-    imageAlt: 'Family group with tripods photographing the aurora borealis near Tromsø',
+    imageAlt: 'Vivid purple and green aurora borealis over snowy mountains near Tromsø',
   },
   {
     slug: 'sommaroya-tour',

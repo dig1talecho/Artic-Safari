@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react'
@@ -66,6 +67,17 @@ export default async function BlogPostPage({
         <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl uppercase leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
           {post.title}
         </h1>
+
+        <div className="relative mt-8 h-56 w-full overflow-hidden rounded-[1.75rem] ring-1 ring-inset ring-black/10 sm:h-80">
+          <Image
+            src={post.image}
+            alt={post.imageAlt}
+            fill
+            priority
+            className="object-cover"
+            sizes="(min-width: 768px) 768px, 100vw"
+          />
+        </div>
 
         <div className="mt-8 space-y-8">
           {post.sections.map((section, i) => (

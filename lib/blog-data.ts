@@ -11,6 +11,8 @@ export interface BlogPost {
   publishedAt: string
   readingTime: string
   excerpt: string
+  image: string
+  imageAlt: string
   sections: BlogSection[]
 }
 
@@ -25,6 +27,8 @@ export const posts: BlogPost[] = [
     readingTime: '5 min read',
     excerpt:
       'Standing still outside at midnight in Arctic Norway is a different kind of cold. Here is how to layer properly for a Northern Lights chase in Tromsø.',
+    image: '/gallery/blog-layering.jpg',
+    imageAlt: 'A traveler in winter outdoor gear looking out over snow-capped mountains',
     sections: [
       {
         paragraphs: [
@@ -63,6 +67,8 @@ export const posts: BlogPost[] = [
     readingTime: '4 min read',
     excerpt:
       'The aurora borealis is visible over Tromsø from late September to late March. Here is how to think about timing your trip.',
+    image: '/gallery/blog-aurora-season.jpg',
+    imageAlt: 'Green aurora borealis over a snowy coastline and sea near Tromsø, Norway',
     sections: [
       {
         paragraphs: [
@@ -99,6 +105,8 @@ export const posts: BlogPost[] = [
     readingTime: '6 min read',
     excerpt:
       'Manual mode, a wide aperture, and a steady tripod — the fundamentals of photographing the Northern Lights, explained simply.',
+    image: '/gallery/blog-camera-settings.jpg',
+    imageAlt: 'A mirrorless camera mounted on a tripod set up for night photography',
     sections: [
       {
         paragraphs: [
