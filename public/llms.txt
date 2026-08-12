@@ -55,6 +55,10 @@ but is illustrative/demo data, not a live meteorological feed.
 
 - [Homepage](https://www.articsafaritour.com/): tours, transfers, pricing, live aurora radar widget,
   and the main booking flow.
+- [All Tours & Transfers](https://www.articsafaritour.com/tours): index of every tour/transfer with
+  its own dedicated page (pricing, features, booking link).
+- [Travel Guides](https://www.articsafaritour.com/blog): informational articles (what to wear,
+  best months for the aurora, camera settings for Northern Lights photography).
 - [My Bookings](https://www.articsafaritour.com/dashboard): customer sign-in/sign-up and personal
   booking history (private, requires authentication).
 

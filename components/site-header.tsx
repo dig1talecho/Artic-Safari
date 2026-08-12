@@ -4,7 +4,7 @@ import { Snowflake, User } from 'lucide-react'
 const links = [
   { label: 'Tours', href: '/#tours' },
   { label: 'Aurora Radar', href: '/#radar' },
-  { label: 'Transfers', href: '/#tours' },
+  { label: 'Blog', href: '/blog' },
 ]
 
 interface SiteHeaderProps {
