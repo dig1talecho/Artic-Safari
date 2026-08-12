@@ -349,7 +349,7 @@ export function TourPackages() {
         <Card className="md:col-span-2" glow="gold">
           <CardImage src="/gallery/northern-lights-per-person.jpg" alt="Small group of travelers on a shared Northern Lights tour in Norway" />
           <CardHead icon={<User className="h-5 w-5" />} eyebrow="Solo & Couples" title="Northern Lights — Per Person" />
-          <Price value="2,000 kr" suffix="/ person" />
+          <Price value="2,250 kr" suffix="/ person" />
           <ul className="mt-5 space-y-2.5">
             <Feature icon={<Users className="h-3 w-3" />}>Shared small-group chase</Feature>
             <Feature icon={<Sparkles className="h-3 w-3" />}>Expert aurora guide</Feature>
@@ -357,7 +357,7 @@ export function TourPackages() {
           </ul>
           <button
             type="button"
-            onClick={() => handleBooking('Northern Lights — Per Person', '2,000 kr / person')}
+            onClick={() => handleBooking('Northern Lights — Per Person', '2,250 kr / person')}
             className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Ticket

@@ -55,10 +55,10 @@ export const tours: TourData[] = [
     title: 'Northern Lights — Per Person',
     metaTitle: 'Northern Lights Tour Tromsø Per Person | Artic Safari',
     metaDescription:
-      'Join a shared small-group Northern Lights chase in Tromsø with an expert aurora guide. Hot drinks included. From 2,000 kr per person.',
+      'Join a shared small-group Northern Lights chase in Tromsø with an expert aurora guide. Hot drinks included. From 2,250 kr per person.',
     intro:
       'A shared small-group aurora chase for solo travelers and couples — expert guiding, hot drinks, and a genuine shot at the lights without booking a full private tour.',
-    price: '2,000 kr',
+    price: '2,250 kr',
     priceNote: 'Per person',
     features: ['Shared small-group chase', 'Expert aurora guide', 'Hot drinks included'],
     image: '/gallery/northern-lights-per-person.jpg',

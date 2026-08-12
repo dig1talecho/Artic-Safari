@@ -7,7 +7,7 @@ export const faqs = [
   {
     question: 'What is the price of a private Northern Lights tour in Tromsø?',
     answer:
-      'The Private Group Northern Lights tour is a flat rate of 15,000 kr for up to 8 guests. A per-person shared option is also available at 2,000 kr / person, and a private small-group option (1–4 persons) is 11,000 kr.',
+      'The Private Group Northern Lights tour is a flat rate of 15,000 kr for up to 8 guests. A per-person shared option is also available at 2,250 kr / person, and a private small-group option (1–4 persons) is 11,000 kr.',
   },
   {
     question: 'Does Artic Safari provide airport transfers in Tromsø?',
