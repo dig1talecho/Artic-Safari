@@ -8,7 +8,10 @@ import {
   updateBookingStatus,
   updateBookingPaymentStatus,
   assignBookingDriver,
+  subscribeToBookings,
+  type SyncStatus,
 } from '@/services/bookings.service'
+import { logBookingChange } from '@/services/audit-log.service'
 import { useSession } from '@/lib/use-session'
 import { useStaffProfile } from '@/lib/use-staff-profile'
 import { SocialRail } from '@/components/social-rail'
@@ -51,6 +54,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [driverOptions, setDriverOptions] = useState<DriverOption[]>([])
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('connecting')
 
   const [activeView, setActiveView] = useState<AdminView>('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -66,6 +70,34 @@ export default function AdminDashboard() {
       if (!error) setDriverOptions(data ?? [])
     })
   }, [currentUser?.role])
+
+  useEffect(() => {
+    if (!currentUser) return
+
+    const unsubscribe = subscribeToBookings((payload) => {
+      setBookings((prev) => {
+        if (payload.eventType === 'INSERT') {
+          const row = payload.new as unknown as Booking
+          if (prev.some((b) => b.id === row.id)) return prev
+          return [
+            { ...row, payment_status: row.payment_status || (row.status === 'confirmed' ? 'paid' : 'pending') },
+            ...prev,
+          ]
+        }
+        if (payload.eventType === 'UPDATE') {
+          const row = payload.new as unknown as Booking
+          return prev.map((b) => (b.id === row.id ? { ...b, ...row } : b))
+        }
+        if (payload.eventType === 'DELETE') {
+          const row = payload.old as Partial<Booking>
+          return prev.filter((b) => b.id !== row.id)
+        }
+        return prev
+      })
+    }, setSyncStatus)
+
+    return unsubscribe
+  }, [currentUser?.name, currentUser?.role])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -104,34 +136,66 @@ export default function AdminDashboard() {
   }
 
   const updateStatus = async (id: string, newStatus: 'confirmed' | 'cancelled' | 'pending') => {
+    const previous = bookings.find((b) => b.id === id)?.status
+    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)))
+
     const { error } = await updateBookingStatus(id, newStatus)
 
     if (error) {
       console.error('Error updating status:', error)
-    } else {
-      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)))
+      if (previous) setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: previous } : b)))
+    } else if (currentUser) {
+      logBookingChange({
+        booking_id: id,
+        changed_by: currentUser.name,
+        change_type: 'status_changed',
+        old_value: previous ?? null,
+        new_value: newStatus,
+      })
     }
   }
 
   const updatePaymentStatus = async (id: string, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
+    const previous = bookings.find((b) => b.id === id)?.payment_status
+    setBookings((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b)),
+    )
+
     const { error } = await updateBookingPaymentStatus(id, newPaymentStatus)
 
     if (error) {
       console.error('Error updating payment status:', error)
+      if (previous) {
+        setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, payment_status: previous } : b)))
+      }
+    } else if (currentUser) {
+      logBookingChange({
+        booking_id: id,
+        changed_by: currentUser.name,
+        change_type: 'payment_status_changed',
+        old_value: previous ?? null,
+        new_value: newPaymentStatus,
+      })
     }
-
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b)),
-    )
   }
 
   const assignDriver = async (id: string, driverName: string | null) => {
+    const previous = bookings.find((b) => b.id === id)?.assigned_driver ?? null
+    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, assigned_driver: driverName } : b)))
+
     const { error } = await assignBookingDriver(id, driverName)
 
     if (error) {
       console.error('Error assigning driver:', error)
-    } else {
-      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, assigned_driver: driverName } : b)))
+      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, assigned_driver: previous } : b)))
+    } else if (currentUser) {
+      logBookingChange({
+        booking_id: id,
+        changed_by: currentUser.name,
+        change_type: 'driver_assigned',
+        old_value: previous,
+        new_value: driverName,
+      })
     }
   }
 
