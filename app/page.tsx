@@ -3,35 +3,15 @@ import { SiteHeader } from '@/components/site-header'
 import { Hero } from '@/components/hero'
 import { TourPackages } from '@/components/tour-packages'
 import { AuroraRadar } from '@/components/aurora-radar'
+import { ReviewsSection } from '@/components/reviews-section'
+import { CustomerGallerySection } from '@/components/customer-gallery-section'
 import { FaqSection } from '@/components/faq-section'
 import { faqs } from '@/components/faq-data'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { SocialRail } from '@/components/social-rail'
+import { supabase } from '@/lib/supabase'
 
 const siteUrl = 'https://www.articsafaritour.com'
-
-const travelAgencySchema = {
-  '@context': 'https://schema.org',
-  '@type': 'TravelAgency',
-  name: 'Artic Safari',
-  url: siteUrl,
-  logo: `${siteUrl}/logo.png`,
-  image: `${siteUrl}/aurora-hero.png`,
-  description:
-    'Private VIP Northern Lights tours and airport transfers in Tromsø, Northern Norway.',
-  telephone: '+4792997190',
-  priceRange: '490 kr - 15000 kr',
-  areaServed: {
-    '@type': 'City',
-    name: 'Tromsø',
-  },
-  address: {
-    '@type': 'PostalAddress',
-    addressLocality: 'Tromsø',
-    addressCountry: 'NO',
-  },
-  sameAs: ['https://instagram.com/articsafaritour'],
-}
 
 const faqSchema = {
   '@context': 'https://schema.org',
@@ -46,7 +26,48 @@ const faqSchema = {
   })),
 }
 
-export default function Page() {
+export default async function Page() {
+  const { data: reviewRatings } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('published', true)
+
+  const reviewCount = reviewRatings?.length ?? 0
+  const averageRating =
+    reviewCount > 0
+      ? reviewRatings!.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+      : 0
+
+  const travelAgencySchema = {
+    '@context': 'https://schema.org',
+    '@type': 'TravelAgency',
+    name: 'Artic Safari',
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    image: `${siteUrl}/aurora-hero.png`,
+    description:
+      'Private VIP Northern Lights tours and airport transfers in Tromsø, Northern Norway.',
+    telephone: '+4792997190',
+    priceRange: '490 kr - 15000 kr',
+    areaServed: {
+      '@type': 'City',
+      name: 'Tromsø',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Tromsø',
+      addressCountry: 'NO',
+    },
+    sameAs: ['https://instagram.com/articsafaritour'],
+    ...(reviewCount > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: averageRating.toFixed(1),
+        reviewCount,
+      },
+    }),
+  }
+
   return (
     <main className="home-theme relative min-h-screen overflow-x-hidden bg-[var(--home-bg)] font-sans text-[var(--home-foreground)]">
       <script
@@ -62,6 +83,8 @@ export default function Page() {
       <Hero />
       <TourPackages />
       <AuroraRadar />
+      <ReviewsSection />
+      <CustomerGallerySection />
       <FaqSection />
       <FloatingActionBar />
       <SocialRail variant="light" />

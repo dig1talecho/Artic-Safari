@@ -8,6 +8,8 @@ import {
   Users,
   UserCog,
   Wallet,
+  Star,
+  Images,
   Settings,
   Menu,
   X,
@@ -20,6 +22,8 @@ export type AdminView =
   | 'customers'
   | 'drivers'
   | 'finance'
+  | 'reviews'
+  | 'gallery'
   | 'settings'
 
 interface NavItem {
@@ -36,6 +40,8 @@ const navItems: NavItem[] = [
   { id: 'customers', label: 'Customers & Users', icon: Users, adminOnly: true },
   { id: 'drivers', label: 'Drivers & Guides', icon: UserCog, adminOnly: true },
   { id: 'finance', label: 'Finance & Payments', icon: Wallet, adminOnly: true },
+  { id: 'reviews', label: 'Reviews', icon: Star, adminOnly: true },
+  { id: 'gallery', label: 'Gallery', icon: Images, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 

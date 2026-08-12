@@ -12,6 +12,8 @@ import { OverviewView } from '@/components/admin/overview-view'
 import { CustomersView } from '@/components/admin/customers-view'
 import { DriversView } from '@/components/admin/drivers-view'
 import { FinanceView } from '@/components/admin/finance-view'
+import { ReviewsView } from '@/components/admin/reviews-view'
+import { GalleryView } from '@/components/admin/gallery-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import type { Booking, DriverOption } from '@/components/admin/types'
 import { Mail, Lock, ShieldAlert } from 'lucide-react'
@@ -23,6 +25,8 @@ const viewTitles: Record<AdminView, string> = {
   customers: 'Customers & Users',
   drivers: 'Drivers & Guides',
   finance: 'Finance & Payments',
+  reviews: 'Reviews',
+  gallery: 'Gallery',
   settings: 'Settings',
 }
 
@@ -293,6 +297,10 @@ export default function AdminDashboard() {
           {activeView === 'finance' && currentUser.role === 'admin' && (
             <FinanceView bookings={bookings} />
           )}
+
+          {activeView === 'reviews' && currentUser.role === 'admin' && <ReviewsView />}
+
+          {activeView === 'gallery' && currentUser.role === 'admin' && <GalleryView />}
 
           {activeView === 'settings' && (
             <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />
