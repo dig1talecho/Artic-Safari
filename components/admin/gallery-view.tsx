@@ -3,15 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Upload, Trash2, ImageOff } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-
-interface GalleryPhoto {
-  id: string
-  storage_path: string
-  public_url: string
-  caption: string | null
-  created_at: string
-}
+import {
+  listAllGalleryPhotos,
+  uploadGalleryPhoto,
+  deleteGalleryPhoto,
+  type GalleryPhoto,
+} from '@/services/gallery.service'
 
 export function GalleryView() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
@@ -22,10 +19,7 @@ export function GalleryView() {
 
   const fetchPhotos = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('gallery_photos')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await listAllGalleryPhotos()
 
     if (error) {
       setError(error.message)
@@ -44,29 +38,12 @@ export function GalleryView() {
     setUploading(true)
     setError(null)
 
-    const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-
-    const { error: uploadError } = await supabase.storage.from('gallery-photos').upload(path, file)
-
-    if (uploadError) {
-      setError(uploadError.message)
-      setUploading(false)
-      return
-    }
-
-    const { data: urlData } = supabase.storage.from('gallery-photos').getPublicUrl(path)
-
-    const { error: insertError } = await supabase.from('gallery_photos').insert([
-      {
-        storage_path: path,
-        public_url: urlData.publicUrl,
-      },
-    ])
+    const { error } = await uploadGalleryPhoto(file)
 
     setUploading(false)
 
-    if (insertError) {
-      setError(insertError.message)
+    if (error) {
+      setError(error.message)
       return
     }
 
@@ -74,8 +51,7 @@ export function GalleryView() {
   }
 
   const handleDelete = async (photo: GalleryPhoto) => {
-    await supabase.storage.from('gallery-photos').remove([photo.storage_path])
-    const { error } = await supabase.from('gallery_photos').delete().eq('id', photo.id)
+    const { error } = await deleteGalleryPhoto(photo)
     if (!error) {
       setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
     }

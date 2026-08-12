@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
-import { supabase } from '@/lib/supabase'
+import { getCustomerProfile } from '@/services/customers.service'
 
 interface CustomerProfile {
   full_name: string
@@ -25,11 +25,7 @@ export function useCustomerProfile(session: Session | null) {
     let active = true
     setLoading(true)
 
-    supabase
-      .from('customer_profiles')
-      .select('full_name, phone, email')
-      .eq('id', session.user.id)
-      .maybeSingle()
+    getCustomerProfile(session.user.id)
       .then(({ data, error }) => {
         if (!active) return
         setProfile(!error && data ? (data as CustomerProfile) : null)

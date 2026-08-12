@@ -1,7 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { signInWithPassword, signOut } from '@/services/auth.service'
+import { listDrivers } from '@/services/staff.service'
+import {
+  listBookings,
+  updateBookingStatus,
+  updateBookingPaymentStatus,
+  assignBookingDriver,
+} from '@/services/bookings.service'
 import { useSession } from '@/lib/use-session'
 import { useStaffProfile } from '@/lib/use-staff-profile'
 import { SocialRail } from '@/components/social-rail'
@@ -55,13 +62,9 @@ export default function AdminDashboard() {
   }, [currentUser?.name, currentUser?.role])
 
   useEffect(() => {
-    supabase
-      .from('staff_profiles')
-      .select('id, display_name')
-      .eq('role', 'driver')
-      .then(({ data, error }) => {
-        if (!error) setDriverOptions(data ?? [])
-      })
+    listDrivers().then(({ data, error }) => {
+      if (!error) setDriverOptions(data ?? [])
+    })
   }, [currentUser?.role])
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -69,10 +72,7 @@ export default function AdminDashboard() {
     setLoggingIn(true)
     setLoginError(false)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail.trim(),
-      password: loginPassword,
-    })
+    const { error } = await signInWithPassword(loginEmail.trim(), loginPassword)
 
     setLoggingIn(false)
     if (error) {
@@ -82,16 +82,13 @@ export default function AdminDashboard() {
   }
 
   const handleSignOut = () => {
-    supabase.auth.signOut()
+    signOut()
     setBookings([])
   }
 
   const fetchBookings = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await listBookings()
 
     if (error) {
       console.error('Error fetching bookings:', error)
@@ -107,7 +104,7 @@ export default function AdminDashboard() {
   }
 
   const updateStatus = async (id: string, newStatus: 'confirmed' | 'cancelled' | 'pending') => {
-    const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', id)
+    const { error } = await updateBookingStatus(id, newStatus)
 
     if (error) {
       console.error('Error updating status:', error)
@@ -117,10 +114,7 @@ export default function AdminDashboard() {
   }
 
   const updatePaymentStatus = async (id: string, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ payment_status: newPaymentStatus })
-      .eq('id', id)
+    const { error } = await updateBookingPaymentStatus(id, newPaymentStatus)
 
     if (error) {
       console.error('Error updating payment status:', error)
@@ -132,7 +126,7 @@ export default function AdminDashboard() {
   }
 
   const assignDriver = async (id: string, driverName: string | null) => {
-    const { error } = await supabase.from('bookings').update({ assigned_driver: driverName }).eq('id', id)
+    const { error } = await assignBookingDriver(id, driverName)
 
     if (error) {
       console.error('Error assigning driver:', error)

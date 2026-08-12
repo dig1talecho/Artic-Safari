@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase'
+import { insertBooking } from '@/services/bookings.service'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { useSpamGuard } from '@/lib/use-spam-guard'
@@ -221,19 +221,18 @@ export function TourPackages() {
     const numericPrice = parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0
 
     try {
-      const { data, error } = await supabase.from('bookings').insert([
-        {
-          customer_name: fullName.trim() || 'Guest User',
-          customer_email: email.trim() || 'pending@articsafaritour.com',
-          customer_phone: phone.trim() || null,
-          booking_type: selectedPackage.title.includes('Transfer') ? 'transfer' : 'tour',
-          item_title: `${selectedPackage.title}${selectedPackage.option ? ` (${selectedPackage.option})` : ''}`,
-          booking_date: date || new Date().toISOString().split('T')[0],
-          total_price: numericPrice,
-          notes: time ? `Preferred Time: ${time}` : 'Direct package booking',
-          status: 'pending'
-        }
-      ])
+      const { data, error } = await insertBooking({
+        customer_name: fullName.trim() || 'Guest User',
+        customer_email: email.trim() || 'pending@articsafaritour.com',
+        customer_phone: phone.trim() || null,
+        booking_type: selectedPackage.title.includes('Transfer') ? 'transfer' : 'tour',
+        item_title: `${selectedPackage.title}${selectedPackage.option ? ` (${selectedPackage.option})` : ''}`,
+        booking_date: date || new Date().toISOString().split('T')[0],
+        scheduled_time: time || null,
+        total_price: numericPrice,
+        notes: time ? `Preferred Time: ${time}` : 'Direct package booking',
+        status: 'pending'
+      })
 
       if (error) {
         console.error('Modal Supabase hatasi:', error)

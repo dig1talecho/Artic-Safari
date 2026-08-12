@@ -1,13 +1,9 @@
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { listGalleryPhotosForHomepage } from '@/services/gallery.service'
 
 export async function CustomerGallerySection() {
-  const { data, error } = await supabase
-    .from('gallery_photos')
-    .select('id, public_url, caption')
-    .order('created_at', { ascending: false })
-    .limit(8)
+  const { data, error } = await listGalleryPhotosForHomepage(8)
 
   const photos = error ? [] : (data ?? [])
 

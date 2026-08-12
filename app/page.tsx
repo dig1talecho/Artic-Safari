@@ -9,9 +9,8 @@ import { FaqSection } from '@/components/faq-section'
 import { faqs } from '@/components/faq-data'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { SocialRail } from '@/components/social-rail'
-import { supabase } from '@/lib/supabase'
-
-const siteUrl = 'https://www.articsafaritour.com'
+import { listPublishedReviewRatings } from '@/services/reviews.service'
+import { siteUrl } from '@/lib/site-config'
 
 const faqSchema = {
   '@context': 'https://schema.org',
@@ -27,10 +26,7 @@ const faqSchema = {
 }
 
 export default async function Page() {
-  const { data: reviewRatings } = await supabase
-    .from('reviews')
-    .select('rating')
-    .eq('published', true)
+  const { data: reviewRatings } = await listPublishedReviewRatings()
 
   const reviewCount = reviewRatings?.length ?? 0
   const averageRating =

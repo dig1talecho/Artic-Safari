@@ -1,8 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { tours } from '@/lib/tours-data'
 import { posts } from '@/lib/blog-data'
-
-const baseUrl = 'https://www.articsafaritour.com'
+import { siteUrl as baseUrl } from '@/lib/site-config'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

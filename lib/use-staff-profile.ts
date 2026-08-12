@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
-import { supabase } from '@/lib/supabase'
+import { getStaffProfile } from '@/services/staff.service'
 
 interface StaffProfile {
   role: 'admin' | 'driver'
@@ -24,11 +24,7 @@ export function useStaffProfile(session: Session | null) {
     let active = true
     setLoading(true)
 
-    supabase
-      .from('staff_profiles')
-      .select('role, display_name')
-      .eq('id', session.user.id)
-      .maybeSingle()
+    getStaffProfile(session.user.id)
       .then(({ data, error }) => {
         if (!active) return
         setProfile(!error && data ? (data as StaffProfile) : null)

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { supabase } from '@/lib/supabase'
+import { getSession, onAuthStateChange } from '@/services/auth.service'
 
 /**
  * Supabase magic-link emails redirect back to the app with the session
@@ -33,12 +33,12 @@ export function AuthRedirectHandler() {
     }
 
     // The session may already be set by the time this effect runs.
-    supabase.auth.getSession().then(({ data }) => {
+    getSession().then(({ data }) => {
       if (data.session) redirectToDashboard()
     })
 
     // Otherwise, catch it as soon as supabase-js finishes parsing the hash.
-    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+    const { data: listener } = onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') redirectToDashboard()
     })
 

@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Archivo_Black } from 'next/font/google'
 import { AuthRedirectHandler } from '@/components/auth-redirect-handler'
+import { siteUrl } from '@/lib/site-config'
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,7 +21,6 @@ const archivoBlack = Archivo_Black({
   weight: '400',
 })
 
-const siteUrl = 'https://www.articsafaritour.com'
 const title = 'Private Northern Lights Tours Tromsø | Artic Safari'
 const description =
   'Chase the aurora in first-class comfort. Private Northern Lights tours & VIP airport transfers in Tromsø, Norway. Book your Arctic expedition today.'

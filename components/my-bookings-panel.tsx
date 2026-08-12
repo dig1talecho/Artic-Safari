@@ -19,7 +19,9 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
-import { supabase } from '@/lib/supabase'
+import { signInWithPassword, signUpCustomer, signOut } from '@/services/auth.service'
+import { createCustomerProfile } from '@/services/customers.service'
+import { listBookingsByCustomerEmail } from '@/services/bookings.service'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { Card, CardEyebrow, CardTitle, CardIcon, CardHeader } from '@/components/ui/card'
@@ -99,10 +101,7 @@ function SignInForm() {
     setSigningIn(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+    const { error } = await signInWithPassword(email.trim(), password)
 
     setSigningIn(false)
     if (error) {
@@ -162,10 +161,7 @@ function SignUpForm({ onSignedUp }: { onSignedUp: () => void }) {
     setSubmitting(true)
     setError(null)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-    })
+    const { data, error: signUpError } = await signUpCustomer(email.trim(), password)
 
     if (signUpError) {
       console.error('Supabase signUp error:', signUpError)
@@ -181,14 +177,12 @@ function SignUpForm({ onSignedUp }: { onSignedUp: () => void }) {
       return
     }
 
-    const { error: profileError } = await supabase.from('customer_profiles').insert([
-      {
-        id: data.user.id,
-        full_name: fullName.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-      },
-    ])
+    const { error: profileError } = await createCustomerProfile({
+      id: data.user.id,
+      full_name: fullName.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+    })
 
     setSubmitting(false)
 
@@ -333,11 +327,7 @@ function BookingsList({ session }: { session: Session }) {
   useEffect(() => {
     let active = true
 
-    supabase
-      .from('bookings')
-      .select('*')
-      .eq('customer_email', email)
-      .order('booking_date', { ascending: false })
+    listBookingsByCustomerEmail(email)
       .then(({ data, error }) => {
         if (!active) return
         if (!error) setBookings(data ?? [])
@@ -358,7 +348,7 @@ function BookingsList({ session }: { session: Session }) {
   ).length
 
   const handleSignOut = () => {
-    supabase.auth.signOut()
+    signOut()
   }
 
   return (

@@ -1,5 +1,5 @@
 'use client'
-import { supabase } from '@/lib/supabase'
+import { insertBooking } from '@/services/bookings.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { useMemo, useRef, useState } from 'react'
 import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone } from 'lucide-react'
@@ -132,19 +132,17 @@ export function DispatchConsole() {
         ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})`
         : pickup
 
-      const { data, error } = await supabase.from('bookings').insert([
-        {
-          customer_name: customerName.trim() || 'Guest User',
-          customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
-          customer_phone: customerPhone.trim() || null,
-          booking_type: mode === 'taxi' ? 'transfer' : 'tour',
-          item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
-          booking_date: date || new Date().toISOString().split('T')[0],
-          total_price: price,
-          notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
-          status: 'pending'
-        }
-      ])
+      const { data, error } = await insertBooking({
+        customer_name: customerName.trim() || 'Guest User',
+        customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
+        customer_phone: customerPhone.trim() || null,
+        booking_type: mode === 'taxi' ? 'transfer' : 'tour',
+        item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
+        booking_date: date || new Date().toISOString().split('T')[0],
+        total_price: price,
+        notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
+        status: 'pending'
+      })
 
       if (error) {
         console.error('Supabase detayli hata:', error)

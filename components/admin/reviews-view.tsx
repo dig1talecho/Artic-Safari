@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Star, Trash2, Eye, EyeOff, Plus } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { listAllReviews, createReview, setReviewPublished, deleteReview } from '@/services/reviews.service'
 
 interface Review {
   id: string
@@ -25,10 +25,7 @@ export function ReviewsView() {
 
   const fetchReviews = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await listAllReviews()
 
     if (error) {
       setError(error.message)
@@ -48,14 +45,12 @@ export function ReviewsView() {
     if (!customerName.trim() || !comment.trim()) return
 
     setSubmitting(true)
-    const { error } = await supabase.from('reviews').insert([
-      {
-        customer_name: customerName.trim(),
-        rating,
-        comment: comment.trim(),
-        published: true,
-      },
-    ])
+    const { error } = await createReview({
+      customer_name: customerName.trim(),
+      rating,
+      comment: comment.trim(),
+      published: true,
+    })
     setSubmitting(false)
 
     if (error) {
@@ -70,14 +65,14 @@ export function ReviewsView() {
   }
 
   const togglePublished = async (id: string, published: boolean) => {
-    const { error } = await supabase.from('reviews').update({ published: !published }).eq('id', id)
+    const { error } = await setReviewPublished(id, !published)
     if (!error) {
       setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, published: !published } : r)))
     }
   }
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('reviews').delete().eq('id', id)
+    const { error } = await deleteReview(id)
     if (!error) {
       setReviews((prev) => prev.filter((r) => r.id !== id))
     }

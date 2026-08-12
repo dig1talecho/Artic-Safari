@@ -1,12 +1,8 @@
 import { Star, Quote } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { listPublishedReviews } from '@/services/reviews.service'
 
 export async function ReviewsSection() {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('id, customer_name, rating, comment, created_at')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
+  const { data, error } = await listPublishedReviews()
 
   const reviews = error ? [] : (data ?? [])
 
