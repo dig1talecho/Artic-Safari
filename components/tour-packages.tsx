@@ -306,7 +306,9 @@ export function TourPackages() {
                 eyebrow="Signature Experience"
                 title="Northern Lights Tour — Private Group"
               />
-              <span className="shrink-0 rounded-md bg-[var(--home-gold)] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
+              <span
+                className="shrink-0 bg-[var(--home-gold)] py-1.5 pl-3.5 pr-5 text-xs font-bold uppercase tracking-wide text-white [clip-path:polygon(0%_0%,100%_0%,85%_50%,100%_100%,0%_100%)]"
+              >
                 Most Booked
               </span>
             </div>

@@ -10,21 +10,46 @@ export const metadata: Metadata = {
     'Private Northern Lights tours and VIP airport transfers in Tromsø, Norway. Compare all Artic Safari tour and transfer options and prices.',
 }
 
+const startingPrice = Math.min(
+  ...tours.map((tour) => parseInt(tour.price.replace(/[^\d]/g, ''), 10)),
+)
+
 export default function ToursIndexPage() {
   return (
     <SiteShell>
       <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-20 pt-10 sm:pt-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
-            All Experiences
-          </p>
-          <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
-            Tours &amp; Transfers in Tromsø
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-pretty leading-relaxed text-[var(--home-muted)]">
-            Private, chauffeured, and endlessly flexible. Browse every Artic Safari experience and
-            find the one that fits your trip.
-          </p>
+        <div className="flex flex-col items-start justify-between gap-8 border-b border-[var(--home-border)] pb-10 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
+              All Experiences
+            </p>
+            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
+              Tours &amp; Transfers in Tromsø
+            </h1>
+            <p className="mt-5 max-w-xl text-pretty leading-relaxed text-[var(--home-muted)]">
+              Private, chauffeured, and endlessly flexible. Browse every Artic Safari experience and
+              find the one that fits your trip.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 gap-8">
+            <div>
+              <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--home-foreground)]">
+                {tours.length}
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--home-muted)]">
+                Experiences
+              </p>
+            </div>
+            <div>
+              <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--home-foreground)]">
+                {startingPrice.toLocaleString('en-US')} kr
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--home-muted)]">
+                Starting From
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

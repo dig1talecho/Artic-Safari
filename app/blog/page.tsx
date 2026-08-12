@@ -16,14 +16,17 @@ export default function BlogIndexPage() {
     <SiteShell>
       <section className="relative z-10 mx-auto w-full max-w-4xl px-5 pb-20 pt-10 sm:pt-16">
         <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
+          <span className="inline-flex items-center rounded-full border border-[var(--home-accent)]/30 bg-[var(--home-accent-soft)] px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-[var(--home-accent)]">
             Travel Guides
-          </p>
-          <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
+          </span>
+          <h1 className="mt-4 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
             Aurora Guides &amp; Tips
           </h1>
           <p className="mt-5 text-pretty leading-relaxed text-[var(--home-muted)]">
             Practical, honest advice for planning your Northern Lights trip to Tromsø.
+          </p>
+          <p className="mt-4 text-xs font-medium uppercase tracking-wide text-[var(--home-muted)]">
+            {posts.length} guides · Written by the Artic Safari team
           </p>
         </div>
 

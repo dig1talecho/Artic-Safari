@@ -8,9 +8,61 @@ const trustBadges = [
   { icon: MessageCircle, label: 'WhatsApp Support' },
 ] as const
 
+function HeroIllustration() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 1200 420"
+      preserveAspectRatio="xMidYMax slice"
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] w-full sm:h-[520px]"
+    >
+      <defs>
+        <linearGradient id="heroAuroraGreen" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="var(--home-accent)" stopOpacity="0" />
+          <stop offset="50%" stopColor="var(--home-accent)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--home-accent)" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="heroAuroraGold" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="var(--home-gold)" stopOpacity="0" />
+          <stop offset="50%" stopColor="var(--home-gold)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--home-gold)" stopOpacity="0" />
+        </linearGradient>
+        <filter id="heroAuroraBlur" x="-20%" y="-50%" width="140%" height="200%">
+          <feGaussianBlur stdDeviation="18" />
+        </filter>
+      </defs>
+
+      {/* aurora ribbons */}
+      <path
+        d="M -50 90 C 200 20, 400 140, 620 60 S 1000 20, 1250 100"
+        fill="none"
+        stroke="url(#heroAuroraGreen)"
+        strokeWidth="70"
+        filter="url(#heroAuroraBlur)"
+      />
+      <path
+        d="M -50 150 C 250 90, 450 200, 700 120 S 1050 80, 1250 170"
+        fill="none"
+        stroke="url(#heroAuroraGold)"
+        strokeWidth="55"
+        filter="url(#heroAuroraBlur)"
+      />
+
+      {/* mountain silhouette */}
+      <path
+        d="M -20 400 L 120 260 L 220 330 L 340 190 L 460 320 L 560 240 L 680 360 L 800 220 L 920 340 L 1040 250 L 1160 380 L 1220 340 L 1220 420 L -20 420 Z"
+        fill="var(--home-foreground)"
+        fillOpacity="0.05"
+      />
+    </svg>
+  )
+}
+
 export function Hero() {
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:pt-16">
+      <HeroIllustration />
+
       {/* Live status pill */}
       <div className="animate-float-up flex justify-center">
         <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(11,31,42,0.04)]">
