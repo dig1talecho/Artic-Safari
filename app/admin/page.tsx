@@ -26,6 +26,7 @@ import { ReviewsView } from '@/components/admin/reviews-view'
 import { GalleryView } from '@/components/admin/gallery-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
+import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
 import type { Booking, DriverOption } from '@/components/admin/types'
 import { Mail, Lock, ShieldAlert } from 'lucide-react'
 
@@ -291,6 +292,12 @@ export default function AdminDashboard() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <SocialRail />
+      <CommandPalette
+        bookings={bookings}
+        onNavigate={setActiveView}
+        onSearch={setSearchTerm}
+        onRefresh={fetchBookings}
+      />
       <Sidebar
         activeView={activeView}
         onNavigate={setActiveView}
