@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { insertBooking } from '@/services/bookings.service'
 import type { Tour } from '@/services/tours.service'
+import { listAddonsForTour, attachAddonsToBooking, calculateCartTotal, type TourAddon, type CartAddon } from '@/services/addons.service'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { useSpamGuard } from '@/lib/use-spam-guard'
@@ -26,6 +27,9 @@ import {
   Clock,
   Mail,
   Phone,
+  Minus,
+  Plus,
+  PackageOpen,
 } from 'lucide-react'
 
 function Feature({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
@@ -198,7 +202,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
 
   // Form input state'leri
   const [fullName, setFullName] = useState('')
@@ -207,10 +211,37 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
 
+  // Add-ons cart state. bookingId is generated client-side (rather than
+  // waiting on the insert's response) so it can be attached to
+  // booking_addons rows even though anon inserts don't get a reliable
+  // SELECT-back under RLS -- see insertBooking()'s id passthrough.
+  const [selectedTourId, setSelectedTourId] = useState<string | null>(null)
+  const [addons, setAddons] = useState<TourAddon[]>([])
+  const [addonsLoading, setAddonsLoading] = useState(false)
+  const [cart, setCart] = useState<CartAddon[]>([])
+  const [bookingId, setBookingId] = useState('')
+
+  useEffect(() => {
+    if (!selectedTourId) {
+      setAddons([])
+      return
+    }
+    let cancelled = false
+    setAddonsLoading(true)
+    listAddonsForTour(selectedTourId).then(({ data, error }) => {
+      if (cancelled) return
+      setAddons(error ? [] : (data ?? []))
+      setAddonsLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [selectedTourId])
+
   const transferPrice = transfer === 'small' ? '490 kr' : '850 kr'
   const sommaroyaPrice = sommaroya === 'small' ? '5,000 kr' : '9,000 kr'
 
-  const handleBooking = (title: string, price: string, option?: string) => {
+  const handleBooking = (title: string, price: string, option?: string, tourId?: string) => {
     setSelectedPackage({ title, price, option })
     setIsSubmitted(false)
     setSubmitError('')
@@ -220,9 +251,26 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
     setPhone(customerProfile?.phone ?? '')
     setDate('')
     setTime('')
+    setCart([])
+    setSelectedTourId(tourId ?? null)
+    setBookingId(crypto.randomUUID())
     setStep(1)
     spamGuard.reset()
   }
+
+  const addonQuantity = (addonId: string) => cart.find((c) => c.addon_id === addonId)?.quantity ?? 0
+
+  const setAddonQuantity = (addon: TourAddon, quantity: number) => {
+    setCart((prev) => {
+      const next = prev.filter((c) => c.addon_id !== addon.id)
+      if (quantity > 0) {
+        next.push({ addon_id: addon.id, name: addon.name, quantity, price_at_booking: addon.price })
+      }
+      return next
+    })
+  }
+
+  const cartTotal = calculateCartTotal(cart)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -242,10 +290,11 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
     setSubmitError('')
 
     // Fiyat metninden sadece sayısal değeri ayıkla (Örn: "15,000 kr" -> 15000)
-    const numericPrice = parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0
+    const numericPrice = (parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0) + cartTotal
 
     try {
       const { data, error } = await insertBooking({
+        id: bookingId,
         customer_name: fullName.trim() || 'Guest User',
         customer_email: email.trim() || 'pending@articsafaritour.com',
         customer_phone: phone.trim() || null,
@@ -267,6 +316,12 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
       }
 
       console.log('Modal Supabase kayit basarili:', data)
+
+      if (cart.length > 0) {
+        const { error: addonError } = await attachAddonsToBooking(bookingId, cart)
+        if (addonError) console.error('Add-on attach hatasi:', addonError)
+      }
+
       setIsSubmitted(true)
       setTimeout(() => {
         setSelectedPackage(null)
@@ -319,7 +374,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
           </ul>
           <button
             type="button"
-            onClick={() => handleBooking('Airport Transfer', transferPrice, transfer === 'small' ? '1-4 Persons' : '4-8 Persons')}
+            onClick={() => handleBooking('Airport Transfer', transferPrice, transfer === 'small' ? '1-4 Persons' : '4-8 Persons', t('airport-transfer')?.id)}
             className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Transfer
@@ -375,6 +430,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                     t('northern-lights-private-group')?.title || 'Northern Lights — Private Group',
                     t('northern-lights-private-group')?.price || '15,000 kr',
                     'Up to 8 guests',
+                    t('northern-lights-private-group')?.id,
                   )
                 }
                 className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8] sm:w-auto sm:px-8"
@@ -408,6 +464,8 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
               handleBooking(
                 t('northern-lights-per-person')?.title || 'Northern Lights — Per Person',
                 `${t('northern-lights-per-person')?.price || '2,250 kr'} / person`,
+                undefined,
+                t('northern-lights-per-person')?.id,
               )
             }
             className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
@@ -446,6 +504,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                 t('northern-lights-small-group')?.title || 'Northern Lights — Private Small Group',
                 t('northern-lights-small-group')?.price || '11,000 kr',
                 '1 to 4 persons',
+                t('northern-lights-small-group')?.id,
               )
             }
             className="mt-6 w-full rounded-xl bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-accent)] hover:text-white active:scale-[0.96]"
@@ -479,7 +538,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
           </ul>
           <button
             type="button"
-            onClick={() => handleBooking('Sommarøya Tour', sommaroyaPrice, sommaroya === 'small' ? 'Small Car' : 'Big Car')}
+            onClick={() => handleBooking('Sommarøya Tour', sommaroyaPrice, sommaroya === 'small' ? 'Small Car' : 'Big Car', t('sommaroya-tour')?.id)}
             className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Scenic Tour
@@ -525,8 +584,8 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
 
                 {/* Step progress */}
                 <div className="mb-6 flex items-center gap-2">
-                  {(['Date & Time', 'Your Details', 'Confirm'] as const).map((label, i) => {
-                    const stepNum = (i + 1) as 1 | 2 | 3
+                  {(['Date & Time', 'Extras', 'Your Details', 'Confirm'] as const).map((label, i) => {
+                    const stepNum = (i + 1) as 1 | 2 | 3 | 4
                     return (
                       <div key={label} className="flex flex-1 items-center gap-2">
                         <div
@@ -545,7 +604,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                         >
                           {label}
                         </span>
-                        {stepNum < 3 && <div className="h-px flex-1 bg-[var(--home-border)]" />}
+                        {stepNum < 4 && <div className="h-px flex-1 bg-[var(--home-border)]" />}
                       </div>
                     )
                   })}
@@ -605,6 +664,92 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                   )}
 
                   {step === 2 && (
+                    <>
+                      {addonsLoading ? (
+                        <div className="flex items-center justify-center gap-2 py-8 text-sm text-[var(--home-muted)]">
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--home-border)] border-t-[var(--home-accent)]" />
+                          Loading extras…
+                        </div>
+                      ) : addons.length === 0 ? (
+                        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--home-border)] py-8 text-center">
+                          <PackageOpen className="h-6 w-6 text-[var(--home-muted)]" />
+                          <p className="text-sm text-[var(--home-muted)]">No extras available for this experience yet.</p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {addons.map((addon) => {
+                            const qty = addonQuantity(addon.id)
+                            return (
+                              <li
+                                key={addon.id}
+                                className="flex items-center justify-between gap-3 rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-3.5"
+                              >
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-medium text-[var(--home-foreground)]">{addon.name}</p>
+                                  {addon.description && (
+                                    <p className="truncate text-xs text-[var(--home-muted)]">{addon.description}</p>
+                                  )}
+                                  <p className="mt-0.5 font-mono text-xs text-[var(--home-accent)]">
+                                    {addon.price.toLocaleString()} kr
+                                  </p>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                  <button
+                                    type="button"
+                                    disabled={qty === 0}
+                                    onClick={() => setAddonQuantity(addon, qty - 1)}
+                                    className="grid h-7 w-7 place-items-center rounded-full border border-[var(--home-border)] text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-surface)] disabled:opacity-30"
+                                    aria-label={`Remove one ${addon.name}`}
+                                  >
+                                    <Minus className="h-3.5 w-3.5" />
+                                  </button>
+                                  <span className="w-4 text-center text-sm font-semibold tabular-nums text-[var(--home-foreground)]">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setAddonQuantity(addon, qty + 1)}
+                                    className="grid h-7 w-7 place-items-center rounded-full border border-[var(--home-border)] text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-surface)]"
+                                    aria-label={`Add one ${addon.name}`}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
+
+                      {cart.length > 0 && (
+                        <div className="flex items-center justify-between rounded-xl bg-[var(--home-accent-soft)] px-3.5 py-2.5 text-sm">
+                          <span className="text-[var(--home-accent)]">Extras total</span>
+                          <span className="font-mono font-semibold text-[var(--home-accent)]">
+                            {cartTotal.toLocaleString()} kr
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setStep(1)}
+                          className="rounded-xl border-2 border-[var(--home-foreground)] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-foreground)] hover:text-white"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStep(3)}
+                          className="flex-1 rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+                        >
+                          {cart.length > 0 ? 'Continue' : 'Skip'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {step === 3 && (
                     <>
                       {isSignedIn ? (
                         <div className="rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] p-3.5">
@@ -671,7 +816,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                       <div className="flex gap-3">
                         <button
                           type="button"
-                          onClick={() => setStep(1)}
+                          onClick={() => setStep(2)}
                           className="rounded-xl border-2 border-[var(--home-foreground)] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-foreground)] hover:text-white"
                         >
                           Back
@@ -679,7 +824,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                         <button
                           type="button"
                           disabled={!isSignedIn && (!fullName || !email || !phone)}
-                          onClick={() => setStep(3)}
+                          onClick={() => setStep(4)}
                           className="flex-1 rounded-xl bg-[var(--home-accent)] py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                         >
                           Continue
@@ -688,7 +833,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                     </>
                   )}
 
-                  {step === 3 && (
+                  {step === 4 && (
                     <>
                       <div className="space-y-2 rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 text-sm">
                         <div className="flex justify-between text-[var(--home-foreground)]">
@@ -710,10 +855,19 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                             {email}
                           </span>
                         </div>
+                        {cart.map((item) => (
+                          <div key={item.addon_id} className="flex justify-between text-[var(--home-foreground)]">
+                            <span className="text-[var(--home-muted)]">
+                              {item.name} × {item.quantity}
+                            </span>
+                            <span className="font-medium">{(item.price_at_booking * item.quantity).toLocaleString()} kr</span>
+                          </div>
+                        ))}
                         <div className="flex justify-between border-t border-[var(--home-border)] pt-2 text-[var(--home-foreground)]">
-                          <span className="text-[var(--home-muted)]">Price</span>
+                          <span className="text-[var(--home-muted)]">Total</span>
                           <span className="font-mono font-semibold text-[var(--home-accent)]">
-                            {selectedPackage.price}
+                            {((parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0) + cartTotal).toLocaleString()} kr
+                            {selectedPackage.price.includes('/') ? ' + extras' : ''}
                           </span>
                         </div>
                       </div>
@@ -725,7 +879,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                       <div className="flex gap-3">
                         <button
                           type="button"
-                          onClick={() => setStep(2)}
+                          onClick={() => setStep(3)}
                           className="rounded-xl border-2 border-[var(--home-foreground)] px-5 py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-foreground)] hover:text-white"
                         >
                           Back
