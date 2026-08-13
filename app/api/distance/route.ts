@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server'
+import { distanceRequestSchema } from '@/lib/validation'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 // Server-side only -- the Google Maps API key never reaches the browser.
 // Until GOOGLE_MAPS_API_KEY is set, this route returns a clear "not
 // configured" response rather than inventing a distance.
 export async function POST(request: Request) {
+  const ip = getClientIp(request)
+  const rate = checkRateLimit(`distance:${ip}`, 10, 60_000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'rate_limited', message: 'Too many requests. Please wait a moment and try again.' },
+      { status: 429, headers: { 'Retry-After': Math.ceil((rate.resetAt - Date.now()) / 1000).toString() } },
+    )
+  }
+
   const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
   if (!apiKey) {
@@ -13,17 +24,22 @@ export async function POST(request: Request) {
     )
   }
 
-  let body: { origin?: string; destination?: string }
+  let rawBody: unknown
   try {
-    body = await request.json()
+    rawBody = await request.json()
   } catch {
     return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
   }
 
-  const { origin, destination } = body
-  if (!origin?.trim() || !destination?.trim()) {
-    return NextResponse.json({ error: 'invalid_request', message: 'origin and destination are required.' }, { status: 400 })
+  const parsed = distanceRequestSchema.safeParse(rawBody)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'invalid_request', message: parsed.error.issues[0]?.message ?? 'Invalid request.' },
+      { status: 400 },
+    )
   }
+
+  const { origin, destination } = parsed.data
 
   try {
     const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json')

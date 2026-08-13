@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { bookingInsertSchema } from '@/lib/validation'
 
 export interface BookingInsertPayload {
   customer_name: string
@@ -26,8 +27,19 @@ export function listBookingsByCustomerEmail(email: string) {
     .order('booking_date', { ascending: false })
 }
 
-export function insertBooking(payload: BookingInsertPayload) {
-  return supabase.from('bookings').insert([payload])
+// Validates every booking-creation payload the same way regardless of which
+// UI produced it (dispatch console, tour packages modal, taximeter widget,
+// admin command palette) -- catches malformed/manipulated data (e.g. a
+// non-positive total_price) before it ever reaches Supabase.
+export async function insertBooking(payload: BookingInsertPayload) {
+  const parsed = bookingInsertSchema.safeParse(payload)
+  if (!parsed.success) {
+    return {
+      data: null,
+      error: { message: parsed.error.issues[0]?.message ?? 'Invalid booking data' },
+    }
+  }
+  return supabase.from('bookings').insert([parsed.data])
 }
 
 export function updateBookingStatus(id: string, status: 'confirmed' | 'cancelled' | 'pending') {

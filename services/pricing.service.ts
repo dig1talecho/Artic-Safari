@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { pricingRulesUpdateSchema } from '@/lib/validation'
 
 export interface PricingRules {
   id: string
@@ -18,10 +19,14 @@ export function getPricingRules() {
   return supabase.from('pricing_rules').select('*').limit(1).maybeSingle()
 }
 
-export function updatePricingRules(id: string, payload: PricingRulesUpdatePayload) {
+export async function updatePricingRules(id: string, payload: PricingRulesUpdatePayload) {
+  const parsed = pricingRulesUpdateSchema.partial().safeParse(payload)
+  if (!parsed.success) {
+    return { data: null, error: { message: parsed.error.issues[0]?.message ?? 'Invalid pricing values' } }
+  }
   return supabase
     .from('pricing_rules')
-    .update({ ...payload, updated_at: new Date().toISOString() })
+    .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq('id', id)
 }
 

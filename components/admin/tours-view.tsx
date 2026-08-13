@@ -21,6 +21,7 @@ import {
   type Tour,
   type TourInsertPayload,
 } from '@/services/tours.service'
+import { compressImage } from '@/lib/image-compress'
 
 function slugify(text: string) {
   return text
@@ -86,7 +87,8 @@ function CoverImageUploader({ value, onChange }: { value: string; onChange: (url
 
   const handleFile = async (file: File) => {
     setUploading(true)
-    const { publicUrl, error } = await uploadTourImage(file)
+    const compressed = await compressImage(file)
+    const { publicUrl, error } = await uploadTourImage(compressed)
     setUploading(false)
     if (!error && publicUrl) onChange(publicUrl)
   }
@@ -142,7 +144,8 @@ function GalleryUploader({ values, onChange }: { values: string[]; onChange: (ne
     setUploading(true)
     const uploaded: string[] = []
     for (const file of Array.from(files)) {
-      const { publicUrl } = await uploadTourImage(file)
+      const compressed = await compressImage(file)
+      const { publicUrl } = await uploadTourImage(compressed)
       if (publicUrl) uploaded.push(publicUrl)
     }
     setUploading(false)

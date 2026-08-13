@@ -3,6 +3,7 @@ import { insertBooking } from '@/services/bookings.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { useMemo, useRef, useState } from 'react'
 import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone } from 'lucide-react'
+import type { Tour } from '@/services/tours.service'
 
 const LIVE_LOCATION = 'live-location'
 
@@ -23,12 +24,40 @@ const pickups = [
   { value: LIVE_LOCATION, label: '📍 Use My Live Location' },
 ]
 
-const tourOptions = [
-  { id: 'private-group', label: 'Northern Lights (Private Group)', price: 15000 },
-  { id: 'per-person', label: 'Northern Lights (Per Person)', price: 2000 },
-  { id: 'small-group', label: 'Northern Lights (Private Small Group)', price: 11000 },
-  { id: 'sommaroya', label: 'Sommarøya Tour', price: 5000 },
-]
+// Audit fix: these used to be permanently hardcoded and drifted out of sync
+// with the Tour Catalog CMS (e.g. per-person stayed at 2,000 kr after the
+// live price moved to 2,250 kr). Falls back to the last-known-correct value
+// only when the CMS hasn't loaded/has no row for that tour yet.
+function parsePriceNumber(price: string | undefined, fallback: number): number {
+  if (!price) return fallback
+  const n = parseInt(price.replace(/[^0-9]/g, ''), 10)
+  return Number.isNaN(n) ? fallback : n
+}
+
+function getTourOptions(toursBySlug: Record<string, Tour>) {
+  return [
+    {
+      id: 'private-group',
+      label: 'Northern Lights (Private Group)',
+      price: parsePriceNumber(toursBySlug['northern-lights-private-group']?.price, 15000),
+    },
+    {
+      id: 'per-person',
+      label: 'Northern Lights (Per Person)',
+      price: parsePriceNumber(toursBySlug['northern-lights-per-person']?.price, 2250),
+    },
+    {
+      id: 'small-group',
+      label: 'Northern Lights (Private Small Group)',
+      price: parsePriceNumber(toursBySlug['northern-lights-small-group']?.price, 11000),
+    },
+    {
+      id: 'sommaroya',
+      label: 'Sommarøya Tour',
+      price: parsePriceNumber(toursBySlug['sommaroya-tour']?.price, 5000),
+    },
+  ]
+}
 
 const fleets = [
   { id: 'small', label: 'Small', hint: '1–4', price: 490 },
@@ -48,7 +77,13 @@ function formatKr(value: number) {
 
 type GeoStatus = 'idle' | 'locating' | 'success' | 'error'
 
-export function DispatchConsole() {
+interface DispatchConsoleProps {
+  toursBySlug?: Record<string, Tour>
+}
+
+export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
+  const tourOptions = useMemo(() => getTourOptions(toursBySlug), [toursBySlug])
+
   const spamGuard = useSpamGuard()
   const [mode, setMode] = useState<Mode>('taxi')
   const [pickup, setPickup] = useState(pickups[0].value)
@@ -65,13 +100,15 @@ export function DispatchConsole() {
   const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [geoError, setGeoError] = useState('')
+  const [reserving, setReserving] = useState(false)
+  const [reserveError, setReserveError] = useState('')
 
   const price = useMemo(() => {
     if (mode === 'taxi') {
       return fleets.find((f) => f.id === fleet)?.price ?? 0
     }
     return tourOptions.find((t) => t.id === tour)?.price ?? 0
-  }, [mode, fleet, tour])
+  }, [mode, fleet, tour, tourOptions])
 
   function requestLiveLocation() {
     if (typeof window === 'undefined' || !('geolocation' in navigator)) {
@@ -121,6 +158,9 @@ export function DispatchConsole() {
       return
     }
 
+    setReserveError('')
+    setReserving(true)
+
     const phoneNumber = "4792997190"
 
     // 1. Supabase Veritabanına Dinamik Kayıt ve Hata Yakalama
@@ -146,12 +186,19 @@ export function DispatchConsole() {
 
       if (error) {
         console.error('Supabase detayli hata:', error)
-      } else {
-        console.log('Supabase kayit basarili:', data)
+        setReserving(false)
+        setReserveError('Could not save your reservation. Please try again or contact us on WhatsApp directly.')
+        return
       }
+      console.log('Supabase kayit basarili:', data)
     } catch (err) {
       console.error('Supabase beklenmeyen hata:', err)
+      setReserving(false)
+      setReserveError('Something went wrong. Please try again or contact us on WhatsApp directly.')
+      return
     }
+
+    setReserving(false)
 
     // 2. WhatsApp Mesajını Oluştur ve Gönder
     let plainText = ""
@@ -377,12 +424,16 @@ Please confirm booking for this date.`
           <button
             type="button"
             onClick={handleReserve}
-            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8]"
+            disabled={reserving}
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8] disabled:opacity-60"
           >
-            Reserve Dispatch
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            {reserving ? 'Reserving…' : 'Reserve Dispatch'}
+            {!reserving && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
           </button>
         </div>
+        {reserveError && (
+          <p className="mt-2 text-xs font-medium text-rose-500">{reserveError}</p>
+        )}
       </div>
     </div>
   )

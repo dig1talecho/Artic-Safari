@@ -80,7 +80,7 @@ export default async function Page() {
       />
       <AuroraBackground variant="light" />
       <SiteHeader variant="light" />
-      <Hero />
+      <Hero toursBySlug={toursBySlug} />
       <TourPackages toursBySlug={toursBySlug} />
       <TaximeterWidget />
       <AuroraRadar />

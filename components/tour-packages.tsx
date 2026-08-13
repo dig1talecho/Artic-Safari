@@ -197,6 +197,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
   const [selectedPackage, setSelectedPackage] = useState<BookingDetails | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [step, setStep] = useState<1 | 2 | 3>(1)
 
   // Form input state'leri
@@ -212,6 +213,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
   const handleBooking = (title: string, price: string, option?: string) => {
     setSelectedPackage({ title, price, option })
     setIsSubmitted(false)
+    setSubmitError('')
     // Signed-in customers already have this on file — pre-fill it instead of asking again.
     setFullName(customerProfile?.full_name ?? '')
     setEmail(customerProfile?.email ?? session?.user?.email ?? '')
@@ -237,6 +239,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
     }
 
     setLoading(true)
+    setSubmitError('')
 
     // Fiyat metninden sadece sayısal değeri ayıkla (Örn: "15,000 kr" -> 15000)
     const numericPrice = parseInt(selectedPackage.price.replace(/[^0-9]/g, '')) || 0
@@ -255,20 +258,24 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
         status: 'pending'
       })
 
+      setLoading(false)
+
       if (error) {
         console.error('Modal Supabase hatasi:', error)
-      } else {
-        console.log('Modal Supabase kayit basarili:', data)
+        setSubmitError('Could not send your booking request. Please try again or contact us on WhatsApp.')
+        return
       }
-    } catch (err) {
-      console.error('Modal Supabase beklenmeyen hata:', err)
-    } finally {
-      setLoading(false)
+
+      console.log('Modal Supabase kayit basarili:', data)
       setIsSubmitted(true)
       setTimeout(() => {
         setSelectedPackage(null)
         setIsSubmitted(false)
       }, 2500)
+    } catch (err) {
+      console.error('Modal Supabase beklenmeyen hata:', err)
+      setLoading(false)
+      setSubmitError('Something went wrong. Please try again or contact us on WhatsApp.')
     }
   }
 
@@ -710,6 +717,10 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                           </span>
                         </div>
                       </div>
+
+                      {submitError && (
+                        <p className="text-xs font-medium text-rose-500">{submitError}</p>
+                      )}
 
                       <div className="flex gap-3">
                         <button

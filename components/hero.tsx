@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Activity, ArrowRight, ShieldCheck, Zap, MessageCircle } from 'lucide-react'
 import { DispatchConsole } from './dispatch-console'
+import type { Tour } from '@/services/tours.service'
 
 const headline = [
   { word: 'Private', accent: false },
@@ -91,7 +92,11 @@ function HeroIllustration() {
   )
 }
 
-export function Hero() {
+interface HeroProps {
+  toursBySlug?: Record<string, Tour>
+}
+
+export function Hero({ toursBySlug = {} }: HeroProps) {
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:pt-16">
       <HeroIllustration />
@@ -162,7 +167,7 @@ export function Hero() {
 
       {/* Dispatch console overlapping */}
       <div className="relative z-10 mx-auto -mt-16 max-w-4xl px-1 sm:-mt-20">
-        <DispatchConsole />
+        <DispatchConsole toursBySlug={toursBySlug} />
       </div>
 
       {/* Trust badges */}

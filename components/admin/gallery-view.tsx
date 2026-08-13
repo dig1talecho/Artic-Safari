@@ -9,6 +9,7 @@ import {
   deleteGalleryPhoto,
   type GalleryPhoto,
 } from '@/services/gallery.service'
+import { compressImage } from '@/lib/image-compress'
 
 export function GalleryView() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
@@ -38,7 +39,8 @@ export function GalleryView() {
     setUploading(true)
     setError(null)
 
-    const { error } = await uploadGalleryPhoto(file)
+    const compressed = await compressImage(file)
+    const { error } = await uploadGalleryPhoto(compressed)
 
     setUploading(false)
 
