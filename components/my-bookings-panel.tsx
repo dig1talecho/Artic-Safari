@@ -17,6 +17,7 @@ import {
   ListChecks,
   CalendarClock,
   ArrowRight,
+  Images,
 } from 'lucide-react'
 
 import { signInWithPassword, signUpCustomer, signOut } from '@/services/auth.service'
@@ -29,6 +30,7 @@ import { GlowPanel, GlowPanelContent } from '@/components/ui/glow-panel'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { MediaVaultModal } from '@/components/media-vault-modal'
 
 interface Booking {
   id: string
@@ -323,6 +325,7 @@ function BookingsList({ session }: { session: Session }) {
   const { profile } = useCustomerProfile(session)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeMediaBooking, setActiveMediaBooking] = useState<{ id: string; title: string } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -457,15 +460,33 @@ function BookingsList({ session }: { session: Session }) {
                 <p className="mt-2 text-xs text-muted-foreground">{booking.notes}</p>
               )}
 
-              <div className="mt-4 flex items-baseline gap-1.5 border-t border-white/10 pt-4">
-                <span className="font-mono text-xl font-semibold text-foreground">
-                  {Number(booking.total_price || 0).toLocaleString()}
-                </span>
-                <span className="text-xs text-muted-foreground">NOK</span>
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-xl font-semibold text-foreground">
+                    {Number(booking.total_price || 0).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-muted-foreground">NOK</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveMediaBooking({ id: booking.id, title: booking.item_title })}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+                >
+                  <Images className="h-3.5 w-3.5" />
+                  Photos
+                </button>
               </div>
             </Card>
           ))}
         </div>
+      )}
+
+      {activeMediaBooking && (
+        <MediaVaultModal
+          bookingId={activeMediaBooking.id}
+          bookingTitle={activeMediaBooking.title}
+          onClose={() => setActiveMediaBooking(null)}
+        />
       )}
     </div>
   )
