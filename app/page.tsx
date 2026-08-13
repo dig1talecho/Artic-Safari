@@ -2,6 +2,7 @@ import { AuroraBackground } from '@/components/aurora-background'
 import { SiteHeader } from '@/components/site-header'
 import { Hero } from '@/components/hero'
 import { TourPackages } from '@/components/tour-packages'
+import { TaximeterWidget } from '@/components/taximeter-widget'
 import { AuroraRadar } from '@/components/aurora-radar'
 import { ReviewsSection } from '@/components/reviews-section'
 import { CustomerGallerySection } from '@/components/customer-gallery-section'
@@ -81,6 +82,7 @@ export default async function Page() {
       <SiteHeader variant="light" />
       <Hero />
       <TourPackages toursBySlug={toursBySlug} />
+      <TaximeterWidget />
       <AuroraRadar />
       <ReviewsSection />
       <CustomerGallerySection />
