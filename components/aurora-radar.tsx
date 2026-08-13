@@ -1,19 +1,9 @@
-import { Cloud, Gauge, Radar } from 'lucide-react'
+import { Cloud, Gauge, Radar, AlertCircle } from 'lucide-react'
+import { getAuroraConditions } from '@/services/aurora.service'
 
-const hours = [
-  { t: '18', p: 35 },
-  { t: '19', p: 52 },
-  { t: '20', p: 61 },
-  { t: '21', p: 78 },
-  { t: '22', p: 92 },
-  { t: '23', p: 88 },
-  { t: '00', p: 74 },
-  { t: '01', p: 58 },
-]
+export async function AuroraRadar() {
+  const conditions = await getAuroraConditions()
 
-const max = 100
-
-export function AuroraRadar() {
   return (
     <section id="radar" className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24">
       <div className="overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] sm:p-8">
@@ -29,62 +19,78 @@ export function AuroraRadar() {
           </div>
           <span className="flex items-center gap-2 rounded-full border border-[var(--home-border)] bg-[var(--home-surface-soft)] px-3 py-1.5 text-xs text-[var(--home-foreground)]">
             <span className="live-dot h-2 w-2 rounded-full bg-[var(--home-gold)]" />
-            Updated moments ago
+            NOAA SWPC &amp; Open-Meteo
           </span>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Stat
-            icon={<Gauge className="h-4 w-4" />}
-            label="Current KP Index"
-            value="5.6"
-            note="High activity"
-            tone="accent"
-          />
-          <Stat
-            icon={<Cloud className="h-4 w-4" />}
-            label="Cloud Coverage"
-            value="12%"
-            note="Clear skies"
-            tone="gold"
-          />
-          <Stat
-            icon={<Radar className="h-4 w-4" />}
-            label="Peak Window"
-            value="22:00"
-            note="92% probability"
-            tone="accent"
-          />
-        </div>
+        {!conditions ? (
+          <div className="flex items-center gap-3 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-6 text-sm text-[var(--home-muted)]">
+            <AlertCircle className="h-5 w-5 shrink-0 text-[var(--home-gold)]" />
+            Aurora data is temporarily unavailable (NOAA/weather feed did not respond). Try again shortly.
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Stat
+                icon={<Gauge className="h-4 w-4" />}
+                label="Current KP Index"
+                value={conditions.currentKp.toFixed(2)}
+                note={conditions.kpLabel}
+                tone="accent"
+              />
+              <Stat
+                icon={<Cloud className="h-4 w-4" />}
+                label="Cloud Coverage"
+                value={`${Math.round(conditions.cloudCoverPercent)}%`}
+                note={conditions.cloudLabel}
+                tone="gold"
+              />
+              <Stat
+                icon={<Radar className="h-4 w-4" />}
+                label="Aurora Probability"
+                value={`${Math.round(conditions.auroraProbability)}%`}
+                note={conditions.peakWindow ? `Peak forecast ${formatHour(conditions.peakWindow.time)}` : 'NOAA OVATION'}
+                tone="accent"
+              />
+            </div>
 
-        {/* Hourly probability graph */}
-        <div className="mt-6 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm font-medium text-[var(--home-foreground)]">Hourly aurora probability</span>
-            <span className="text-xs text-[var(--home-muted)]">Local time · %</span>
-          </div>
-          <div className="flex h-44 items-stretch gap-2 sm:gap-3">
-            {hours.map((h) => (
-              <div key={h.t} className="flex h-full flex-1 flex-col items-center gap-2">
-                <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
-                  {h.p}
-                </span>
-                <div className="flex w-full flex-1 items-end">
-                  <div
-                    className="w-full rounded-t-md bg-gradient-to-t from-[var(--home-accent)]/40 to-[var(--home-accent)] transition-all"
-                    style={{ height: `${(h.p / max) * 100}%` }}
-                  />
+            {conditions.forecast.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-sm font-medium text-[var(--home-foreground)]">
+                    NOAA Kp forecast (next 24h)
+                  </span>
+                  <span className="text-xs text-[var(--home-muted)]">Local time · Kp (0–9)</span>
                 </div>
-                <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
-                  {h.t}
-                </span>
+                <div className="flex h-44 items-stretch gap-2 sm:gap-3">
+                  {conditions.forecast.map((h) => (
+                    <div key={h.time} className="flex h-full flex-1 flex-col items-center gap-2">
+                      <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
+                        {h.kp.toFixed(1)}
+                      </span>
+                      <div className="flex w-full flex-1 items-end">
+                        <div
+                          className="w-full rounded-t-md bg-gradient-to-t from-[var(--home-accent)]/40 to-[var(--home-accent)] transition-all"
+                          style={{ height: `${(h.kp / 9) * 100}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
+                        {formatHour(h.time)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   )
+}
+
+function formatHour(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 function Stat({
