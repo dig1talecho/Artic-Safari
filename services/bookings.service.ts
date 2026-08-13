@@ -3,6 +3,7 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import { bookingInsertSchema } from '@/lib/validation'
 
 export interface BookingInsertPayload {
+  id?: string
   customer_name: string
   customer_email: string
   customer_phone: string | null
@@ -39,7 +40,7 @@ export async function insertBooking(payload: BookingInsertPayload) {
       error: { message: parsed.error.issues[0]?.message ?? 'Invalid booking data' },
     }
   }
-  return supabase.from('bookings').insert([parsed.data])
+  return supabase.from('bookings').insert([parsed.data]).select()
 }
 
 export function updateBookingStatus(id: string, status: 'confirmed' | 'cancelled' | 'pending') {

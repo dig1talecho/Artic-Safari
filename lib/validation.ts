@@ -5,6 +5,11 @@ import { z } from 'zod'
 // here so a bad/malicious payload is rejected before it reaches Supabase,
 // regardless of which UI produced it.
 export const bookingInsertSchema = z.object({
+  // Optional client-generated UUID. Lets a caller (e.g. the add-ons cart)
+  // know the booking's id up front to attach related rows, without
+  // needing an anon SELECT-back policy on bookings -- DB default handles
+  // it when omitted, exactly like before.
+  id: z.string().uuid().optional(),
   customer_name: z.string().trim().min(1, 'Name is required').max(200),
   customer_email: z.string().trim().max(320),
   customer_phone: z.string().trim().max(40).nullable(),
