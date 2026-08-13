@@ -24,6 +24,7 @@ import { DriversView } from '@/components/admin/drivers-view'
 import { FinanceView } from '@/components/admin/finance-view'
 import { ReviewsView } from '@/components/admin/reviews-view'
 import { GalleryView } from '@/components/admin/gallery-view'
+import { ToursView } from '@/components/admin/tours-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
@@ -34,6 +35,7 @@ const viewTitles: Record<AdminView, string> = {
   overview: 'Dashboard',
   tours: 'Tours & Activities',
   transfers: 'Transfers',
+  'tour-catalog': 'Tour Catalog',
   customers: 'Customers & Users',
   drivers: 'Drivers & Guides',
   finance: 'Finance & Payments',
@@ -367,6 +369,8 @@ export default function AdminDashboard() {
           {activeView === 'reviews' && currentUser.role === 'admin' && <ReviewsView />}
 
           {activeView === 'gallery' && currentUser.role === 'admin' && <GalleryView />}
+
+          {activeView === 'tour-catalog' && currentUser.role === 'admin' && <ToursView />}
 
           {activeView === 'settings' && (
             <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />

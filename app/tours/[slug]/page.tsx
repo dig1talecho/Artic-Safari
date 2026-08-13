@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, Check, ArrowLeft } from 'lucide-react'
+import { ArrowRight, Check, ArrowLeft, Clock, MapPin } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
-import { tours, getTourBySlug } from '@/lib/tours-data'
+import { getTours, getTourBySlug } from '@/services/tours.service'
 
-export function generateStaticParams() {
-  return tours.map((tour) => ({ slug: tour.slug }))
+export async function generateStaticParams() {
+  const { data } = await getTours()
+  return (data ?? []).map((tour) => ({ slug: tour.slug }))
 }
 
 export async function generateMetadata({
@@ -16,16 +17,16 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const tour = getTourBySlug(slug)
+  const { data: tour } = await getTourBySlug(slug)
   if (!tour) return {}
 
   return {
-    title: tour.metaTitle,
-    description: tour.metaDescription,
+    title: tour.meta_title || tour.title,
+    description: tour.meta_description || tour.intro,
     openGraph: {
-      title: tour.metaTitle,
-      description: tour.metaDescription,
-      images: [{ url: tour.image }],
+      title: tour.meta_title || tour.title,
+      description: tour.meta_description || tour.intro,
+      images: tour.cover_image ? [{ url: tour.cover_image }] : undefined,
     },
   }
 }
@@ -36,7 +37,7 @@ export default async function TourDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const tour = getTourBySlug(slug)
+  const { data: tour } = await getTourBySlug(slug)
   if (!tour) notFound()
 
   return (
@@ -52,14 +53,18 @@ export default async function TourDetailPage({
 
         <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
           <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-inset ring-black/10">
-            <Image
-              src={tour.image}
-              alt={tour.imageAlt}
-              width={900}
-              height={700}
-              className="h-[280px] w-full object-cover sm:h-[380px]"
-              priority
-            />
+            {tour.cover_image ? (
+              <Image
+                src={tour.cover_image}
+                alt={tour.cover_image_alt || tour.title}
+                width={900}
+                height={700}
+                className="h-[280px] w-full object-cover sm:h-[380px]"
+                priority
+              />
+            ) : (
+              <div className="h-[280px] w-full bg-[var(--home-surface-soft)] sm:h-[380px]" />
+            )}
           </div>
 
           <div>
@@ -71,23 +76,42 @@ export default async function TourDetailPage({
             </h1>
             <p className="mt-5 text-pretty leading-relaxed text-[var(--home-muted)]">{tour.intro}</p>
 
+            {(tour.duration || tour.meeting_point) && (
+              <div className="mt-5 flex flex-wrap gap-4 text-sm text-[var(--home-muted)]">
+                {tour.duration && (
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-4 w-4 text-[var(--home-accent)]" />
+                    {tour.duration}
+                  </span>
+                )}
+                {tour.meeting_point && (
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-[var(--home-accent)]" />
+                    {tour.meeting_point}
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="mt-6 flex items-baseline gap-3 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] px-5 py-4">
               <span className="font-mono text-2xl font-semibold text-[var(--home-foreground)]">
                 {tour.price}
               </span>
-              <span className="text-sm text-[var(--home-muted)]">{tour.priceNote}</span>
+              <span className="text-sm text-[var(--home-muted)]">{tour.price_note}</span>
             </div>
 
-            <ul className="mt-6 space-y-2.5">
-              {tour.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2.5 text-sm text-[var(--home-muted)]">
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[var(--home-accent-soft)] text-[var(--home-accent)]">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
+            {tour.features.length > 0 && (
+              <ul className="mt-6 space-y-2.5">
+                {tour.features.map((feature: string) => (
+                  <li key={feature} className="flex items-center gap-2.5 text-sm text-[var(--home-muted)]">
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[var(--home-accent-soft)] text-[var(--home-accent)]">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <Link
               href="/#tours"
@@ -98,6 +122,34 @@ export default async function TourDetailPage({
             </Link>
           </div>
         </div>
+
+        {tour.highlights.length > 0 && (
+          <div className="mt-14 border-t border-[var(--home-border)] pt-10">
+            <h2 className="font-[family-name:var(--font-display)] text-xl uppercase tracking-tight text-[var(--home-foreground)]">
+              Route Highlights
+            </h2>
+            <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {tour.highlights.map((stop: string, i: number) => (
+                <li key={stop} className="flex items-center gap-3 text-sm text-[var(--home-muted)]">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[var(--home-accent-soft)] font-mono text-xs text-[var(--home-accent)]">
+                    {i + 1}
+                  </span>
+                  {stop}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {tour.gallery.length > 0 && (
+          <div className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {tour.gallery.map((url: string) => (
+              <div key={url} className="relative aspect-square overflow-hidden rounded-2xl">
+                <Image src={url} alt={tour.title} fill className="object-cover" sizes="240px" />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </SiteShell>
   )

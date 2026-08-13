@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { insertBooking } from '@/services/bookings.service'
+import type { Tour } from '@/services/tours.service'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { useSpamGuard } from '@/lib/use-spam-guard'
@@ -163,7 +164,17 @@ interface BookingDetails {
   price: string
 }
 
-export function TourPackages() {
+interface TourPackagesProps {
+  toursBySlug?: Record<string, Tour>
+}
+
+export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
+  // CMS content (title/price/image) overrides the hardcoded fallback below when
+  // an admin has edited that tour in /admin -> Tour Catalog. Per-option pricing
+  // (small/large, small/big car) and the feature bullet icons stay hand-authored
+  // -- the tours table doesn't model per-variant prices, and icons aren't CMS data.
+  const t = (slug: string) => toursBySlug[slug]
+
   const { session } = useSession()
   const { profile: customerProfile } = useCustomerProfile(session)
   const isSignedIn = Boolean(customerProfile)
@@ -267,8 +278,15 @@ export function TourPackages() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         {/* Card 1 — Airport Transfer (toggle) */}
         <Card className="md:col-span-2" glow="gold">
-          <CardImage src="/gallery/airport-transfer.jpg" alt="Private VIP vehicles used for premium airport transfer service" />
-          <CardHead icon={<Plane className="h-5 w-5" />} eyebrow="Point to Point" title="Airport Transfer" />
+          <CardImage
+            src={t('airport-transfer')?.cover_image || '/gallery/airport-transfer.jpg'}
+            alt={t('airport-transfer')?.cover_image_alt || 'Private VIP vehicles used for premium airport transfer service'}
+          />
+          <CardHead
+            icon={<Plane className="h-5 w-5" />}
+            eyebrow={t('airport-transfer')?.eyebrow || 'Point to Point'}
+            title={t('airport-transfer')?.title || 'Airport Transfer'}
+          />
           <SegToggle options={transferSizes} value={transfer} onChange={setTransfer} />
           <div className="mt-4">
             <Price value={transferPrice} />
@@ -295,15 +313,15 @@ export function TourPackages() {
         <Card className="md:col-span-4 md:row-span-2">
           <div className="relative flex h-full flex-col">
             <CardImage
-              src="/gallery/northern-lights-private-group.jpg"
-              alt="Private group watching the Northern Lights over a fjord near Tromsø"
+              src={t('northern-lights-private-group')?.cover_image || '/gallery/northern-lights-private-group.jpg'}
+              alt={t('northern-lights-private-group')?.cover_image_alt || 'Private group watching the Northern Lights over a fjord near Tromsø'}
               tall
             />
             <div className="flex items-start justify-between gap-4">
               <CardHead
                 icon={<Sparkles className="h-5 w-5" />}
-                eyebrow="Signature Experience"
-                title="Northern Lights Tour — Private Group"
+                eyebrow={t('northern-lights-private-group')?.eyebrow || 'Signature Experience'}
+                title={t('northern-lights-private-group')?.title || 'Northern Lights Tour — Private Group'}
               />
               <span
                 className="shrink-0 bg-[var(--home-gold)] py-1.5 pl-3.5 pr-5 text-xs font-bold uppercase tracking-wide text-white [clip-path:polygon(0%_0%,100%_0%,85%_50%,100%_100%,0%_100%)]"
@@ -312,14 +330,14 @@ export function TourPackages() {
               </span>
             </div>
             <p className="max-w-md text-pretty leading-relaxed text-[var(--home-muted)]">
-              An exclusive private group expedition for 2 to 8 guests. Your own heated vehicle and a
-              route customized in real time to hunt the clearest, most active skies.
+              {t('northern-lights-private-group')?.intro ||
+                'An exclusive private group expedition for 2 to 8 guests. Your own heated vehicle and a route customized in real time to hunt the clearest, most active skies.'}
             </p>
 
             <div className="mt-6 flex items-baseline gap-3">
-              <Price value="15,000 kr" />
+              <Price value={t('northern-lights-private-group')?.price || '15,000 kr'} />
               <span className="rounded-full bg-[var(--home-surface-soft)] px-3 py-1 text-xs text-[var(--home-muted)]">
-                Flat rate · up to 8 guests
+                {t('northern-lights-private-group')?.price_note || 'Flat rate · up to 8 guests'}
               </span>
             </div>
 
@@ -335,7 +353,13 @@ export function TourPackages() {
             <div className="mt-auto pt-7">
               <button
                 type="button"
-                onClick={() => handleBooking('Northern Lights — Private Group', '15,000 kr', 'Up to 8 guests')}
+                onClick={() =>
+                  handleBooking(
+                    t('northern-lights-private-group')?.title || 'Northern Lights — Private Group',
+                    t('northern-lights-private-group')?.price || '15,000 kr',
+                    'Up to 8 guests',
+                  )
+                }
                 className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8] sm:w-auto sm:px-8"
               >
                 Reserve Private Group
@@ -346,9 +370,16 @@ export function TourPackages() {
 
         {/* Card 3 — Per Person */}
         <Card className="md:col-span-2" glow="gold">
-          <CardImage src="/gallery/northern-lights-per-person.jpg" alt="Small group of travelers on a shared Northern Lights tour in Norway" />
-          <CardHead icon={<User className="h-5 w-5" />} eyebrow="Solo & Couples" title="Northern Lights — Per Person" />
-          <Price value="2,250 kr" suffix="/ person" />
+          <CardImage
+            src={t('northern-lights-per-person')?.cover_image || '/gallery/northern-lights-per-person.jpg'}
+            alt={t('northern-lights-per-person')?.cover_image_alt || 'Small group of travelers on a shared Northern Lights tour in Norway'}
+          />
+          <CardHead
+            icon={<User className="h-5 w-5" />}
+            eyebrow={t('northern-lights-per-person')?.eyebrow || 'Solo & Couples'}
+            title={t('northern-lights-per-person')?.title || 'Northern Lights — Per Person'}
+          />
+          <Price value={t('northern-lights-per-person')?.price || '2,250 kr'} suffix="/ person" />
           <ul className="mt-5 space-y-2.5">
             <Feature icon={<Users className="h-3 w-3" />}>Shared small-group chase</Feature>
             <Feature icon={<Sparkles className="h-3 w-3" />}>Expert aurora guide</Feature>
@@ -356,7 +387,12 @@ export function TourPackages() {
           </ul>
           <button
             type="button"
-            onClick={() => handleBooking('Northern Lights — Per Person', '2,250 kr / person')}
+            onClick={() =>
+              handleBooking(
+                t('northern-lights-per-person')?.title || 'Northern Lights — Per Person',
+                `${t('northern-lights-per-person')?.price || '2,250 kr'} / person`,
+              )
+            }
             className="mt-6 w-full rounded-xl border-2 border-[var(--home-foreground)] bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-foreground)] hover:text-white active:scale-[0.96]"
           >
             Book Ticket
@@ -365,15 +401,20 @@ export function TourPackages() {
 
         {/* Card 4 — Private Small Group */}
         <Card className="md:col-span-3">
-          <CardImage src="/gallery/northern-lights-small-group.jpg" alt="Vivid purple and green aurora borealis over snowy mountains near Tromsø" />
+          <CardImage
+            src={t('northern-lights-small-group')?.cover_image || '/gallery/northern-lights-small-group.jpg'}
+            alt={t('northern-lights-small-group')?.cover_image_alt || 'Vivid purple and green aurora borealis over snowy mountains near Tromsø'}
+          />
           <CardHead
             icon={<Users className="h-5 w-5" />}
-            eyebrow="Family & Friends"
-            title="Northern Lights — Private Small Group"
+            eyebrow={t('northern-lights-small-group')?.eyebrow || 'Family & Friends'}
+            title={t('northern-lights-small-group')?.title || 'Northern Lights — Private Small Group'}
           />
           <div className="flex items-baseline justify-between">
-            <Price value="11,000 kr" />
-            <span className="text-xs text-[var(--home-muted)]">1 to 4 persons</span>
+            <Price value={t('northern-lights-small-group')?.price || '11,000 kr'} />
+            <span className="text-xs text-[var(--home-muted)]">
+              {t('northern-lights-small-group')?.price_note || '1 to 4 persons'}
+            </span>
           </div>
           <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <Feature icon={<User className="h-3 w-3" />}>Private chauffeur</Feature>
@@ -383,7 +424,13 @@ export function TourPackages() {
           </ul>
           <button
             type="button"
-            onClick={() => handleBooking('Northern Lights — Private Small Group', '11,000 kr', '1 to 4 persons')}
+            onClick={() =>
+              handleBooking(
+                t('northern-lights-small-group')?.title || 'Northern Lights — Private Small Group',
+                t('northern-lights-small-group')?.price || '11,000 kr',
+                '1 to 4 persons',
+              )
+            }
             className="mt-6 w-full rounded-xl bg-[var(--home-surface-soft)] py-3 text-sm font-bold uppercase tracking-wide text-[var(--home-foreground)] transition-[background-color,color,scale] hover:bg-[var(--home-accent)] hover:text-white active:scale-[0.96]"
           >
             Book Small Group
@@ -392,8 +439,15 @@ export function TourPackages() {
 
         {/* Card 5 — Sommarøya (vehicle selector) */}
         <Card className="md:col-span-3" glow="gold">
-          <CardImage src="/gallery/sommaroya-tour.jpg" alt="Coastal road and fjord landscape on the way to Sommarøy, Norway" />
-          <CardHead icon={<Waves className="h-5 w-5" />} eyebrow="Coastal Scenic" title="Sommarøya Tour" />
+          <CardImage
+            src={t('sommaroya-tour')?.cover_image || '/gallery/sommaroya-tour.jpg'}
+            alt={t('sommaroya-tour')?.cover_image_alt || 'Coastal road and fjord landscape on the way to Sommarøy, Norway'}
+          />
+          <CardHead
+            icon={<Waves className="h-5 w-5" />}
+            eyebrow={t('sommaroya-tour')?.eyebrow || 'Coastal Scenic'}
+            title={t('sommaroya-tour')?.title || 'Sommarøya Tour'}
+          />
           <SegToggle options={sommaroyaCars} value={sommaroya} onChange={setSommaroya} />
           <div className="mt-4 flex items-baseline justify-between">
             <Price value={sommaroyaPrice} />

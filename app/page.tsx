@@ -10,6 +10,7 @@ import { faqs } from '@/components/faq-data'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { SocialRail } from '@/components/social-rail'
 import { listPublishedReviewRatings } from '@/services/reviews.service'
+import { getTours } from '@/services/tours.service'
 import { siteUrl } from '@/lib/site-config'
 
 const faqSchema = {
@@ -27,6 +28,8 @@ const faqSchema = {
 
 export default async function Page() {
   const { data: reviewRatings } = await listPublishedReviewRatings()
+  const { data: liveTours } = await getTours()
+  const toursBySlug = Object.fromEntries((liveTours ?? []).map((tour) => [tour.slug, tour]))
 
   const reviewCount = reviewRatings?.length ?? 0
   const averageRating =
@@ -77,7 +80,7 @@ export default async function Page() {
       <AuroraBackground variant="light" />
       <SiteHeader variant="light" />
       <Hero />
-      <TourPackages />
+      <TourPackages toursBySlug={toursBySlug} />
       <AuroraRadar />
       <ReviewsSection />
       <CustomerGallerySection />

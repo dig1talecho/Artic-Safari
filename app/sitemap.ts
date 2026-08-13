@@ -1,9 +1,12 @@
 import type { MetadataRoute } from 'next'
-import { tours } from '@/lib/tours-data'
+import { getTours } from '@/services/tours.service'
 import { posts } from '@/lib/blog-data'
 import { siteUrl as baseUrl } from '@/lib/site-config'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { data } = await getTours()
+  const tours = data ?? []
+
   return [
     {
       url: baseUrl,

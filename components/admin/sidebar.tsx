@@ -13,12 +13,14 @@ import {
   Settings,
   Menu,
   X,
+  BookImage,
 } from 'lucide-react'
 
 export type AdminView =
   | 'overview'
   | 'tours'
   | 'transfers'
+  | 'tour-catalog'
   | 'customers'
   | 'drivers'
   | 'finance'
@@ -37,6 +39,7 @@ const navItems: NavItem[] = [
   { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'tours', label: 'Tours & Activities', icon: Map },
   { id: 'transfers', label: 'Transfers', icon: Car },
+  { id: 'tour-catalog', label: 'Tour Catalog', icon: BookImage, adminOnly: true },
   { id: 'customers', label: 'Customers & Users', icon: Users, adminOnly: true },
   { id: 'drivers', label: 'Drivers & Guides', icon: UserCog, adminOnly: true },
   { id: 'finance', label: 'Finance & Payments', icon: Wallet, adminOnly: true },

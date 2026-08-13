@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
-import { tours } from '@/lib/tours-data'
+import { getTours } from '@/services/tours.service'
 
 export const metadata: Metadata = {
   title: 'Tours & Transfers Tromsø | Artic Safari',
@@ -10,11 +10,13 @@ export const metadata: Metadata = {
     'Private Northern Lights tours and VIP airport transfers in Tromsø, Norway. Compare all Artic Safari tour and transfer options and prices.',
 }
 
-const startingPrice = Math.min(
-  ...tours.map((tour) => parseInt(tour.price.replace(/[^\d]/g, ''), 10)),
-)
+export default async function ToursIndexPage() {
+  const { data } = await getTours()
+  const tours = data ?? []
 
-export default function ToursIndexPage() {
+  const prices = tours.map((tour) => parseInt(tour.price.replace(/[^\d]/g, ''), 10)).filter((n) => !Number.isNaN(n))
+  const startingPrice = prices.length > 0 ? Math.min(...prices) : null
+
   return (
     <SiteShell>
       <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-20 pt-10 sm:pt-16">
@@ -41,17 +43,24 @@ export default function ToursIndexPage() {
                 Experiences
               </p>
             </div>
-            <div>
-              <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--home-foreground)]">
-                {startingPrice.toLocaleString('en-US')} kr
-              </p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--home-muted)]">
-                Starting From
-              </p>
-            </div>
+            {startingPrice !== null && (
+              <div>
+                <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--home-foreground)]">
+                  {startingPrice.toLocaleString('en-US')} kr
+                </p>
+                <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--home-muted)]">
+                  Starting From
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
+        {tours.length === 0 ? (
+          <p className="mt-14 text-sm text-[var(--home-muted)]">
+            Tours are being updated — check back shortly.
+          </p>
+        ) : (
         <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tours.map((tour) => (
             <Link
@@ -82,6 +91,7 @@ export default function ToursIndexPage() {
             </Link>
           ))}
         </div>
+        )}
       </section>
     </SiteShell>
   )
