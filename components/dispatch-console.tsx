@@ -197,7 +197,7 @@ Please confirm booking for this date.`
 
   return (
     <div
-      className="animate-float-up rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-2 shadow-[0_20px_60px_-16px_rgba(11,31,42,0.18)]"
+      className="animate-float-up rounded-3xl border border-[var(--home-glass-border)] bg-[var(--home-glass)] p-2 shadow-[0_20px_60px_-16px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.75)_0%,black_10%,black_90%,rgba(0,0,0,0.75)_100%)]"
       style={{ animationDelay: '0.3s' }}
     >
       <div className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5">
@@ -421,7 +421,7 @@ function AddressAutocomplete({
 
   return (
     <div ref={containerRef} onBlur={handleBlur} className="relative">
-      <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-colors focus-within:border-[var(--home-accent)]">
+      <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)] focus-within:[background-image:radial-gradient(160px_60px_at_15%_50%,var(--home-accent-soft),transparent_70%)]">
         <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
           <span className="text-[var(--home-accent)]">
             <Navigation className="h-4 w-4" />
@@ -491,7 +491,7 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-colors focus-within:border-[var(--home-accent)]">
+    <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)] focus-within:[background-image:radial-gradient(160px_60px_at_15%_50%,var(--home-accent-soft),transparent_70%)]">
       <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
         <span className="text-[var(--home-accent)]">{icon}</span>
         {label}

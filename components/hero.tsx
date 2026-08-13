@@ -1,6 +1,39 @@
+'use client'
+
 import Image from 'next/image'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Activity, ArrowRight, ShieldCheck, Zap, MessageCircle } from 'lucide-react'
 import { DispatchConsole } from './dispatch-console'
+
+const headline = [
+  { word: 'Private', accent: false },
+  { word: 'Northern', accent: false },
+  { word: 'Lights', accent: false },
+  { word: 'Tours', accent: true },
+  { word: 'in', accent: true },
+  { word: 'Tromsø', accent: true },
+]
+
+function SplitHeadline() {
+  const reduceMotion = useReducedMotion()
+
+  return (
+    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl">
+      {headline.map(({ word, accent }, i) => (
+        <span key={word} className="overflow-hidden py-1">
+          <motion.span
+            className={`inline-block ${accent ? 'text-[var(--home-accent)]' : ''}`}
+            initial={reduceMotion ? false : { y: '110%' }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {word}
+          </motion.span>
+        </span>
+      ))}
+    </h1>
+  )
+}
 
 const trustBadges = [
   { icon: ShieldCheck, label: 'Secure Booking' },
@@ -83,13 +116,7 @@ export function Hero() {
         >
           Chasing Auroras in First-Class Comfort
         </p>
-        <h1
-          className="animate-float-up mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl"
-          style={{ animationDelay: '0.1s' }}
-        >
-          Private Northern Lights{' '}
-          <span className="text-[var(--home-accent)]">Tours in Tromsø</span>
-        </h1>
+        <SplitHeadline />
         <p
           className="animate-float-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-[var(--home-muted)] sm:text-lg"
           style={{ animationDelay: '0.2s' }}

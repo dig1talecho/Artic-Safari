@@ -1,5 +1,6 @@
 import { Cloud, Gauge, Radar, AlertCircle } from 'lucide-react'
 import { getAuroraConditions } from '@/services/aurora.service'
+import { AuroraWaveform } from './aurora-waveform'
 
 export async function AuroraRadar() {
   const conditions = await getAuroraConditions()
@@ -56,28 +57,18 @@ export async function AuroraRadar() {
 
             {conditions.forecast.length > 0 && (
               <div className="mt-6 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-5">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--home-foreground)]">
                     NOAA Kp forecast (next 24h)
                   </span>
                   <span className="text-xs text-[var(--home-muted)]">Local time · Kp (0–9)</span>
                 </div>
-                <div className="flex h-44 items-stretch gap-2 sm:gap-3">
+                <AuroraWaveform forecast={conditions.forecast} currentKp={conditions.currentKp} />
+                <div className="flex justify-between px-1">
                   {conditions.forecast.map((h) => (
-                    <div key={h.time} className="flex h-full flex-1 flex-col items-center gap-2">
-                      <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
-                        {h.kp.toFixed(1)}
-                      </span>
-                      <div className="flex w-full flex-1 items-end">
-                        <div
-                          className="w-full rounded-t-md bg-gradient-to-t from-[var(--home-accent)]/40 to-[var(--home-accent)] transition-all"
-                          style={{ height: `${(h.kp / 9) * 100}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
-                        {formatHour(h.time)}
-                      </span>
-                    </div>
+                    <span key={h.time} className="font-mono text-[10px] text-[var(--home-muted)] tabular-nums">
+                      {formatHour(h.time)}
+                    </span>
                   ))}
                 </div>
               </div>

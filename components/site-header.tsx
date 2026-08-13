@@ -16,14 +16,16 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
     return (
       <header className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-7">
         <a href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/logo.png"
-            alt="Artic Safari Tour"
-            width={40}
-            height={40}
-            className="h-10 w-10 object-contain"
-            priority
-          />
+          <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full ring-1 ring-[var(--home-border)]">
+            <Image
+              src="/logo.png"
+              alt="Artic Safari Tour"
+              width={40}
+              height={40}
+              className="h-10 w-10 object-cover"
+              priority
+            />
+          </span>
           <span className="font-[family-name:var(--font-display)] text-[15px] uppercase tracking-tight text-[var(--home-foreground)]">
             Artic <span className="text-[var(--home-accent)]">Safari</span>
           </span>

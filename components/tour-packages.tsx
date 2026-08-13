@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { motion, useReducedMotion } from 'framer-motion'
 import { insertBooking } from '@/services/bookings.service'
 import type { Tour } from '@/services/tours.service'
 import { useSession } from '@/lib/use-session'
@@ -42,21 +43,30 @@ function Card({
   className = '',
   children,
   glow = 'accent',
+  index = 0,
 }: {
   className?: string
   children: React.ReactNode
   glow?: 'accent' | 'gold'
+  index?: number
 }) {
-  const ring =
+  const reduceMotion = useReducedMotion()
+  const ring = glow === 'gold' ? 'hover:border-[var(--home-gold)]/50' : 'hover:border-[var(--home-accent)]/40'
+  const glowShadow =
     glow === 'gold'
-      ? 'hover:border-[var(--home-gold)]/50'
-      : 'hover:border-[var(--home-accent)]/40'
+      ? 'hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16),0_0_50px_-12px_rgba(216,183,131,0.35)]'
+      : 'hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16),0_0_50px_-12px_rgba(127,208,224,0.35)]'
+
   return (
-    <div
-      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16)] ${ring} ${className}`}
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, y: 32 + (index % 2) * 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.4)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 ${glowShadow} ${ring} ${className}`}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }
 
@@ -277,7 +287,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         {/* Card 1 — Airport Transfer (toggle) */}
-        <Card className="md:col-span-2" glow="gold">
+        <Card className="md:col-span-2" glow="gold" index={0}>
           <CardImage
             src={t('airport-transfer')?.cover_image || '/gallery/airport-transfer.jpg'}
             alt={t('airport-transfer')?.cover_image_alt || 'Private VIP vehicles used for premium airport transfer service'}
@@ -310,7 +320,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
         </Card>
 
         {/* Card 2 — Private Group (hero) */}
-        <Card className="md:col-span-4 md:row-span-2">
+        <Card className="md:col-span-4 md:row-span-2" index={1}>
           <div className="relative flex h-full flex-col">
             <CardImage
               src={t('northern-lights-private-group')?.cover_image || '/gallery/northern-lights-private-group.jpg'}
@@ -369,7 +379,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
         </Card>
 
         {/* Card 3 — Per Person */}
-        <Card className="md:col-span-2" glow="gold">
+        <Card className="md:col-span-2" glow="gold" index={2}>
           <CardImage
             src={t('northern-lights-per-person')?.cover_image || '/gallery/northern-lights-per-person.jpg'}
             alt={t('northern-lights-per-person')?.cover_image_alt || 'Small group of travelers on a shared Northern Lights tour in Norway'}
@@ -400,7 +410,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
         </Card>
 
         {/* Card 4 — Private Small Group */}
-        <Card className="md:col-span-3">
+        <Card className="md:col-span-3" index={3}>
           <CardImage
             src={t('northern-lights-small-group')?.cover_image || '/gallery/northern-lights-small-group.jpg'}
             alt={t('northern-lights-small-group')?.cover_image_alt || 'Vivid purple and green aurora borealis over snowy mountains near Tromsø'}
@@ -438,7 +448,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
         </Card>
 
         {/* Card 5 — Sommarøya (vehicle selector) */}
-        <Card className="md:col-span-3" glow="gold">
+        <Card className="md:col-span-3" glow="gold" index={4}>
           <CardImage
             src={t('sommaroya-tour')?.cover_image || '/gallery/sommaroya-tour.jpg'}
             alt={t('sommaroya-tour')?.cover_image_alt || 'Coastal road and fjord landscape on the way to Sommarøy, Norway'}
