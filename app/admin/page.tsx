@@ -25,6 +25,8 @@ import { FinanceView } from '@/components/admin/finance-view'
 import { ReviewsView } from '@/components/admin/reviews-view'
 import { GalleryView } from '@/components/admin/gallery-view'
 import { ToursView } from '@/components/admin/tours-view'
+import { PartnersView } from '@/components/admin/partners-view'
+import { AddonsView } from '@/components/admin/addons-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
@@ -41,6 +43,8 @@ const viewTitles: Record<AdminView, string> = {
   finance: 'Finance & Payments',
   reviews: 'Reviews',
   gallery: 'Gallery',
+  partners: 'Partners',
+  addons: 'Add-ons',
   settings: 'Settings',
 }
 
@@ -371,6 +375,10 @@ export default function AdminDashboard() {
           {activeView === 'gallery' && currentUser.role === 'admin' && <GalleryView />}
 
           {activeView === 'tour-catalog' && currentUser.role === 'admin' && <ToursView />}
+
+          {activeView === 'partners' && currentUser.role === 'admin' && <PartnersView />}
+
+          {activeView === 'addons' && currentUser.role === 'admin' && <AddonsView />}
 
           {activeView === 'settings' && (
             <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />

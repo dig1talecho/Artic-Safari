@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   BookImage,
+  Building2,
+  Tag,
 } from 'lucide-react'
 
 export type AdminView =
@@ -26,6 +28,8 @@ export type AdminView =
   | 'finance'
   | 'reviews'
   | 'gallery'
+  | 'partners'
+  | 'addons'
   | 'settings'
 
 interface NavItem {
@@ -45,6 +49,8 @@ const navItems: NavItem[] = [
   { id: 'finance', label: 'Finance & Payments', icon: Wallet, adminOnly: true },
   { id: 'reviews', label: 'Reviews', icon: Star, adminOnly: true },
   { id: 'gallery', label: 'Gallery', icon: Images, adminOnly: true },
+  { id: 'partners', label: 'Partners', icon: Building2, adminOnly: true },
+  { id: 'addons', label: 'Add-ons', icon: Tag, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 
