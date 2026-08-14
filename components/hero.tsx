@@ -19,7 +19,7 @@ function SplitHeadline() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl">
+    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] [text-shadow:0_4px_28px_rgba(3,5,8,0.6)] sm:text-6xl lg:text-7xl">
       {headline.map(({ word, accent }, i) => (
         <span key={word} className="overflow-hidden py-1">
           <motion.span
@@ -100,6 +100,14 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:pt-16">
       <HeroIllustration />
+
+      {/* Contrast vignette -- pools a soft dark pool directly behind the
+          live-status pill and headline so they stay legible over the
+          aurora glows / illustration regardless of where they land. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] w-full bg-[radial-gradient(ellipse_70%_55%_at_50%_32%,rgba(3,5,8,0.55),transparent_72%)] sm:h-[560px]"
+      />
 
       {/* Live status pill */}
       <div className="animate-float-up flex justify-center">

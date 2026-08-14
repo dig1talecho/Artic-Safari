@@ -89,7 +89,10 @@ export default async function Page() {
       <FaqSection />
       <FloatingActionBar />
       <SocialRail variant="light" />
-      <footer className="relative z-10 mx-auto w-full max-w-7xl border-t border-[var(--home-border)] px-5 py-10 text-center text-sm text-[var(--home-muted)]">
+      <footer
+        id="site-footer"
+        className="relative z-10 mx-auto w-full max-w-7xl border-t border-[var(--home-border)] px-5 py-12 text-center text-sm text-[var(--home-muted)]"
+      >
         Artic Safari — Nordic VIP Private Tours &amp; Transit · Tromsø, Northern Norway
       </footer>
     </main>
