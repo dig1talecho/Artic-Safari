@@ -1,22 +1,18 @@
 'use client'
 import { insertBooking } from '@/services/bookings.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
-import { useMemo, useRef, useState } from 'react'
-import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone, Loader2 } from 'lucide-react'
 import type { Tour } from '@/services/tours.service'
+import type { GeocodeResult } from '@/app/api/geocode/search/route'
+
+const LiveMap = dynamic(() => import('./live-map').then((m) => m.LiveMap), {
+  ssr: false,
+  loading: () => <div className="h-36 w-full animate-pulse rounded-2xl bg-[var(--home-surface-soft)]" />,
+})
 
 const LIVE_LOCATION = 'live-location'
-
-const placeSuggestions = [
-  { name: 'Scandic Ishavshotel', address: 'Fredrik Langes gate 2, Tromsø' },
-  { name: 'Sommarøy Arctic Hotel', address: 'Skipsholmvegen 62, Sommarøy' },
-  { name: 'Clarion Hotel The Edge', address: 'Kaigata 6, Tromsø' },
-  { name: 'Radisson Blu Hotel Tromsø', address: 'Sjøgata 7, Tromsø' },
-  { name: 'Tromsø Airport (TOS)', address: 'Langnes, Tromsø' },
-  { name: 'Arctic Cathedral', address: 'Hans Nilsens veg 41, Tromsø' },
-  { name: 'Fjellheisen Cable Car', address: 'Sjøgata 100, Tromsø' },
-  { name: 'Malangen Resort', address: 'Mestervikveien 152, Malangen' },
-]
 
 const pickups = [
   { value: 'Tromsø Airport (TOS)', label: 'Tromsø Airport (TOS)' },
@@ -425,7 +421,7 @@ Please confirm booking for this date.`
             type="button"
             onClick={handleReserve}
             disabled={reserving}
-            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98] disabled:opacity-60"
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--home-accent)] px-6 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98] disabled:opacity-60"
           >
             {reserving ? 'Reserving…' : 'Reserve Dispatch'}
             {!reserving && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
@@ -439,6 +435,14 @@ Please confirm booking for this date.`
   )
 }
 
+/**
+ * Real-time destination search: every keystroke (debounced 250ms) queries
+ * /api/geocode/search, which proxies Photon (a keyless, prefix-aware OSM
+ * geocoder) scoped to the Tromsø region -- so "t" genuinely surfaces
+ * Tromsø Airport, Tromsø domkirke, Tromsdalen, etc. as the user types,
+ * not a fixed local list. Selecting a result drops a live pin on an
+ * inline map at its real coordinates.
+ */
 function AddressAutocomplete({
   value,
   onChange,
@@ -448,15 +452,38 @@ function AddressAutocomplete({
 }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(false)
+  const [results, setResults] = useState<GeocodeResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedResult, setSelectedResult] = useState<GeocodeResult | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const results = useMemo(() => {
-    const q = value.trim().toLowerCase()
-    if (!q) return placeSuggestions.slice(0, 5)
-    return placeSuggestions.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q),
-    )
-  }, [value])
+  useEffect(() => {
+    const q = value.trim()
+    if (selected || q.length === 0) {
+      setResults([])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        const data = await res.json()
+        setResults(res.ok ? (data.results ?? []) : [])
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') setResults([])
+      } finally {
+        setLoading(false)
+      }
+    }, 250)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [value, selected])
 
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -464,9 +491,10 @@ function AddressAutocomplete({
     }
   }
 
-  function handleSelect(name: string) {
-    onChange(name)
+  function handleSelect(result: GeocodeResult) {
+    onChange(result.name)
     setSelected(true)
+    setSelectedResult(result)
     setOpen(false)
   }
 
@@ -480,7 +508,11 @@ function AddressAutocomplete({
           Dropoff Destination
         </span>
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-[var(--home-muted)]" />
+          {loading ? (
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--home-accent)]" />
+          ) : (
+            <Search className="h-4 w-4 shrink-0 text-[var(--home-muted)]" />
+          )}
           <input
             type="text"
             autoComplete="off"
@@ -488,6 +520,7 @@ function AddressAutocomplete({
             onChange={(e) => {
               onChange(e.target.value)
               setSelected(false)
+              setSelectedResult(null)
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
@@ -504,28 +537,34 @@ function AddressAutocomplete({
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 overflow-hidden rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(38,36,31,0.2)]"
+          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]"
         >
-          {results.map((p) => (
-            <li key={p.name} role="option" aria-selected={value === p.name}>
+          {results.map((r) => (
+            <li key={r.id} role="option" aria-selected={value === r.name}>
               <button
                 type="button"
-                onClick={() => handleSelect(p.name)}
+                onClick={() => handleSelect(r)}
                 className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[var(--home-surface-soft)]"
               >
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--home-accent)]" />
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm text-[var(--home-foreground)]">{p.name}</span>
-                  <span className="truncate text-xs text-[var(--home-muted)]">{p.address}</span>
+                  <span className="truncate text-sm text-[var(--home-foreground)]">{r.name}</span>
+                  {r.address && <span className="truncate text-xs text-[var(--home-muted)]">{r.address}</span>}
                 </span>
               </button>
             </li>
           ))}
         </ul>
       )}
-      {open && value.trim() && results.length === 0 && (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(38,36,31,0.2)]">
-          No matches for “{value}”
+      {open && !loading && value.trim() && results.length === 0 && (
+        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]">
+          No matches for “{value}” in the Tromsø area
+        </div>
+      )}
+
+      {selectedResult && (
+        <div className="mt-2">
+          <LiveMap lat={selectedResult.lat} lon={selectedResult.lon} />
         </div>
       )}
     </div>
