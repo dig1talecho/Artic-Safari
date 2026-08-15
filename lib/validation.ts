@@ -11,11 +11,26 @@ export const bookingInsertSchema = z.object({
   // it when omitted, exactly like before.
   id: z.string().uuid().optional(),
   customer_name: z.string().trim().min(1, 'Name is required').max(200),
-  customer_email: z.string().trim().max(320),
-  customer_phone: z.string().trim().max(40).nullable(),
+  customer_email: z.string().trim().toLowerCase().email('Please enter a valid email address').max(320),
+  customer_phone: z
+    .string()
+    .trim()
+    .regex(/^[+]?[\d\s()-]{7,20}$/, 'Please enter a valid phone number')
+    .max(40)
+    .nullable(),
   booking_type: z.string().min(1).max(50),
   item_title: z.string().trim().min(1, 'Item title is required').max(200),
-  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'booking_date must be YYYY-MM-DD'),
+  booking_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'booking_date must be YYYY-MM-DD')
+    .refine((val) => {
+      const parsed = new Date(`${val}T00:00:00`)
+      if (Number.isNaN(parsed.getTime())) return false
+      const today = new Date(new Date().toDateString())
+      const twoYearsOut = new Date(today)
+      twoYearsOut.setFullYear(today.getFullYear() + 2)
+      return parsed >= today && parsed <= twoYearsOut
+    }, 'Please choose a real date between today and 2 years from now'),
   scheduled_time: z
     .string()
     .regex(/^\d{2}:\d{2}$/, 'scheduled_time must be HH:MM')

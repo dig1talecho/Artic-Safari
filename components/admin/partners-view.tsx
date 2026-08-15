@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building2, Trash2, Plus, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react'
+import { Building2, Trash2, Plus, ToggleLeft, ToggleRight, Loader2, Pencil, Check, X } from 'lucide-react'
 import {
   listPartners,
   createPartner,
@@ -26,6 +26,12 @@ export function PartnersView() {
   const [promoCode, setPromoCode] = useState('')
   const [customerDiscount, setCustomerDiscount] = useState('10')
   const [submitting, setSubmitting] = useState(false)
+
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editCommission, setEditCommission] = useState('')
+  const [editDiscount, setEditDiscount] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState('')
 
   const fetchPartners = async () => {
     setLoading(true)
@@ -96,6 +102,42 @@ export function PartnersView() {
     if (!error) {
       setPartners((prev) => prev.filter((p) => p.id !== id))
     }
+  }
+
+  const startEdit = (partner: Partner) => {
+    setEditingId(partner.id)
+    setEditCommission((partner.commission_rate * 100).toString())
+    setEditDiscount(partner.customer_discount_percent.toString())
+    setEditError('')
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditError('')
+  }
+
+  const saveEdit = async (id: string) => {
+    setEditSaving(true)
+    setEditError('')
+    const { error } = await updatePartner(id, {
+      commission_rate: (Number(editCommission) || 0) / 100,
+      customer_discount_percent: Number(editDiscount) || 0,
+    })
+    setEditSaving(false)
+
+    if (error) {
+      setEditError(error.message)
+      return
+    }
+
+    setPartners((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, commission_rate: (Number(editCommission) || 0) / 100, customer_discount_percent: Number(editDiscount) || 0 }
+          : p,
+      ),
+    )
+    setEditingId(null)
   }
 
   return (
@@ -220,17 +262,73 @@ export function PartnersView() {
                         {partner.contact_name || 'No contact name'}
                         {partner.contact_email ? ` · ${partner.contact_email}` : ''}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {(partner.commission_rate * 100).toFixed(1)}% commission
-                        {partner.customer_discount_percent > 0 &&
-                          ` · ${partner.customer_discount_percent}% guest discount`}
-                        {summary
-                          ? ` · ${summary.bookingCount} booking${summary.bookingCount === 1 ? '' : 's'} · ${summary.totalCommission.toLocaleString()} kr earned`
-                          : ''}
-                      </p>
+                      {editingId === partner.id ? (
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <label className="flex items-center gap-1.5 text-xs text-slate-400">
+                            Commission
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={0.5}
+                              value={editCommission}
+                              onChange={(e) => setEditCommission(e.target.value)}
+                              className="w-20 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white focus:border-[#33bbcf] focus:outline-none"
+                            />
+                            %
+                          </label>
+                          <label className="flex items-center gap-1.5 text-xs text-slate-400">
+                            Guest discount
+                            <input
+                              type="number"
+                              min={0}
+                              max={50}
+                              step={0.5}
+                              value={editDiscount}
+                              onChange={(e) => setEditDiscount(e.target.value)}
+                              className="w-20 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white focus:border-[#33bbcf] focus:outline-none"
+                            />
+                            %
+                          </label>
+                          <button
+                            onClick={() => saveEdit(partner.id)}
+                            disabled={editSaving}
+                            title="Save"
+                            className="rounded-lg border border-[#33bbcf]/30 bg-[#33bbcf]/10 p-1.5 text-[#33bbcf] hover:bg-[#33bbcf]/20 disabled:opacity-50"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            title="Cancel"
+                            className="rounded-lg border border-white/10 bg-white/5 p-1.5 text-slate-300 hover:bg-white/10"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                          {editError && <p className="w-full text-xs font-medium text-rose-400">{editError}</p>}
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-xs text-slate-500">
+                          {(partner.commission_rate * 100).toFixed(1)}% commission
+                          {partner.customer_discount_percent > 0 &&
+                            ` · ${partner.customer_discount_percent}% guest discount`}
+                          {summary
+                            ? ` · ${summary.bookingCount} booking${summary.bookingCount === 1 ? '' : 's'} · ${summary.totalCommission.toLocaleString()} kr earned`
+                            : ''}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {editingId !== partner.id && (
+                      <button
+                        onClick={() => startEdit(partner)}
+                        title="Edit rates"
+                        className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 hover:bg-white/10"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => toggleActive(partner)}
                       title={partner.active ? 'Deactivate' : 'Activate'}

@@ -21,6 +21,8 @@ import {
   LocateFixed,
   ExternalLink,
   Tag,
+  ChevronDown,
+  Check,
 } from 'lucide-react'
 import type { Tour } from '@/services/tours.service'
 import type { GeocodeResult } from '@/app/api/geocode/search/route'
@@ -123,6 +125,17 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
     return tourOptions.find((t) => t.id === tour)?.price ?? 0
   }, [mode, fleet, tour, tourOptions])
 
+  // Bounds the native date picker so it can't be set to a bogus past/far-
+  // future date (e.g. year 0002) -- the server-side check in
+  // bookingInsertSchema is the real gate, this is just so the picker
+  // itself doesn't offer nonsense.
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const maxDateStr = useMemo(() => {
+    const d = new Date()
+    d.setFullYear(d.getFullYear() + 2)
+    return d.toISOString().split('T')[0]
+  }, [])
+
   const discountAmount = appliedPromo ? Math.round((price * appliedPromo.customer_discount_percent) / 100) : 0
   const finalPrice = price - discountAmount
 
@@ -207,7 +220,9 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
       if (error) {
         console.error('Supabase detayli hata:', error)
         setReserving(false)
-        setReserveError('Could not save your reservation. Please try again or contact us on WhatsApp directly.')
+        setReserveError(
+          error.message || 'Could not save your reservation. Please try again or contact us on WhatsApp directly.',
+        )
         return
       }
       console.log('Supabase kayit basarili:', data)
@@ -267,7 +282,13 @@ Please confirm booking for this date.`
       className="animate-float-up rounded-3xl border border-[var(--home-glass-border)] bg-[var(--home-glass)] p-2 shadow-[0_20px_60px_-16px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.75)_0%,black_10%,black_90%,rgba(0,0,0,0.75)_100%)]"
       style={{ animationDelay: '0.3s' }}
     >
-      <div className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleReserve()
+        }}
+        className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5"
+      >
         <input
           type="text"
           name="company"
@@ -315,6 +336,7 @@ Please confirm booking for this date.`
         <div className="mb-3 grid gap-3 md:grid-cols-3">
           <Field icon={<User className="h-4 w-4" />} label="Full Name">
             <input
+              required
               type="text"
               autoComplete="name"
               placeholder="John Doe"
@@ -326,6 +348,7 @@ Please confirm booking for this date.`
 
           <Field icon={<Mail className="h-4 w-4" />} label="Email Address">
             <input
+              required
               type="email"
               autoComplete="email"
               placeholder="john@example.com"
@@ -337,9 +360,12 @@ Please confirm booking for this date.`
 
           <Field icon={<Phone className="h-4 w-4" />} label="Phone Number">
             <input
+              required
               type="tel"
               autoComplete="tel"
               placeholder="+47 000 00 000"
+              pattern="^[+]?[\d\s()-]{7,20}$"
+              title="Enter a valid phone number"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
@@ -393,26 +419,22 @@ Please confirm booking for this date.`
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            <Field icon={<Compass className="h-4 w-4" />} label="Tour Selection">
-              <select
-                value={tour}
-                onChange={(e) => setTour(e.target.value)}
-                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [&>option]:bg-white"
-              >
-                {tourOptions.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <StyledSelect
+              icon={<Compass className="h-4 w-4" />}
+              label="Tour Selection"
+              value={tour}
+              options={tourOptions}
+              onChange={setTour}
+            />
 
             <Field icon={<CalendarDays className="h-4 w-4" />} label="Date">
               <input
                 type="date"
                 value={date}
+                min={todayStr}
+                max={maxDateStr}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [color-scheme:light]"
+                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [color-scheme:dark]"
               />
             </Field>
           </div>
@@ -437,7 +459,12 @@ Please confirm booking for this date.`
               </button>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <div>
+              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--home-muted)]">
+                <Tag className="h-3 w-3 text-[var(--home-accent)]" />
+                Have a partner promo code? Enter it for an instant discount
+              </p>
+              <div className="flex gap-2">
               <div className="relative flex-1">
                 <Tag className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
                 <input
@@ -461,6 +488,7 @@ Please confirm booking for this date.`
                 {promoChecking && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Apply
               </button>
+              </div>
             </div>
           )}
           {promoError && <p className="mt-1 text-xs font-medium text-rose-500">{promoError}</p>}
@@ -477,8 +505,7 @@ Please confirm booking for this date.`
             </span>
           </div>
           <button
-            type="button"
-            onClick={handleReserve}
+            type="submit"
             disabled={reserving}
             className="group inline-flex items-center justify-center gap-2 rounded-[10px] bg-[image:var(--home-gradient-cta)] px-6 py-3.5 text-sm font-semibold text-[var(--home-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_28px_-10px_rgba(51,187,207,0.5)] active:translate-y-0 active:scale-[0.98] disabled:opacity-60"
           >
@@ -506,7 +533,7 @@ Please confirm booking for this date.`
             WhatsApp Confirmed
           </span>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
@@ -734,6 +761,79 @@ function MapOpenButtons({ lat, lon }: { lat: number; lon: number }) {
         <ExternalLink className="h-3.5 w-3.5" />
         Apple Maps
       </a>
+    </div>
+  )
+}
+
+/**
+ * Replaces a raw <select> -- browsers render its open dropdown with
+ * unstyleable OS chrome (stark white box), which broke the dark
+ * glassmorphic console. This renders the closed state AND the open list
+ * entirely in our own markup instead.
+ */
+function StyledSelect({
+  icon,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  options: readonly { id: string; label: string }[]
+  onChange: (value: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const selected = options.find((o) => o.id === value)
+
+  function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false)
+  }
+
+  return (
+    <div onBlur={handleBlur} className="relative">
+      <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)]">
+        <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
+          <span className="text-[var(--home-accent)]">{icon}</span>
+          {label}
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          className="flex w-full items-center justify-between text-left text-sm text-[var(--home-foreground)] outline-none"
+        >
+          <span className="truncate">{selected?.label ?? 'Select…'}</span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--home-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      </label>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]"
+        >
+          {options.map((o) => (
+            <li key={o.id} role="option" aria-selected={o.id === value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(o.id)
+                  setOpen(false)
+                }}
+                className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-[var(--home-surface-soft)] ${
+                  o.id === value ? 'text-[var(--home-accent)]' : 'text-[var(--home-foreground)]'
+                }`}
+              >
+                {o.label}
+                {o.id === value && <Check className="h-3.5 w-3.5 shrink-0" />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

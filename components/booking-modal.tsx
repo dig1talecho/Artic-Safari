@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { insertBooking } from '@/services/bookings.service'
 import { listAddonsForTour, attachAddonsToBooking, calculateCartTotal, type TourAddon, type CartAddon } from '@/services/addons.service'
@@ -42,6 +42,16 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
   const [phone, setPhone] = useState(prefill.phone)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+
+  // Bounds the native date picker so it can't be set to a bogus past/far-
+  // future date (e.g. year 0002) -- lib/validation.ts's bookingInsertSchema
+  // is the real server-side gate, this just keeps the picker sane.
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const maxDateStr = useMemo(() => {
+    const d = new Date()
+    d.setFullYear(d.getFullYear() + 2)
+    return d.toISOString().split('T')[0]
+  }, [])
 
   const [addons, setAddons] = useState<TourAddon[]>([])
   const [addonsLoading, setAddonsLoading] = useState(false)
@@ -139,7 +149,9 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
 
       if (error) {
         console.error('Booking insert error:', error)
-        setSubmitError('Could not send your booking request. Please try again or contact us on WhatsApp.')
+        setSubmitError(
+          error.message || 'Could not send your booking request. Please try again or contact us on WhatsApp.',
+        )
         return
       }
 
@@ -266,8 +278,10 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                             required
                             type="date"
                             value={date}
+                            min={todayStr}
+                            max={maxDateStr}
                             onChange={(e) => setDate(e.target.value)}
-                            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
+                            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none [color-scheme:dark]"
                           />
                         </div>
                       </div>
@@ -438,6 +452,8 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                                 type="tel"
                                 autoComplete="tel"
                                 placeholder="+47 000 00 000"
+                                pattern="^[+]?[\d\s()-]{7,20}$"
+                                title="Enter a valid phone number"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
@@ -535,9 +551,10 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                       </div>
                     ) : (
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-[var(--home-muted)]">
-                          Promo code (optional)
-                        </label>
+                        <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[var(--home-muted)]">
+                          <Tag className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+                          Have a partner promo code? Enter it for an instant discount
+                        </p>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Tag className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
