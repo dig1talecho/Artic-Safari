@@ -3,7 +3,22 @@ import { insertBooking } from '@/services/bookings.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, CalendarDays, Compass, ArrowRight, Navigation, Users, Search, User, Mail, Phone, Loader2 } from 'lucide-react'
+import {
+  MapPin,
+  CalendarDays,
+  Compass,
+  ArrowRight,
+  Navigation,
+  Users,
+  Search,
+  User,
+  Mail,
+  Phone,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  BadgeCheck,
+} from 'lucide-react'
 import type { Tour } from '@/services/tours.service'
 import type { GeocodeResult } from '@/app/api/geocode/search/route'
 
@@ -430,6 +445,23 @@ Please confirm booking for this date.`
         {reserveError && (
           <p className="mt-2 text-xs font-medium text-rose-500">{reserveError}</p>
         )}
+
+        {/* Honest trust signals only -- no payment-network logos until a
+            real processor is actually connected. */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[var(--home-border)] pt-4">
+          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
+            <Lock className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+            Encrypted Connection
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
+            <ShieldCheck className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+            Secure Booking Request
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
+            <BadgeCheck className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+            WhatsApp Confirmed
+          </span>
+        </div>
       </div>
     </div>
   )
