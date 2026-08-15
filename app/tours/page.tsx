@@ -12,6 +12,12 @@ export const metadata: Metadata = {
     'Private Northern Lights tours and VIP airport transfers in Tromsø, Norway. Compare all Artic Safari tour and transfer options and prices.',
 }
 
+// Without this, Next.js statically renders this page at build/deploy time
+// and serves that frozen snapshot indefinitely -- admin edits in Tour
+// Catalog wouldn't appear until the next deploy. 30s keeps it feeling live
+// for staff while still caching for the overwhelming majority of visitors.
+export const revalidate = 30
+
 export default async function ToursIndexPage() {
   const { data } = await getTours()
   const tours = mergeWithFallback(data ?? [])

@@ -15,6 +15,10 @@ import { listPublishedReviewRatings } from '@/services/reviews.service'
 import { getTours } from '@/services/tours.service'
 import { siteUrl } from '@/lib/site-config'
 
+// Same reasoning as app/tours/page.tsx -- the homepage's tour cards read
+// from the same CMS table and would otherwise be frozen at build time.
+export const revalidate = 30
+
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',

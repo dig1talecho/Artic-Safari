@@ -7,6 +7,11 @@ import { SiteShell } from '@/components/site-shell'
 import { getTours, getTourBySlug } from '@/services/tours.service'
 import { FALLBACK_TOURS, getFallbackTourBySlug } from '@/lib/tours-fallback'
 
+// Keeps admin edits (price, description, publish/unpublish) showing up
+// within 30s instead of only after the next deploy -- see the same note
+// on app/tours/page.tsx.
+export const revalidate = 30
+
 export async function generateStaticParams() {
   const { data } = await getTours()
   const liveSlugs = new Set((data ?? []).map((tour) => tour.slug))
