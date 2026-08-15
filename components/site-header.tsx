@@ -11,6 +11,7 @@ const links = [
   { label: 'Aurora Radar', href: '/#radar' },
   { label: 'Gallery', href: '/#gallery' },
   { label: 'Blog', href: '/blog' },
+  { label: 'About', href: '/about' },
 ]
 
 interface SiteHeaderProps {
