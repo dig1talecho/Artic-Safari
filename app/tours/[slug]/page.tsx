@@ -5,10 +5,13 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, Check, ArrowLeft, Clock, MapPin } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
 import { getTours, getTourBySlug } from '@/services/tours.service'
+import { FALLBACK_TOURS, getFallbackTourBySlug } from '@/lib/tours-fallback'
 
 export async function generateStaticParams() {
   const { data } = await getTours()
-  return (data ?? []).map((tour) => ({ slug: tour.slug }))
+  const liveSlugs = new Set((data ?? []).map((tour) => tour.slug))
+  const fallbackSlugs = FALLBACK_TOURS.map((tour) => tour.slug)
+  return [...new Set([...fallbackSlugs, ...liveSlugs])].map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({
@@ -17,7 +20,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const { data: tour } = await getTourBySlug(slug)
+  const { data } = await getTourBySlug(slug)
+  const tour = data ?? getFallbackTourBySlug(slug)
   if (!tour) return {}
 
   return {
@@ -37,7 +41,8 @@ export default async function TourDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const { data: tour } = await getTourBySlug(slug)
+  const { data } = await getTourBySlug(slug)
+  const tour = data ?? getFallbackTourBySlug(slug)
   if (!tour) notFound()
 
   return (
@@ -71,7 +76,7 @@ export default async function TourDetailPage({
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
               {tour.eyebrow}
             </p>
-            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--home-foreground)] sm:text-4xl">
               {tour.title}
             </h1>
             <p className="mt-5 text-pretty leading-relaxed text-[var(--home-muted)]">{tour.intro}</p>
@@ -115,7 +120,7 @@ export default async function TourDetailPage({
 
             <Link
               href="/#tours"
-              className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98]"
+              className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98]"
             >
               Book This Tour
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
