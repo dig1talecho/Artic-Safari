@@ -5,7 +5,7 @@
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <html lang="en">
-      <body style={{ background: '#070a0f', color: '#eef1f6', fontFamily: 'system-ui, sans-serif' }}>
+      <body style={{ background: '#faf8f4', color: '#26241f', fontFamily: 'system-ui, sans-serif' }}>
         <main
           style={{
             minHeight: '100vh',
@@ -19,7 +19,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
           }}
         >
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Artic Safari is temporarily unavailable</h1>
-          <p style={{ maxWidth: '32rem', color: '#8a94a6', fontSize: '0.9rem' }}>
+          <p style={{ maxWidth: '32rem', color: '#7a7368', fontSize: '0.9rem' }}>
             Please refresh the page. If this keeps happening, reach us on WhatsApp at +47 929 97 190.
           </p>
           <button
@@ -28,8 +28,8 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
             style={{
               marginTop: '0.5rem',
               borderRadius: '0.75rem',
-              background: '#7fd0e0',
-              color: '#070a0f',
+              background: '#2f4b3c',
+              color: '#faf8f4',
               fontWeight: 700,
               textTransform: 'uppercase',
               padding: '0.75rem 1.5rem',

@@ -96,12 +96,12 @@ export function TaximeterWidget() {
 
   return (
     <section className="relative z-10 mx-auto w-full max-w-4xl px-5 pb-20">
-      <div className="rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] sm:p-8">
+      <div className="rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)] sm:p-8">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
           <Gauge className="h-4 w-4" />
           Custom Route Taximeter
         </p>
-        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-2xl uppercase text-[var(--home-foreground)] sm:text-3xl">
+        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-2xl text-[var(--home-foreground)] sm:text-3xl">
           Going somewhere off the usual route?
         </h2>
         <p className="mt-2 text-sm text-[var(--home-muted)]">

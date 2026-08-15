@@ -19,7 +19,7 @@ function SplitHeadline() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] [text-shadow:0_4px_28px_rgba(3,5,8,0.6)] sm:text-6xl lg:text-7xl">
+    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl">
       {headline.map(({ word, accent }, i) => (
         <span key={word} className="overflow-hidden py-1">
           <motion.span
@@ -101,17 +101,17 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-10 sm:pt-16">
       <HeroIllustration />
 
-      {/* Contrast vignette -- pools a soft dark pool directly behind the
-          live-status pill and headline so they stay legible over the
-          aurora glows / illustration regardless of where they land. */}
+      {/* Contrast lift -- a soft warm-white pool behind the live-status pill
+          and headline so they stay crisp over the aurora ribbons rather
+          than blending into them. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] w-full bg-[radial-gradient(ellipse_70%_55%_at_50%_32%,rgba(3,5,8,0.55),transparent_72%)] sm:h-[560px]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] w-full bg-[radial-gradient(ellipse_65%_55%_at_50%_30%,var(--home-bg),transparent_72%)] opacity-90 sm:h-[560px]"
       />
 
       {/* Live status pill */}
       <div className="animate-float-up flex justify-center">
-        <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(11,31,42,0.04)]">
+        <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(38,36,31,0.04)]">
           <span className="live-dot h-2 w-2 rounded-full bg-[var(--home-gold)]" />
           <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--home-foreground)]">
             <Activity className="h-3.5 w-3.5 text-[var(--home-accent)]" />
@@ -143,7 +143,7 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
         >
           <a
             href="#tours"
-            className="group inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8]"
+            className="group inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98]"
           >
             Book VIP Tour
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

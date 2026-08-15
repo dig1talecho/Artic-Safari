@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Archivo_Black } from 'next/font/google'
+import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
 import { AuthRedirectHandler } from '@/components/auth-redirect-handler'
 import { siteUrl } from '@/lib/site-config'
 import './globals.css'
@@ -15,10 +15,11 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
 })
 
-const archivoBlack = Archivo_Black({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-archivo-black',
-  weight: '400',
+  variable: '--font-fraunces',
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
 })
 
 const title = 'Private Northern Lights Tours Tromsø | Artic Safari'
@@ -55,8 +56,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
-  themeColor: '#07090E',
+  colorScheme: 'light dark',
+  themeColor: '#FAF8F4',
 }
 
 export default function RootLayout({
@@ -67,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} bg-background`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} bg-background`}
     >
       <body className="font-sans antialiased">
         <AuthRedirectHandler />

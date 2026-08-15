@@ -17,7 +17,7 @@ export async function CustomerGallerySection() {
           <Camera className="h-4 w-4" />
           From Our Guests
         </p>
-        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
           Through their eyes
         </h2>
       </div>

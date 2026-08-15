@@ -25,7 +25,7 @@ export default async function ToursIndexPage() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
               All Experiences
             </p>
-            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
+            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
               Tours &amp; Transfers in Tromsø
             </h1>
             <p className="mt-5 max-w-xl text-pretty leading-relaxed text-[var(--home-muted)]">
@@ -66,7 +66,7 @@ export default async function ToursIndexPage() {
             <Link
               key={tour.slug}
               href={`/tours/${tour.slug}`}
-              className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--home-accent)]/40 hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16)]"
+              className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--home-accent)]/40 hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.16)]"
             >
               <div className="flex flex-1 flex-col p-6">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--home-muted)]">

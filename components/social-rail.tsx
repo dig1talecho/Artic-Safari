@@ -32,7 +32,7 @@ export function SocialRail({ variant = 'dark' }: SocialRailProps) {
   const isLight = variant === 'light'
 
   const containerClass = isLight
-    ? 'border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_16px_40px_-12px_rgba(11,31,42,0.25)]'
+    ? 'border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_16px_40px_-12px_rgba(38,36,31,0.25)]'
     : 'glass border-white/12 shadow-2xl shadow-black/50'
 
   const iconClass = isLight

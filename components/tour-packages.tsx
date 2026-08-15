@@ -58,8 +58,8 @@ function Card({
   const ring = glow === 'gold' ? 'hover:border-[var(--home-gold)]/50' : 'hover:border-[var(--home-accent)]/40'
   const glowShadow =
     glow === 'gold'
-      ? 'hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16),0_0_50px_-12px_rgba(216,183,131,0.35)]'
-      : 'hover:shadow-[0_16px_40px_-12px_rgba(11,31,42,0.16),0_0_50px_-12px_rgba(127,208,224,0.35)]'
+      ? 'hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.12),0_0_40px_-14px_rgba(169,131,76,0.4)]'
+      : 'hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.12),0_0_40px_-14px_rgba(47,75,60,0.28)]'
 
   return (
     <motion.div
@@ -433,7 +433,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                     t('northern-lights-private-group')?.id,
                   )
                 }
-                className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8] sm:w-auto sm:px-8"
+                className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98] sm:w-auto sm:px-8"
               >
                 Reserve Private Group
               </button>
@@ -549,7 +549,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
       {/* Booking Modal */}
       {selectedPackage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--home-foreground)]/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(11,31,42,0.35)]">
+          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(38,36,31,0.35)]">
             <button
               onClick={() => setSelectedPackage(null)}
               className="absolute right-4 top-4 rounded-full p-2 text-[var(--home-muted)] hover:bg-[var(--home-surface-soft)] hover:text-[var(--home-foreground)]"

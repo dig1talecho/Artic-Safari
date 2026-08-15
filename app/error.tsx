@@ -13,7 +13,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       <span className="grid h-14 w-14 place-items-center rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] text-[var(--home-gold)]">
         <AlertTriangle className="h-6 w-6" />
       </span>
-      <h1 className="font-[family-name:var(--font-display)] text-2xl uppercase tracking-tight">
+      <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
         Something went wrong
       </h1>
       <p className="max-w-md text-sm text-[var(--home-muted)]">

@@ -16,7 +16,7 @@ export default function CharterPage() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
             VIP Charter
           </p>
-          <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
+          <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-4xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
             Private Vehicle Charter
           </h1>
           <p className="mt-5 max-w-xl text-pretty leading-relaxed text-[var(--home-muted)]">

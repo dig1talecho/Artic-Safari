@@ -7,7 +7,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: var(--font-archivo-black), Arial Black, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
   --color-violet: var(--violet);
   --color-aurora: var(--aurora);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -169,24 +169,24 @@
   }
 }
 
-/* Homepage-only "Artic Luxury" cinematic theme. Scoped entirely to
+/* Homepage-only "Scandinavian Minimal" theme. Scoped entirely to
    .home-theme so /dashboard and /admin (which use the :root tokens above)
-   are unaffected. Polar-night ground with aurora cyan + brass gold as rare,
-   deliberate accents rather than an all-over palette. */
+   are unaffected. Warm ivory ground, deep pine and muted brass as rare,
+   restrained accents -- generous whitespace over decoration. */
 .home-theme {
-  color-scheme: dark;
-  --home-bg: #070a0f;
-  --home-surface: #12161d;
-  --home-surface-soft: #171c25;
-  --home-foreground: #eef1f6;
-  --home-muted: #8a94a6;
-  --home-border: #232a35;
-  --home-accent: #7fd0e0;
-  --home-accent-soft: #12262c;
-  --home-gold: #d8b783;
-  --home-gold-soft: #2a2114;
-  --home-glass: rgba(18, 22, 29, 0.55);
-  --home-glass-border: rgba(238, 241, 246, 0.08);
+  color-scheme: light;
+  --home-bg: #faf8f4;
+  --home-surface: #ffffff;
+  --home-surface-soft: #f2efe8;
+  --home-foreground: #26241f;
+  --home-muted: #7a7368;
+  --home-border: #e7e2d6;
+  --home-accent: #2f4b3c;
+  --home-accent-soft: #e7eee9;
+  --home-gold: #a9834c;
+  --home-gold-soft: #f1e9d8;
+  --home-glass: rgba(255, 255, 255, 0.72);
+  --home-glass-border: rgba(38, 36, 31, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {

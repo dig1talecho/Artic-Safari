@@ -7,7 +7,7 @@ export async function AuroraRadar() {
 
   return (
     <section id="radar" className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24">
-      <div className="overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(11,31,42,0.08)] sm:p-8">
+      <div className="overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)] sm:p-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--home-accent)]">

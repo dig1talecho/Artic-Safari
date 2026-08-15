@@ -7,7 +7,7 @@ export default function NotFound() {
       <span className="grid h-14 w-14 place-items-center rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] text-[var(--home-accent)]">
         <Compass className="h-6 w-6" />
       </span>
-      <h1 className="font-[family-name:var(--font-display)] text-2xl uppercase tracking-tight">Page not found</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-2xl tracking-tight">Page not found</h1>
       <p className="max-w-md text-sm text-[var(--home-muted)]">
         This page doesn't exist, or the tour/guide you're looking for may have been unpublished.
       </p>

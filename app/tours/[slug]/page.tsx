@@ -71,7 +71,7 @@ export default async function TourDetailPage({
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
               {tour.eyebrow}
             </p>
-            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl uppercase leading-[1.05] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+            <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
               {tour.title}
             </h1>
             <p className="mt-5 text-pretty leading-relaxed text-[var(--home-muted)]">{tour.intro}</p>
@@ -115,7 +115,7 @@ export default async function TourDetailPage({
 
             <Link
               href="/#tours"
-              className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_6px_0_0_#0876a8] transition-[opacity,scale,box-shadow] hover:opacity-90 active:translate-y-1 active:scale-[0.98] active:shadow-[0_2px_0_0_#0876a8]"
+              className="group mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98]"
             >
               Book This Tour
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -125,7 +125,7 @@ export default async function TourDetailPage({
 
         {tour.highlights.length > 0 && (
           <div className="mt-14 border-t border-[var(--home-border)] pt-10">
-            <h2 className="font-[family-name:var(--font-display)] text-xl uppercase tracking-tight text-[var(--home-foreground)]">
+            <h2 className="font-[family-name:var(--font-display)] text-xl tracking-tight text-[var(--home-foreground)]">
               Route Highlights
             </h2>
             <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
