@@ -24,6 +24,7 @@ export function PartnersView() {
   const [contactEmail, setContactEmail] = useState('')
   const [commissionRate, setCommissionRate] = useState('10')
   const [promoCode, setPromoCode] = useState('')
+  const [customerDiscount, setCustomerDiscount] = useState('10')
   const [submitting, setSubmitting] = useState(false)
 
   const fetchPartners = async () => {
@@ -64,6 +65,7 @@ export function PartnersView() {
       contact_email: contactEmail.trim() || null,
       commission_rate: (Number(commissionRate) || 0) / 100,
       promo_code: promoCode.trim().toUpperCase(),
+      customer_discount_percent: Number(customerDiscount) || 0,
       active: true,
     })
     setSubmitting(false)
@@ -78,6 +80,7 @@ export function PartnersView() {
     setContactEmail('')
     setCommissionRate('10')
     setPromoCode('')
+    setCustomerDiscount('10')
     fetchPartners()
   }
 
@@ -102,7 +105,9 @@ export function PartnersView() {
         <p className="mt-1 text-xs text-slate-400">
           Hotels/agencies that refer bookings via a promo code. Commission is calculated automatically
           server-side (resolve_booking_partner trigger) whenever a booking uses their code — the rate
-          here only sets the percentage, never a manually-entered total.
+          here only sets the percentage, never a manually-entered total. Customer discount is a
+          separate number: what the guest sees knocked off their price when they enter this code at
+          checkout (requires supabase-partner-promo-discounts.sql).
         </p>
 
         <form onSubmit={handleAdd} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -136,6 +141,7 @@ export function PartnersView() {
               max={100}
               step={0.5}
               placeholder="Commission %"
+              title="Commission % — what the business pays this partner (internal)"
               value={commissionRate}
               onChange={(e) => setCommissionRate(e.target.value)}
               className="w-28 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
@@ -147,6 +153,19 @@ export function PartnersView() {
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
               className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm font-mono text-white focus:border-[#33bbcf] focus:outline-none"
+            />
+          </div>
+          <div>
+            <input
+              type="number"
+              min={0}
+              max={50}
+              step={0.5}
+              placeholder="Customer discount %"
+              title="Customer discount % — what the guest gets off when they use this code"
+              value={customerDiscount}
+              onChange={(e) => setCustomerDiscount(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none sm:w-48"
             />
           </div>
           {error && <p className="text-xs font-medium text-rose-400 sm:col-span-2">{error}</p>}
@@ -203,6 +222,8 @@ export function PartnersView() {
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
                         {(partner.commission_rate * 100).toFixed(1)}% commission
+                        {partner.customer_discount_percent > 0 &&
+                          ` · ${partner.customer_discount_percent}% guest discount`}
                         {summary
                           ? ` · ${summary.bookingCount} booking${summary.bookingCount === 1 ? '' : 's'} · ${summary.totalCommission.toLocaleString()} kr earned`
                           : ''}

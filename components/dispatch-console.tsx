@@ -18,22 +18,18 @@ import {
   Lock,
   ShieldCheck,
   BadgeCheck,
+  LocateFixed,
+  ExternalLink,
+  Tag,
 } from 'lucide-react'
 import type { Tour } from '@/services/tours.service'
 import type { GeocodeResult } from '@/app/api/geocode/search/route'
+import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
 
 const LiveMap = dynamic(() => import('./live-map').then((m) => m.LiveMap), {
   ssr: false,
   loading: () => <div className="h-36 w-full animate-pulse rounded-2xl bg-[var(--home-surface-soft)]" />,
 })
-
-const LIVE_LOCATION = 'live-location'
-
-const pickups = [
-  { value: 'Tromsø Airport (TOS)', label: 'Tromsø Airport (TOS)' },
-  { value: 'Tromsø City Center', label: 'Tromsø City Center' },
-  { value: LIVE_LOCATION, label: '📍 Use My Live Location' },
-]
 
 // Audit fix: these used to be permanently hardcoded and drifted out of sync
 // with the Tour Catalog CMS (e.g. per-person stayed at 2,000 kr after the
@@ -97,7 +93,8 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
 
   const spamGuard = useSpamGuard()
   const [mode, setMode] = useState<Mode>('taxi')
-  const [pickup, setPickup] = useState(pickups[0].value)
+  const [pickup, setPickup] = useState('')
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [dropoff, setDropoff] = useState('')
   const [fleet, setFleet] = useState(fleets[0].id)
   const [date, setDate] = useState('')
@@ -109,10 +106,15 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
   const [customerPhone, setCustomerPhone] = useState('')
 
   const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [geoError, setGeoError] = useState('')
+  const [liveLocationNonce, setLiveLocationNonce] = useState(0)
   const [reserving, setReserving] = useState(false)
   const [reserveError, setReserveError] = useState('')
+
+  const [promoInput, setPromoInput] = useState('')
+  const [promoChecking, setPromoChecking] = useState(false)
+  const [promoError, setPromoError] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState<PromoCodeInfo | null>(null)
 
   const price = useMemo(() => {
     if (mode === 'taxi') {
@@ -120,6 +122,23 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
     }
     return tourOptions.find((t) => t.id === tour)?.price ?? 0
   }, [mode, fleet, tour, tourOptions])
+
+  const discountAmount = appliedPromo ? Math.round((price * appliedPromo.customer_discount_percent) / 100) : 0
+  const finalPrice = price - discountAmount
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return
+    setPromoChecking(true)
+    setPromoError('')
+    const info = await validatePromoCode(promoInput)
+    setPromoChecking(false)
+    if (!info) {
+      setPromoError('That code isn’t valid or has expired.')
+      setAppliedPromo(null)
+      return
+    }
+    setAppliedPromo(info)
+  }
 
   function requestLiveLocation() {
     if (typeof window === 'undefined' || !('geolocation' in navigator)) {
@@ -130,37 +149,26 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
 
     setGeoStatus('locating')
     setGeoError('')
-    setCoords(null)
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setCoords({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        })
+        setPickupCoords({ lat: position.coords.latitude, lon: position.coords.longitude })
         setGeoStatus('success')
+        // Bumps the sync effect inside the Pickup Point combobox so it
+        // adopts this as its selection, the same way picking a search
+        // result does -- one flow instead of a separate "live" mode.
+        setLiveLocationNonce((n) => n + 1)
       },
       (error) => {
         setGeoStatus('error')
         setGeoError(
           error.code === error.PERMISSION_DENIED
-            ? 'Location permission denied. Please allow access or pick a point.'
+            ? 'Location permission denied. Please allow access or search a pickup address.'
             : 'Unable to retrieve your location. Please try again.',
         )
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     )
-  }
-
-  function handlePickupChange(value: string) {
-    setPickup(value)
-    if (value === LIVE_LOCATION) {
-      requestLiveLocation()
-    } else {
-      setGeoStatus('idle')
-      setGeoError('')
-      setCoords(null)
-    }
   }
 
   const handleReserve = async () => {
@@ -179,8 +187,8 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
       const selectedFleet = fleets.find((f) => f.id === fleet)
       const selectedTour = tourOptions.find((t) => t.id === tour)
 
-      const pickupText = pickup === LIVE_LOCATION && coords
-        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})`
+      const pickupText = pickupCoords
+        ? `${pickup || 'Pickup Location'} (https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lon})`
         : pickup
 
       const { data, error } = await insertBooking({
@@ -190,9 +198,10 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
         booking_type: mode === 'taxi' ? 'transfer' : 'tour',
         item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
         booking_date: date || new Date().toISOString().split('T')[0],
-        total_price: price,
+        total_price: finalPrice,
         notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
-        status: 'pending'
+        status: 'pending',
+        promo_code: appliedPromo?.promo_code ?? null,
       })
 
       if (error) {
@@ -217,8 +226,8 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
     if (mode === 'taxi') {
       const selectedFleet = fleets.find((f) => f.id === fleet)
 
-      const pickupText = pickup === LIVE_LOCATION && coords
-        ? `Live Location (https://maps.google.com/?q=${coords.lat},${coords.lng})`
+      const pickupText = pickupCoords
+        ? `${pickup || 'Pickup Location'} (https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lon})`
         : pickup
 
       plainText =
@@ -230,7 +239,7 @@ Phone: ${customerPhone || 'N/A'}
 Pickup: ${pickupText}
 Dropoff: ${dropoff || 'Not specified'}
 Vehicle: ${selectedFleet?.label} Fleet (${selectedFleet?.hint} Passengers)
-Estimated Total: ${formatKr(price)}
+${appliedPromo ? `Promo Code: ${appliedPromo.promo_code} (-${appliedPromo.customer_discount_percent}%)\n` : ''}Estimated Total: ${formatKr(finalPrice)}
 ----------------------------------------
 Please confirm availability and dispatch driver.`
     } else {
@@ -244,7 +253,7 @@ Email: ${customerEmail || 'N/A'}
 Phone: ${customerPhone || 'N/A'}
 Tour Package: ${selectedTour?.label}
 Selected Date: ${date || 'Not specified'}
-Total Price: ${formatKr(price)}
+${appliedPromo ? `Promo Code: ${appliedPromo.promo_code} (-${appliedPromo.customer_discount_percent}%)\n` : ''}Total Price: ${formatKr(finalPrice)}
 ----------------------------------------
 Please confirm booking for this date.`
     }
@@ -340,42 +349,26 @@ Please confirm booking for this date.`
 
         {mode === 'taxi' ? (
           <div className="grid gap-3 md:grid-cols-3">
-            <Field icon={<MapPin className="h-4 w-4" />} label="Pickup Point">
-              <select
-                value={pickup}
-                onChange={(e) => handlePickupChange(e.target.value)}
-                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [&>option]:bg-white"
-              >
-                {pickups.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-              {pickup === LIVE_LOCATION && (
-                <span className="mt-1 text-[11px] normal-case tracking-normal">
-                  {geoStatus === 'locating' && (
-                    <span className="text-[var(--home-muted)]">Locating you…</span>
-                  )}
-                  {geoStatus === 'success' && coords && (
-                    <span className="font-mono text-[var(--home-accent)] tabular-nums">
-                      {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
-                    </span>
-                  )}
-                  {geoStatus === 'error' && (
-                    <button
-                      type="button"
-                      onClick={requestLiveLocation}
-                      className="text-left text-destructive underline underline-offset-2"
-                    >
-                      {geoError} Retry
-                    </button>
-                  )}
-                </span>
-              )}
-            </Field>
+            <AddressAutocomplete
+              value={pickup}
+              onChange={(v) => setPickup(v)}
+              label="Pickup Point"
+              fieldIcon={<MapPin className="h-4 w-4" />}
+              placeholder="Search any address in Tromsø"
+              onCoordsChange={setPickupCoords}
+              onRequestLiveLocation={requestLiveLocation}
+              liveLocating={geoStatus === 'locating'}
+              liveError={geoStatus === 'error' ? geoError : undefined}
+              liveLocation={pickupCoords ? { coords: pickupCoords, nonce: liveLocationNonce } : null}
+            />
 
-            <AddressAutocomplete value={dropoff} onChange={setDropoff} />
+            <AddressAutocomplete
+              value={dropoff}
+              onChange={setDropoff}
+              label="Dropoff Destination"
+              fieldIcon={<Navigation className="h-4 w-4" />}
+              placeholder="Search hotel, address, or landmark"
+            />
 
             <Field icon={<Users className="h-4 w-4" />} label="Fleet Size">
               <div className="flex gap-1">
@@ -425,11 +418,62 @@ Please confirm booking for this date.`
           </div>
         )}
 
-        <div className="mt-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4">
+          {appliedPromo ? (
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] px-3.5 py-2.5 text-xs">
+              <span className="flex items-center gap-1.5 font-medium text-[var(--home-accent)]">
+                <Tag className="h-3.5 w-3.5" />
+                {appliedPromo.customer_discount_percent}% off applied · {appliedPromo.hotel_name}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setAppliedPromo(null)
+                  setPromoInput('')
+                }}
+                className="font-medium text-[var(--home-muted)] underline underline-offset-2 hover:text-[var(--home-foreground)]"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Tag className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Promo code (optional)"
+                  value={promoInput}
+                  onChange={(e) => {
+                    setPromoInput(e.target.value.toUpperCase())
+                    setPromoError('')
+                  }}
+                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface)] py-2.5 pl-10 pr-4 text-sm uppercase text-[var(--home-foreground)] outline-none focus:border-[var(--home-accent)]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleApplyPromo}
+                disabled={promoChecking || !promoInput.trim()}
+                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--home-border)] px-4 py-2.5 text-sm font-semibold text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-surface)] disabled:opacity-40"
+              >
+                {promoChecking && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Apply
+              </button>
+            </div>
+          )}
+          {promoError && <p className="mt-1 text-xs font-medium text-rose-500">{promoError}</p>}
+        </div>
+
+        <div className="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-baseline gap-2 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3">
             <span className="text-xs text-[var(--home-muted)]">Instant estimate</span>
+            {appliedPromo && (
+              <span className="font-mono text-sm text-[var(--home-muted)] line-through">{formatKr(price)}</span>
+            )}
             <span className="font-mono text-2xl font-semibold tracking-tight text-[var(--home-foreground)] tabular-nums">
-              {formatKr(price)}
+              {formatKr(finalPrice)}
             </span>
           </div>
           <button
@@ -478,9 +522,25 @@ Please confirm booking for this date.`
 function AddressAutocomplete({
   value,
   onChange,
+  label,
+  fieldIcon,
+  placeholder,
+  onCoordsChange,
+  liveLocation,
+  onRequestLiveLocation,
+  liveLocating,
+  liveError,
 }: {
   value: string
   onChange: (value: string) => void
+  label: string
+  fieldIcon: React.ReactNode
+  placeholder: string
+  onCoordsChange?: (coords: { lat: number; lon: number } | null) => void
+  liveLocation?: { coords: { lat: number; lon: number }; nonce: number } | null
+  onRequestLiveLocation?: () => void
+  liveLocating?: boolean
+  liveError?: string
 }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(false)
@@ -517,6 +577,27 @@ function AddressAutocomplete({
     }
   }, [value, selected])
 
+  // Adopts a device-geolocation pickup ("Live" button) into this combobox
+  // exactly as if it were a chosen search result -- same map pin, same
+  // Open in Maps buttons -- instead of a separate hardcoded "live" mode.
+  useEffect(() => {
+    if (!liveLocation) return
+    const label = `My Current Location (${liveLocation.coords.lat.toFixed(4)}, ${liveLocation.coords.lon.toFixed(4)})`
+    onChange(label)
+    setSelected(true)
+    setSelectedResult({
+      id: 'live-location',
+      name: label,
+      address: '',
+      lat: liveLocation.coords.lat,
+      lon: liveLocation.coords.lon,
+      type: 'live',
+    })
+    setOpen(false)
+    // Only re-sync when a fresh location comes in, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveLocation?.nonce])
+
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setOpen(false)
@@ -527,17 +608,29 @@ function AddressAutocomplete({
     onChange(result.name)
     setSelected(true)
     setSelectedResult(result)
+    onCoordsChange?.({ lat: result.lat, lon: result.lon })
     setOpen(false)
   }
 
   return (
     <div ref={containerRef} onBlur={handleBlur} className="relative">
       <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)] focus-within:[background-image:radial-gradient(160px_60px_at_15%_50%,var(--home-accent-soft),transparent_70%)]">
-        <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
-          <span className="text-[var(--home-accent)]">
-            <Navigation className="h-4 w-4" />
+        <span className="flex items-center justify-between gap-1.5">
+          <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
+            <span className="text-[var(--home-accent)]">{fieldIcon}</span>
+            {label}
           </span>
-          Dropoff Destination
+          {onRequestLiveLocation && (
+            <button
+              type="button"
+              onClick={onRequestLiveLocation}
+              title="Use my current location"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--home-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--home-accent)] transition-colors hover:bg-[var(--home-accent)] hover:text-white"
+            >
+              {liveLocating ? <Loader2 className="h-3 w-3 animate-spin" /> : <LocateFixed className="h-3 w-3" />}
+              Live
+            </button>
+          )}
         </span>
         <div className="flex items-center gap-2">
           {loading ? (
@@ -553,10 +646,11 @@ function AddressAutocomplete({
               onChange(e.target.value)
               setSelected(false)
               setSelectedResult(null)
+              onCoordsChange?.(null)
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Search hotel, address, or landmark"
+            placeholder={placeholder}
             role="combobox"
             aria-expanded={open}
             aria-autocomplete="list"
@@ -593,12 +687,53 @@ function AddressAutocomplete({
           No matches for “{value}” in the Tromsø area
         </div>
       )}
+      {liveError && !open && (
+        <button
+          type="button"
+          onClick={onRequestLiveLocation}
+          className="mt-1 text-left text-[11px] text-destructive underline underline-offset-2"
+        >
+          {liveError} Retry
+        </button>
+      )}
 
       {selectedResult && (
-        <div className="mt-2">
+        <div className="mt-2 space-y-2">
           <LiveMap lat={selectedResult.lat} lon={selectedResult.lon} />
+          <MapOpenButtons lat={selectedResult.lat} lon={selectedResult.lon} />
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * One-tap navigation for whichever map app the viewer actually has --
+ * Google Maps and Apple Maps both resolve to their native app via
+ * universal links on mobile and fall back to the web viewer on desktop,
+ * so this single pair of links covers "Google Maps, Apple Maps, or web."
+ */
+function MapOpenButtons({ lat, lon }: { lat: number; lon: number }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <a
+        href={`https://www.google.com/maps?q=${lat},${lon}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-1.5 text-xs font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+        Google Maps
+      </a>
+      <a
+        href={`https://maps.apple.com/?ll=${lat},${lon}&q=Pickup+Location`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-1.5 text-xs font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+        Apple Maps
+      </a>
     </div>
   )
 }

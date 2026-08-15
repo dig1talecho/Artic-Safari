@@ -12,9 +12,24 @@ import {
   CreditCard,
   Car,
   History,
+  ExternalLink,
 } from 'lucide-react'
 import type { Booking, CurrentUser } from '@/components/admin/types'
 import { listBookingAudit, type AuditLogRow } from '@/services/audit-log.service'
+
+// dispatch-console.tsx embeds "(https://maps.google.com/?q=LAT,LON)" into a
+// booking's notes whenever the customer shared a live or searched pickup
+// point. Pull those coordinates back out so staff get one-tap navigation
+// instead of a pasted link they'd have to copy by hand.
+function extractMapLinks(notes: string): { lat: number; lon: number }[] {
+  const regex = /maps\.google\.com\/\?q=(-?\d+\.\d+),(-?\d+\.\d+)/g
+  const found: { lat: number; lon: number }[] = []
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(notes)) !== null) {
+    found.push({ lat: parseFloat(match[1]), lon: parseFloat(match[2]) })
+  }
+  return found
+}
 
 interface BookingDrawerProps {
   booking: Booking | null
@@ -101,7 +116,37 @@ export function BookingDrawer({ booking, onClose, updateStatus, updatePaymentSta
               value={booking.scheduled_time ? `${booking.booking_date} · ${booking.scheduled_time}` : booking.booking_date}
             />
             {booking.notes && (
-              <DetailRow icon={<MapPin className="h-4 w-4" />} label="Notes" value={booking.notes} />
+              <div className="flex items-start gap-2.5 text-sm">
+                <span className="mt-0.5 text-slate-500">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Notes</p>
+                  <p className="text-white">{booking.notes}</p>
+                  {extractMapLinks(booking.notes).map((loc, i) => (
+                    <div key={i} className="mt-2 flex flex-wrap gap-2">
+                      <a
+                        href={`https://www.google.com/maps?q=${loc.lat},${loc.lon}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-[#33bbcf] transition-colors hover:bg-white/10"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Google Maps
+                      </a>
+                      <a
+                        href={`https://maps.apple.com/?ll=${loc.lat},${loc.lon}&q=Pickup+Location`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-[#33bbcf] transition-colors hover:bg-white/10"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Apple Maps
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
             <DetailRow icon={<Car className="h-4 w-4" />} label="Driver" value={booking.assigned_driver || 'Unassigned'} />
             <DetailRow

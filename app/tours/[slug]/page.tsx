@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Check, ArrowLeft, Clock, MapPin } from 'lucide-react'
 import { SiteShell } from '@/components/site-shell'
+import { TourBookButton } from '@/components/tour-book-button'
 import { getTours, getTourBySlug } from '@/services/tours.service'
 import { FALLBACK_TOURS, getFallbackTourBySlug } from '@/lib/tours-fallback'
 
@@ -123,13 +124,13 @@ export default async function TourDetailPage({
               </ul>
             )}
 
-            <Link
-              href="/#tours"
+            <TourBookButton
+              tour={{ title: tour.title, price: tour.price, id: tour.id }}
               className="group mt-8 inline-flex items-center gap-2 rounded-[10px] bg-[image:var(--home-gradient-cta)] px-7 py-3.5 text-sm font-semibold text-[var(--home-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_28px_-10px_rgba(51,187,207,0.5)] active:translate-y-0 active:scale-[0.98]"
             >
               Book This Tour
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </TourBookButton>
           </div>
         </div>
 

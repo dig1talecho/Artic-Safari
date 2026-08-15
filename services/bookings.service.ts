@@ -14,6 +14,9 @@ export interface BookingInsertPayload {
   total_price: number
   notes: string
   status: string
+  // Resolved server-side into partner_id/commission_amount by the
+  // resolve_booking_partner() DB trigger -- never trusted client data.
+  promo_code?: string | null
 }
 
 export function listBookings() {

@@ -18,11 +18,19 @@ import {
   CalendarClock,
   ArrowRight,
   Images,
+  Star,
+  MessageSquarePlus,
+  Hourglass,
 } from 'lucide-react'
 
 import { signInWithPassword, signUpCustomer, signOut } from '@/services/auth.service'
 import { createCustomerProfile } from '@/services/customers.service'
 import { listBookingsByCustomerEmail } from '@/services/bookings.service'
+import {
+  listReviewsForCustomer,
+  createCustomerReview,
+  type CustomerReview,
+} from '@/services/reviews.service'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { Card, CardEyebrow, CardTitle, CardIcon, CardHeader } from '@/components/ui/card'
@@ -67,6 +75,165 @@ function statusBadge(status: Booking['status']) {
       <Clock3 className="h-3 w-3" />
       Pending
     </Badge>
+  )
+}
+
+function daysUntil(dateStr: string): number {
+  const target = new Date(`${dateStr}T00:00:00`)
+  const today = new Date(new Date().toDateString())
+  return Math.round((target.getTime() - today.getTime()) / 86_400_000)
+}
+
+function CountdownBadge({ bookingDate }: { bookingDate: string }) {
+  const days = daysUntil(bookingDate)
+  if (days < 0) return null
+  const label = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`
+  return (
+    <span className="flex items-center gap-1 rounded-full border border-[#33bbcf]/25 bg-[#33bbcf]/10 px-2.5 py-1 text-[11px] font-medium text-[#33bbcf]">
+      <Hourglass className="h-3 w-3" />
+      {label}
+    </span>
+  )
+}
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
+      {Array.from({ length: 5 }).map((_, i) => {
+        const filled = i < (hover || value)
+        return (
+          <button
+            key={i}
+            type="button"
+            onMouseEnter={() => setHover(i + 1)}
+            onClick={() => onChange(i + 1)}
+            aria-label={`${i + 1} star${i === 0 ? '' : 's'}`}
+            className="p-0.5"
+          >
+            <Star className={`h-5 w-5 transition-colors ${filled ? 'fill-[#33bbcf] text-[#33bbcf]' : 'fill-transparent text-white/20'}`} />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
+ * Distinct from a public "submit a review" form -- only reachable by a
+ * signed-in customer, only for a booking that's genuinely theirs and
+ * confirmed (enforced by RLS in supabase-reviews-customer-submissions.sql).
+ * Submissions land unpublished; the admin Reviews screen still has the only
+ * "publish" switch.
+ */
+function ReviewPanel({
+  booking,
+  existingReview,
+  onSubmitted,
+}: {
+  booking: Booking
+  existingReview: CustomerReview | undefined
+  onSubmitted: (review: CustomerReview) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  if (booking.status !== 'confirmed') return null
+
+  if (existingReview) {
+    return (
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              className={`h-3.5 w-3.5 ${
+                i < existingReview.rating ? 'fill-[#33bbcf] text-[#33bbcf]' : 'fill-transparent text-white/15'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {existingReview.published ? 'Your review is live' : 'Review submitted — pending approval'}
+        </span>
+      </div>
+    )
+  }
+
+  if (!open) {
+    return (
+      <div className="mt-4 border-t border-white/10 pt-4">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1.5 text-xs font-medium text-[#33bbcf] transition-colors hover:text-[#33bbcf]/80"
+        >
+          <MessageSquarePlus className="h-3.5 w-3.5" />
+          Leave a review
+        </button>
+      </div>
+    )
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (rating === 0 || !comment.trim()) return
+
+    setSubmitting(true)
+    setError('')
+
+    const { data, error: submitError } = await createCustomerReview({
+      booking_id: booking.id,
+      customer_name: booking.customer_name,
+      customer_email: booking.customer_email,
+      rating,
+      comment: comment.trim(),
+    })
+
+    setSubmitting(false)
+
+    if (submitError || !data || data.length === 0) {
+      console.error('Customer review insert error:', submitError)
+      setError('Could not submit your review. Please try again shortly.')
+      return
+    }
+
+    onSubmitted(data[0])
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 space-y-3 border-t border-white/10 pt-4">
+      <p className="text-xs font-medium text-foreground">How was {booking.item_title}?</p>
+      <StarPicker value={rating} onChange={setRating} />
+      <textarea
+        required
+        rows={2}
+        placeholder="Tell future guests what to expect…"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        className="w-full resize-none rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-[#33bbcf]/50"
+      />
+      {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-white/5"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={submitting || rating === 0 || !comment.trim()}
+          className="rounded-lg bg-[#33bbcf] px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {submitting ? 'Submitting…' : 'Submit review'}
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -324,23 +491,33 @@ function BookingsList({ session }: { session: Session }) {
   const email = session.user.email as string
   const { profile } = useCustomerProfile(session)
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [reviews, setReviews] = useState<CustomerReview[]>([])
   const [loading, setLoading] = useState(true)
   const [activeMediaBooking, setActiveMediaBooking] = useState<{ id: string; title: string } | null>(null)
 
   useEffect(() => {
     let active = true
 
-    listBookingsByCustomerEmail(email)
-      .then(({ data, error }) => {
+    Promise.all([listBookingsByCustomerEmail(email), listReviewsForCustomer(email)]).then(
+      ([bookingsRes, reviewsRes]) => {
         if (!active) return
-        if (!error) setBookings(data ?? [])
+        if (!bookingsRes.error) setBookings(bookingsRes.data ?? [])
+        // Table may not have the customer_email/booking_id columns yet if
+        // supabase-reviews-customer-submissions.sql hasn't been run --
+        // treat that the same as "no reviews yet" instead of failing.
+        if (!reviewsRes.error) setReviews(reviewsRes.data ?? [])
         setLoading(false)
-      })
+      },
+    )
 
     return () => {
       active = false
     }
   }, [email])
+
+  const reviewByBooking = Object.fromEntries(
+    reviews.filter((r) => r.booking_id).map((r) => [r.booking_id as string, r]),
+  )
 
   const totalSpend = bookings
     .filter((b) => b.status !== 'cancelled')
@@ -451,9 +628,10 @@ function BookingsList({ session }: { session: Session }) {
                 {statusBadge(booking.status)}
               </div>
 
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 text-[#33bbcf]" />
                 {booking.booking_date}
+                {booking.status === 'confirmed' && <CountdownBadge bookingDate={booking.booking_date} />}
               </div>
 
               {booking.notes && (
@@ -476,6 +654,12 @@ function BookingsList({ session }: { session: Session }) {
                   Photos
                 </button>
               </div>
+
+              <ReviewPanel
+                booking={booking}
+                existingReview={reviewByBooking[booking.id]}
+                onSubmitted={(review) => setReviews((prev) => [...prev, review])}
+              />
             </Card>
           ))}
         </div>

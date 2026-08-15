@@ -57,6 +57,7 @@ export const partnerInsertSchema = z.object({
     .min(3)
     .max(50)
     .regex(/^[A-Za-z0-9_-]+$/, 'Promo code may only contain letters, numbers, - and _'),
+  customer_discount_percent: z.number().min(0).max(50).default(0),
   active: z.boolean().default(true),
 })
 

@@ -9,6 +9,7 @@ const links = [
   { label: 'Tours', href: '/tours' },
   { label: 'Charter', href: '/charter' },
   { label: 'Aurora Radar', href: '/#radar' },
+  { label: 'Gallery', href: '/#gallery' },
   { label: 'Blog', href: '/blog' },
 ]
 
