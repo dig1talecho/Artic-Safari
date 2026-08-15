@@ -255,6 +255,19 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                 })}
               </div>
 
+              {step < 4 &&
+                (appliedPromo ? (
+                  <div className="mb-4 flex items-center gap-1.5 text-xs font-medium text-[var(--home-accent)]">
+                    <Tag className="h-3.5 w-3.5" />
+                    {appliedPromo.customer_discount_percent}% off applied · {appliedPromo.hotel_name}
+                  </div>
+                ) : (
+                  <p className="mb-4 flex items-center gap-1.5 text-xs text-[var(--home-muted)]">
+                    <Tag className="h-3.5 w-3.5 text-[var(--home-accent)]" />
+                    Have a partner promo code? You'll be able to enter it before confirming.
+                  </p>
+                ))}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                   type="text"
