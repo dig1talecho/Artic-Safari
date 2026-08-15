@@ -40,6 +40,11 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
   const [fullName, setFullName] = useState(prefill.fullName)
   const [email, setEmail] = useState(prefill.email)
   const [phone, setPhone] = useState(prefill.phone)
+  // Lets a signed-in customer override their stored profile info for just
+  // this booking -- without this, a stale/invalid phone on their account
+  // (e.g. one that fails the server-side format check) had no fix path
+  // other than editing their whole profile outside the flow.
+  const [editingContact, setEditingContact] = useState(false)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
 
@@ -413,14 +418,23 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
 
                 {step === 3 && (
                   <>
-                    {isSignedIn ? (
-                      <div className="rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] p-3.5">
-                        <p className="text-[11px] uppercase tracking-wider text-[var(--home-accent)]">Booking as</p>
-                        <p className="mt-1 text-sm font-medium text-[var(--home-foreground)]">{fullName}</p>
-                        <p className="text-xs text-[var(--home-muted)]">
-                          {email}
-                          {phone ? ` · ${phone}` : ''}
-                        </p>
+                    {isSignedIn && !editingContact ? (
+                      <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] p-3.5">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wider text-[var(--home-accent)]">Booking as</p>
+                          <p className="mt-1 text-sm font-medium text-[var(--home-foreground)]">{fullName}</p>
+                          <p className="text-xs text-[var(--home-muted)]">
+                            {email}
+                            {phone ? ` · ${phone}` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingContact(true)}
+                          className="shrink-0 whitespace-nowrap text-xs font-semibold text-[var(--home-accent)] underline underline-offset-2 hover:text-[var(--home-foreground)]"
+                        >
+                          Edit
+                        </button>
                       </div>
                     ) : (
                       <>
@@ -487,7 +501,7 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                       </button>
                       <button
                         type="button"
-                        disabled={!isSignedIn && (!fullName || !email || !phone)}
+                        disabled={(!isSignedIn || editingContact) && (!fullName || !email || !phone)}
                         onClick={() => setStep(4)}
                         style={{ backgroundImage: 'var(--home-gradient-cta)' }}
                         className="flex-1 rounded-[10px] py-3 text-sm font-semibold text-[var(--home-bg)] transition-opacity hover:opacity-90 disabled:opacity-40"

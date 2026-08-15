@@ -5,6 +5,9 @@ import { MapPin, Navigation, Clock, Gauge, MessageCircle, Check } from 'lucide-r
 import { insertBooking } from '@/services/bookings.service'
 import { getPricingRules, calculateTransferPrice, isNightOrWeekendRate } from '@/services/pricing.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
+import { AddressAutocomplete } from '@/components/address-autocomplete'
+
+type GeoStatus = 'idle' | 'locating' | 'success' | 'error'
 
 interface DistanceResult {
   distanceKm: number
@@ -18,6 +21,10 @@ type Status = 'idle' | 'calculating' | 'ready' | 'not_configured' | 'error'
 export function TaximeterWidget() {
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
+  const [geoError, setGeoError] = useState('')
+  const [liveLocationNonce, setLiveLocationNonce] = useState(0)
+  const [originCoords, setOriginCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [result, setResult] = useState<DistanceResult | null>(null)
@@ -30,6 +37,34 @@ export function TaximeterWidget() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const spamGuard = useSpamGuard()
+
+  function requestLiveLocation() {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setGeoStatus('error')
+      setGeoError('Geolocation is not supported on this device.')
+      return
+    }
+
+    setGeoStatus('locating')
+    setGeoError('')
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setOriginCoords({ lat: position.coords.latitude, lon: position.coords.longitude })
+        setGeoStatus('success')
+        setLiveLocationNonce((n) => n + 1)
+      },
+      (error) => {
+        setGeoStatus('error')
+        setGeoError(
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission denied. Please allow access or search an address.'
+            : 'Unable to retrieve your location. Please try again.',
+        )
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    )
+  }
 
   const handleCalculate = async () => {
     if (!origin.trim() || !destination.trim()) return
@@ -111,24 +146,25 @@ export function TaximeterWidget() {
         {!submitted ? (
           <>
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-[var(--home-muted)]" />
-                <input
-                  value={origin}
-                  onChange={(e) => setOrigin(e.target.value)}
-                  placeholder="Pickup address"
-                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 pl-10 pr-3 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
-                />
-              </div>
-              <div className="relative">
-                <Navigation className="absolute left-3 top-3.5 h-4 w-4 text-[var(--home-muted)]" />
-                <input
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="Drop-off address"
-                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface-soft)] py-3 pl-10 pr-3 text-sm text-[var(--home-foreground)] focus:border-[var(--home-accent)] focus:outline-none"
-                />
-              </div>
+              <AddressAutocomplete
+                value={origin}
+                onChange={setOrigin}
+                label="Pickup Address"
+                fieldIcon={<MapPin className="h-4 w-4" />}
+                placeholder="Search any address in Tromsø"
+                onCoordsChange={setOriginCoords}
+                onRequestLiveLocation={requestLiveLocation}
+                liveLocating={geoStatus === 'locating'}
+                liveError={geoStatus === 'error' ? geoError : undefined}
+                liveLocation={originCoords ? { coords: originCoords, nonce: liveLocationNonce } : null}
+              />
+              <AddressAutocomplete
+                value={destination}
+                onChange={setDestination}
+                label="Drop-off Address"
+                fieldIcon={<Navigation className="h-4 w-4" />}
+                placeholder="Search hotel, address, or landmark"
+              />
             </div>
 
             <button
