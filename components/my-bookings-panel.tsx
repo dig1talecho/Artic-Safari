@@ -138,7 +138,7 @@ function SignInForm() {
       <button
         type="submit"
         disabled={signingIn}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#33bbcf] py-3 text-sm font-semibold text-black transition-all hover:bg-[#33bbcf]/90 disabled:opacity-50"
       >
         {signingIn ? 'Signing in...' : 'Sign in'}
         {!signingIn && <ArrowRight className="h-4 w-4" />}
@@ -200,7 +200,7 @@ function SignUpForm({ onSignedUp }: { onSignedUp: () => void }) {
   if (pendingConfirmation) {
     return (
       <div className="py-6 text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-aurora/20 text-aurora">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#33bbcf]/20 text-[#33bbcf]">
           <Mail className="h-6 w-6" />
         </div>
         <p className="text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ function SignUpForm({ onSignedUp }: { onSignedUp: () => void }) {
       <button
         type="submit"
         disabled={submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-aurora py-3 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#33bbcf] py-3 text-sm font-semibold text-black transition-all hover:bg-[#33bbcf]/90 disabled:opacity-50"
       >
         {submitting ? 'Creating account...' : 'Create account'}
         {!submitting && <ArrowRight className="h-4 w-4" />}
@@ -291,7 +291,7 @@ function AuthForms() {
             onClick={() => setMode('signin')}
             className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
               mode === 'signin'
-                ? 'bg-aurora text-accent-foreground'
+                ? 'bg-[#33bbcf] text-accent-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -302,7 +302,7 @@ function AuthForms() {
             onClick={() => setMode('signup')}
             className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
               mode === 'signup'
-                ? 'bg-aurora text-accent-foreground'
+                ? 'bg-[#33bbcf] text-accent-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -358,7 +358,7 @@ function BookingsList({ session }: { session: Session }) {
     <div className="space-y-8">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-aurora">My Dashboard</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#33bbcf]">My Dashboard</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {profile?.full_name ? `Welcome back, ${profile.full_name}` : 'Your bookings'}
           </h2>
@@ -376,7 +376,7 @@ function BookingsList({ session }: { session: Session }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <GlowPanel>
           <GlowPanelContent className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-aurora">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-[#33bbcf]">
               <ListChecks className="h-5 w-5" />
             </span>
             <div>
@@ -390,7 +390,7 @@ function BookingsList({ session }: { session: Session }) {
 
         <GlowPanel>
           <GlowPanelContent className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-aurora">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-[#33bbcf]">
               <CalendarClock className="h-5 w-5" />
             </span>
             <div>
@@ -402,7 +402,7 @@ function BookingsList({ session }: { session: Session }) {
 
         <GlowPanel>
           <GlowPanelContent className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-aurora">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-[#33bbcf]">
               <Wallet className="h-5 w-5" />
             </span>
             <div>
@@ -429,7 +429,7 @@ function BookingsList({ session }: { session: Session }) {
           </p>
           <a
             href="/#tours"
-            className="mt-4 inline-flex items-center gap-2 self-center rounded-xl border border-aurora/30 bg-aurora/10 px-4 py-2 text-sm font-semibold text-aurora transition-all hover:bg-aurora hover:text-black"
+            className="mt-4 inline-flex items-center gap-2 self-center rounded-xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 px-4 py-2 text-sm font-semibold text-[#33bbcf] transition-all hover:bg-[#33bbcf] hover:text-black"
           >
             Browse tours
             <ArrowRight className="h-4 w-4" />
@@ -452,7 +452,7 @@ function BookingsList({ session }: { session: Session }) {
               </div>
 
               <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 text-aurora" />
+                <Calendar className="h-4 w-4 text-[#33bbcf]" />
                 {booking.booking_date}
               </div>
 

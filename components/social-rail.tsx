@@ -37,7 +37,7 @@ export function SocialRail({ variant = 'dark' }: SocialRailProps) {
 
   const iconClass = isLight
     ? 'text-[var(--home-muted)] hover:bg-[var(--home-surface-soft)] hover:text-[var(--home-accent)]'
-    : 'text-muted-foreground hover:bg-white/[0.06] hover:text-aurora'
+    : 'text-muted-foreground hover:bg-white/[0.06] hover:text-[#33bbcf]'
 
   return (
     <div className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 sm:block">

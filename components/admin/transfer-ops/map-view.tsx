@@ -65,7 +65,7 @@ export function MapView({ bookings, onSelectBooking }: MapViewProps) {
           {fixedGroups.map((g) => (
             <g key={g.key}>
               <circle cx={g.x} cy={g.y} r="22" fill="rgba(56,189,248,0.08)" />
-              <circle cx={g.x} cy={g.y} r="7" fill="var(--aurora, #38bdf8)" />
+              <circle cx={g.x} cy={g.y} r="7" fill="var(--[#33bbcf], #38bdf8)" />
               <text x={g.x} y={g.y - 16} textAnchor="middle" className="fill-slate-300 text-[10px] font-semibold">
                 {g.label}
               </text>
@@ -81,7 +81,7 @@ export function MapView({ bookings, onSelectBooking }: MapViewProps) {
         {fixedGroups.map((g) => (
           <div key={g.key} className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
             <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-300">
-              <MapPin className="h-3.5 w-3.5 text-aurora" />
+              <MapPin className="h-3.5 w-3.5 text-[#33bbcf]" />
               {g.label} ({g.bookings.length})
             </h3>
             {g.bookings.length === 0 ? (

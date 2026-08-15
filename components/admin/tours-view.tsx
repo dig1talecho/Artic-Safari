@@ -54,7 +54,7 @@ function TagInput({
         {values.map((v, i) => (
           <span
             key={i}
-            className="flex items-center gap-1 rounded-full border border-aurora/30 bg-aurora/10 px-2.5 py-1 text-xs text-aurora"
+            className="flex items-center gap-1 rounded-full border border-[#33bbcf]/30 bg-[#33bbcf]/10 px-2.5 py-1 text-xs text-[#33bbcf]"
           >
             {v}
             <button type="button" onClick={() => onChange(values.filter((_, idx) => idx !== i))}>
@@ -108,7 +108,7 @@ function CoverImageUploader({ value, onChange }: { value: string; onChange: (url
       }}
       onClick={() => inputRef.current?.click()}
       className={`relative flex h-40 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed text-center transition-colors ${
-        dragOver ? 'border-aurora bg-aurora/5' : 'border-white/15 bg-white/5 hover:border-white/25'
+        dragOver ? 'border-[#33bbcf] bg-[#33bbcf]/5' : 'border-white/15 bg-white/5 hover:border-white/25'
       }`}
     >
       <input
@@ -248,7 +248,7 @@ function TourForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-10">
-      <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+      <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#00040f] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <h2 className="text-sm font-semibold text-white">{tour ? 'Edit Tour' : 'New Tour'}</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5">
@@ -272,7 +272,7 @@ function TourForm({
                   set('title', e.target.value)
                   if (!slugTouched) set('slug', slugify(e.target.value))
                 }}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <div>
@@ -284,7 +284,7 @@ function TourForm({
                   setSlugTouched(true)
                   set('slug', slugify(e.target.value))
                 }}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
           </div>
@@ -294,7 +294,7 @@ function TourForm({
             <input
               value={form.eyebrow}
               onChange={(e) => set('eyebrow', e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
           </div>
 
@@ -304,7 +304,7 @@ function TourForm({
               rows={3}
               value={form.intro}
               onChange={(e) => set('intro', e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
           </div>
 
@@ -314,7 +314,7 @@ function TourForm({
               <input
                 value={form.price}
                 onChange={(e) => set('price', e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <div>
@@ -322,7 +322,7 @@ function TourForm({
               <input
                 value={form.price_note}
                 onChange={(e) => set('price_note', e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
           </div>
@@ -334,7 +334,7 @@ function TourForm({
                 value={form.duration}
                 onChange={(e) => set('duration', e.target.value)}
                 placeholder="e.g. 3-4 hours"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <div>
@@ -342,7 +342,7 @@ function TourForm({
               <input
                 value={form.meeting_point}
                 onChange={(e) => set('meeting_point', e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
           </div>
@@ -376,7 +376,7 @@ function TourForm({
               <input
                 value={form.meta_title}
                 onChange={(e) => set('meta_title', e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <div>
@@ -384,7 +384,7 @@ function TourForm({
               <input
                 value={form.meta_description}
                 onChange={(e) => set('meta_description', e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
           </div>
@@ -416,7 +416,7 @@ function TourForm({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 rounded-xl bg-aurora py-2 text-xs font-semibold text-black hover:bg-aurora/90 disabled:opacity-50"
+              className="flex-1 rounded-xl bg-[#33bbcf] py-2 text-xs font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50"
             >
               {saving ? 'Saving…' : tour ? 'Save Changes' : 'Create Tour'}
             </button>
@@ -467,7 +467,7 @@ export function ToursView() {
         <button
           type="button"
           onClick={() => setEditing('new')}
-          className="flex items-center gap-1.5 rounded-xl bg-aurora px-4 py-2 text-xs font-semibold text-black hover:bg-aurora/90"
+          className="flex items-center gap-1.5 rounded-xl bg-[#33bbcf] px-4 py-2 text-xs font-semibold text-black hover:bg-[#33bbcf]/90"
         >
           <Plus className="h-3.5 w-3.5" />
           New Tour

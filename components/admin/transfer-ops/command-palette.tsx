@@ -92,7 +92,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/60" onClick={() => setOpen(false)} aria-hidden="true" />
-      <div className="fixed left-1/2 top-24 z-[61] w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+      <div className="fixed left-1/2 top-24 z-[61] w-full max-w-lg -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#00040f] shadow-2xl">
         {mode === 'search' ? (
           <>
             <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-3">
@@ -133,7 +133,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                     onClick={() => setMode('new-transfer')}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/5"
                   >
-                    <PlusCircle className="h-4 w-4 text-aurora" />
+                    <PlusCircle className="h-4 w-4 text-[#33bbcf]" />
                     New Transfer
                   </button>
                   <button
@@ -144,7 +144,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                     }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/5"
                   >
-                    <RefreshCw className="h-4 w-4 text-aurora" />
+                    <RefreshCw className="h-4 w-4 text-[#33bbcf]" />
                     Refresh Data
                   </button>
                   <button
@@ -155,7 +155,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                     }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/5"
                   >
-                    <LayoutDashboard className="h-4 w-4 text-aurora" />
+                    <LayoutDashboard className="h-4 w-4 text-[#33bbcf]" />
                     Go to Dashboard
                   </button>
                   <button
@@ -166,7 +166,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                     }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/5"
                   >
-                    <Map className="h-4 w-4 text-aurora" />
+                    <Map className="h-4 w-4 text-[#33bbcf]" />
                     Go to Transfers
                   </button>
                   <button
@@ -177,7 +177,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                     }}
                     className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-white hover:bg-white/5"
                   >
-                    <Car className="h-4 w-4 text-aurora" />
+                    <Car className="h-4 w-4 text-[#33bbcf]" />
                     Go to Drivers
                   </button>
                 </div>
@@ -192,19 +192,19 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
               placeholder="Customer name"
               value={newTransfer.customerName}
               onChange={(e) => setNewTransfer((v) => ({ ...v, customerName: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
             <input
               placeholder="Phone"
               value={newTransfer.customerPhone}
               onChange={(e) => setNewTransfer((v) => ({ ...v, customerPhone: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
             <div className="grid grid-cols-2 gap-2">
               <select
                 value={newTransfer.pickup}
                 onChange={(e) => setNewTransfer((v) => ({ ...v, pickup: e.target.value }))}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               >
                 <option className="bg-slate-900">Tromsø Airport (TOS)</option>
                 <option className="bg-slate-900">Tromsø City Center</option>
@@ -213,20 +213,20 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                 type="date"
                 value={newTransfer.date}
                 onChange={(e) => setNewTransfer((v) => ({ ...v, date: e.target.value }))}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <input
               placeholder="Dropoff destination"
               value={newTransfer.dropoff}
               onChange={(e) => setNewTransfer((v) => ({ ...v, dropoff: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
             <input
               placeholder="Price (kr)"
               value={newTransfer.price}
               onChange={(e) => setNewTransfer((v) => ({ ...v, price: e.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
 
             <div className="flex items-center gap-2 pt-1">
@@ -241,7 +241,7 @@ export function CommandPalette({ bookings, onNavigate, onSearch, onRefresh }: Co
                 type="button"
                 disabled={creating}
                 onClick={handleCreateTransfer}
-                className="flex-1 rounded-xl bg-aurora py-2 text-xs font-semibold text-black hover:bg-aurora/90 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-[#33bbcf] py-2 text-xs font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50"
               >
                 {creating ? 'Creating…' : 'Create Transfer'}
               </button>

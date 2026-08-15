@@ -70,7 +70,7 @@ export function TableMatrix({
                   type="checkbox"
                   checked={allSelected}
                   onChange={onToggleSelectAll}
-                  className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 accent-aurora"
+                  className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 accent-[#33bbcf]"
                   aria-label="Select all rows"
                 />
               </th>
@@ -101,7 +101,7 @@ export function TableMatrix({
                       type="checkbox"
                       checked={selectedIds.has(booking.id)}
                       onChange={() => onToggleSelect(booking.id)}
-                      className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 accent-aurora"
+                      className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 accent-[#33bbcf]"
                       aria-label={`Select booking for ${booking.customer_name}`}
                     />
                   </td>
@@ -122,7 +122,7 @@ export function TableMatrix({
                     {booking.status === 'pending' && <Clock3 className="h-3 w-3" />}
                     {booking.status}
                   </span>
-                  <div className="font-medium text-white transition-colors group-hover:text-aurora">
+                  <div className="font-medium text-white transition-colors group-hover:text-[#33bbcf]">
                     {booking.item_title}
                   </div>
                 </td>
@@ -160,14 +160,14 @@ export function TableMatrix({
 
                 <td className="space-y-1 px-4 py-2.5 text-xs text-slate-400">
                   <div className="flex items-center gap-1.5 font-medium text-slate-200">
-                    <Calendar className="h-3 w-3 text-aurora" />
+                    <Calendar className="h-3 w-3 text-[#33bbcf]" />
                     {booking.booking_date}
                     {booking.scheduled_time && (
                       <span className="text-slate-500">· {booking.scheduled_time}</span>
                     )}
                   </div>
                   <div className="flex items-start gap-1.5 text-slate-400">
-                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-aurora" />
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#33bbcf]" />
                     <span className="line-clamp-1">{booking.notes || 'No route details'}</span>
                   </div>
                 </td>
@@ -178,7 +178,7 @@ export function TableMatrix({
                       <select
                         value={booking.assigned_driver || ''}
                         onChange={(e) => assignDriver(booking.id, e.target.value || null)}
-                        className="w-full rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white focus:border-aurora focus:outline-none"
+                        className="w-full rounded-lg border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white focus:border-[#33bbcf] focus:outline-none"
                       >
                         <option value="">Unassigned</option>
                         {driverOptions.map((d) => (
@@ -201,7 +201,7 @@ export function TableMatrix({
                           type="button"
                           onClick={() => assignDriver(booking.id, recommendation.driverName)}
                           title={`Assign ${recommendation.driverName} (fewest bookings that day)`}
-                          className="flex items-center gap-1 rounded-lg border border-aurora/30 bg-aurora/10 px-2 py-0.5 text-[10px] font-semibold text-aurora hover:bg-aurora hover:text-black"
+                          className="flex items-center gap-1 rounded-lg border border-[#33bbcf]/30 bg-[#33bbcf]/10 px-2 py-0.5 text-[10px] font-semibold text-[#33bbcf] hover:bg-[#33bbcf] hover:text-black"
                         >
                           <Wand2 className="h-3 w-3" />
                           Smart Assign
@@ -210,7 +210,7 @@ export function TableMatrix({
                     </div>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs font-semibold text-slate-300">
-                      <Car className="h-3 w-3 text-aurora" />
+                      <Car className="h-3 w-3 text-[#33bbcf]" />
                       {booking.assigned_driver || 'Unassigned'}
                     </span>
                   )}
@@ -227,7 +227,7 @@ export function TableMatrix({
                       <button
                         onClick={() => updateStatus(booking.id, 'confirmed')}
                         title="Confirm Booking"
-                        className="rounded-lg border border-aurora/30 bg-aurora/10 p-1.5 text-aurora transition-colors hover:bg-aurora hover:text-black"
+                        className="rounded-lg border border-[#33bbcf]/30 bg-[#33bbcf]/10 p-1.5 text-[#33bbcf] transition-colors hover:bg-[#33bbcf] hover:text-black"
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
                       </button>

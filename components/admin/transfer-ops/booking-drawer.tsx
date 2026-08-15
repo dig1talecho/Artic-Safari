@@ -72,7 +72,7 @@ export function BookingDrawer({ booking, onClose, updateStatus, updatePaymentSta
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-slate-950 shadow-2xl">
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-white/10 bg-[#00040f] shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-wide text-slate-500">{booking.booking_type}</p>
@@ -116,7 +116,7 @@ export function BookingDrawer({ booking, onClose, updateStatus, updatePaymentSta
               <button
                 type="button"
                 onClick={() => updateStatus(booking.id, 'confirmed')}
-                className="rounded-xl border border-aurora/30 bg-aurora/10 px-3 py-1.5 text-xs font-semibold text-aurora hover:bg-aurora hover:text-black"
+                className="rounded-xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 px-3 py-1.5 text-xs font-semibold text-[#33bbcf] hover:bg-[#33bbcf] hover:text-black"
               >
                 Confirm
               </button>
@@ -158,7 +158,7 @@ export function BookingDrawer({ booking, onClose, updateStatus, updatePaymentSta
               <ol className="space-y-3 border-l border-white/10 pl-4">
                 {audit.map((entry) => (
                   <li key={entry.id} className="relative">
-                    <span className="absolute -left-[21px] top-1 h-2 w-2 rounded-full bg-aurora" />
+                    <span className="absolute -left-[21px] top-1 h-2 w-2 rounded-full bg-[#33bbcf]" />
                     <p className="text-xs font-medium text-white">
                       {changeTypeLabel[entry.change_type] || entry.change_type}
                     </p>

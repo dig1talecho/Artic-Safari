@@ -48,17 +48,17 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
   const barBg = isLight ? 'bg-[var(--home-glass)]' : 'bg-[#0a0a0c]/70'
   const barBorder = isLight ? 'border-[var(--home-glass-border)]' : 'border-white/10'
   const textColor = isLight ? 'text-[var(--home-foreground)]' : 'text-foreground'
-  const accentColor = isLight ? 'text-[var(--home-accent)]' : 'text-aurora'
+  const accentColor = isLight ? 'text-[var(--home-accent)]' : 'text-[#33bbcf]'
   const navLinkClass = isLight
     ? 'text-[13px] font-medium text-[var(--home-muted)] hover:text-[var(--home-foreground)]'
     : 'text-[13px] font-medium text-muted-foreground hover:text-foreground'
   const navChipHover = isLight ? 'hover:bg-black/[0.04]' : 'hover:bg-white/[0.06]'
   const secondaryBtnClass = isLight
     ? 'border-[var(--home-border)] text-[var(--home-foreground)] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]'
-    : 'border-white/10 bg-white/[0.03] text-foreground hover:border-aurora/40 hover:text-aurora'
+    : 'border-white/10 bg-white/[0.03] text-foreground hover:border-[#33bbcf]/40 hover:text-[#33bbcf]'
   const primaryBtnClass = isLight
     ? 'bg-[image:var(--home-gradient-cta)] text-[var(--home-bg)]'
-    : 'border border-white/10 bg-white/[0.03] text-foreground hover:border-aurora/40 hover:text-aurora'
+    : 'border border-white/10 bg-white/[0.03] text-foreground hover:border-[#33bbcf]/40 hover:text-[#33bbcf]'
   const mobilePanelClass = isLight
     ? 'border-[var(--home-glass-border)] bg-[var(--home-glass)]'
     : 'border-white/10 bg-[#0a0a0c]/95'

@@ -70,7 +70,7 @@ function PricingSettings() {
         step="0.01"
         value={rules[key]}
         onChange={(e) => set(key, Number(e.target.value) as PricingRules[typeof key])}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-aurora focus:outline-none"
+        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
       />
       <p className="mt-1 text-[11px] text-slate-500">{hint}</p>
     </div>
@@ -79,7 +79,7 @@ function PricingSettings() {
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
       <div className="flex items-center gap-2.5">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-aurora">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-[#33bbcf]">
           <Gauge className="h-4.5 w-4.5" />
         </span>
         <div>
@@ -105,7 +105,7 @@ function PricingSettings() {
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="mt-5 flex items-center gap-2 rounded-xl bg-aurora px-4 py-2.5 text-sm font-semibold text-black hover:bg-aurora/90 disabled:opacity-50"
+        className="mt-5 flex items-center gap-2 rounded-xl bg-[#33bbcf] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50"
       >
         <Save className="h-4 w-4" />
         {saving ? 'Saving…' : saved ? 'Saved' : 'Save Pricing'}
@@ -119,7 +119,7 @@ export function SettingsView({ currentUser, email, onSignOut }: SettingsViewProp
     <div className="max-w-lg space-y-4">
       <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-6">
         <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5 text-aurora">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5 text-[#33bbcf]">
             <User className="h-5 w-5" />
           </span>
           <div>
@@ -129,7 +129,7 @@ export function SettingsView({ currentUser, email, onSignOut }: SettingsViewProp
         </div>
 
         <div className="mt-5 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-slate-300">
-          <ShieldCheck className="h-4 w-4 text-aurora" />
+          <ShieldCheck className="h-4 w-4 text-[#33bbcf]" />
           Role: <span className="font-semibold capitalize text-white">{currentUser.role}</span>
         </div>
 
@@ -145,7 +145,7 @@ export function SettingsView({ currentUser, email, onSignOut }: SettingsViewProp
       {currentUser.role === 'admin' && <PricingSettings />}
 
       <div className="flex items-start gap-2.5 rounded-2xl border border-white/10 bg-slate-900/30 p-4 text-xs text-slate-400">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-aurora" />
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#33bbcf]" />
         <p>
           System and API configuration (Supabase, environment variables, deployment settings) is
           managed outside this dashboard in the Vercel and Supabase project dashboards, for security.

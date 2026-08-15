@@ -9,7 +9,7 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
   }, [error])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-950 px-5 text-center text-slate-100">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#00040f] px-5 text-center text-slate-100">
       <span className="grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-white/5 text-rose-400">
         <AlertTriangle className="h-6 w-6" />
       </span>
@@ -21,7 +21,7 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
       <button
         type="button"
         onClick={reset}
-        className="mt-2 rounded-xl bg-aurora px-6 py-2.5 text-sm font-semibold text-black hover:bg-aurora/90"
+        className="mt-2 rounded-xl bg-[#33bbcf] px-6 py-2.5 text-sm font-semibold text-black hover:bg-[#33bbcf]/90"
       >
         Try Again
       </button>

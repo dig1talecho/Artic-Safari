@@ -51,42 +51,45 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Admin/dashboard tokens, aligned with the homepage's HooBank-matched
+   palette (#00040f background, #33bbcf accent) so the whole site reads
+   as one brand instead of three separate color systems. */
 :root {
   color-scheme: dark;
-  --background: #07090e;
-  --foreground: #eceef5;
-  --card: #0b0e15;
-  --card-foreground: #eceef5;
-  --popover: #0b0e15;
-  --popover-foreground: #eceef5;
-  --primary: #6e3aff;
-  --primary-foreground: #ffffff;
+  --background: #00040f;
+  --foreground: #ffffff;
+  --card: #0a0a1f;
+  --card-foreground: #ffffff;
+  --popover: #0a0a1f;
+  --popover-foreground: #ffffff;
+  --primary: #33bbcf;
+  --primary-foreground: #00040f;
   --secondary: #12151f;
-  --secondary-foreground: #eceef5;
+  --secondary-foreground: #ffffff;
   --muted: #12151f;
-  --muted-foreground: #8b91a3;
-  --accent: #00ffa3;
-  --accent-foreground: #05130d;
-  --violet: #6e3aff;
-  --aurora: #00ffa3;
+  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --accent: #33bbcf;
+  --accent-foreground: #00040f;
+  --violet: #33bbcf;
+  --aurora: #33bbcf;
   --destructive: oklch(0.704 0.191 22.216);
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.14);
-  --ring: #6e3aff;
-  --chart-1: #6e3aff;
-  --chart-2: #00ffa3;
-  --chart-3: #a855f7;
-  --chart-4: #38bdf8;
-  --chart-5: #f0abfc;
+  --ring: #33bbcf;
+  --chart-1: #33bbcf;
+  --chart-2: #5ce1e6;
+  --chart-3: #7de7eb;
+  --chart-4: #9dedf0;
+  --chart-5: #bef3f5;
   --radius: 1rem;
-  --sidebar: #0b0e15;
-  --sidebar-foreground: #eceef5;
-  --sidebar-primary: #6e3aff;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar: #0a0a1f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #33bbcf;
+  --sidebar-primary-foreground: #00040f;
   --sidebar-accent: #12151f;
-  --sidebar-accent-foreground: #eceef5;
+  --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #6e3aff;
+  --sidebar-ring: #33bbcf;
 }
 
 .dark {

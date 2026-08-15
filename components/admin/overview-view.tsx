@@ -26,8 +26,8 @@ export function OverviewView({ bookings }: OverviewViewProps) {
           label="Total Volume (Gross)"
           value={`${totalRevenue.toLocaleString()} NOK`}
           note="All bookings value"
-          icon={<DollarSign className="h-5 w-5 text-aurora" />}
-          barClass="from-aurora/50"
+          icon={<DollarSign className="h-5 w-5 text-[#33bbcf]" />}
+          barClass="from-[#33bbcf]/50"
         />
         <KpiCard
           label="Collected (Paid)"
@@ -61,14 +61,14 @@ export function OverviewView({ bookings }: OverviewViewProps) {
         <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-400">Northern Lights Tours</span>
-            <Map className="h-5 w-5 text-aurora" />
+            <Map className="h-5 w-5 text-[#33bbcf]" />
           </div>
           <div className="mt-3 text-2xl font-bold text-white">{tourCount} bookings</div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-400">VIP Transfers</span>
-            <Car className="h-5 w-5 text-aurora" />
+            <Car className="h-5 w-5 text-[#33bbcf]" />
           </div>
           <div className="mt-3 text-2xl font-bold text-white">{transferCount} bookings</div>
         </div>

@@ -76,7 +76,7 @@ export function Sidebar({ activeView, onNavigate, role, mobileOpen, onCloseMobil
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 bg-slate-950 transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-white/10 bg-[#00040f] transition-transform duration-300 md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -119,7 +119,7 @@ export function Sidebar({ activeView, onNavigate, role, mobileOpen, onCloseMobil
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-aurora/10 text-aurora'
+                    ? 'bg-[#33bbcf]/10 text-[#33bbcf]'
                     : 'text-slate-400 hover:bg-white/5 hover:text-white'
                 }`}
               >

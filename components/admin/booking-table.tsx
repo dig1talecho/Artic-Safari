@@ -73,7 +73,7 @@ export function BookingTable({
               onClick={() => onFilterStatusChange(status)}
               className={`whitespace-nowrap rounded-lg px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
                 filterStatus === status
-                  ? 'bg-aurora font-semibold text-black'
+                  ? 'bg-[#33bbcf] font-semibold text-black'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -87,7 +87,7 @@ export function BookingTable({
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/40 shadow-2xl backdrop-blur-md">
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 animate-pulse text-aurora" />
+            <Activity className="h-4 w-4 animate-pulse text-[#33bbcf]" />
             <h2 className="text-sm font-semibold uppercase tracking-wider text-white">{title}</h2>
           </div>
         </div>
@@ -119,7 +119,7 @@ export function BookingTable({
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           booking.status === 'confirmed'
-                            ? 'border border-aurora/30 bg-aurora/20 text-aurora'
+                            ? 'border border-[#33bbcf]/30 bg-[#33bbcf]/20 text-[#33bbcf]'
                             : booking.status === 'cancelled'
                             ? 'border border-rose-500/30 bg-rose-500/20 text-rose-400'
                             : 'border border-amber-500/30 bg-amber-500/20 text-amber-400'
@@ -130,7 +130,7 @@ export function BookingTable({
                         {booking.status === 'pending' && <Clock3 className="h-3 w-3" />}
                         {booking.status}
                       </span>
-                      <div className="font-semibold text-white transition-colors group-hover:text-aurora">
+                      <div className="font-semibold text-white transition-colors group-hover:text-[#33bbcf]">
                         {booking.item_title}
                       </div>
                     </td>
@@ -171,11 +171,11 @@ export function BookingTable({
                     {/* Tarih ve Konum Bilgileri */}
                     <td className="space-y-1.5 px-6 py-4 text-xs text-slate-400">
                       <div className="flex items-center gap-1.5 font-medium text-slate-200">
-                        <Calendar className="h-3.5 w-3.5 text-aurora" />
+                        <Calendar className="h-3.5 w-3.5 text-[#33bbcf]" />
                         {booking.booking_date}
                       </div>
                       <div className="flex items-start gap-1.5 rounded-xl border border-white/5 bg-white/5 p-2 text-slate-300">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-aurora" />
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#33bbcf]" />
                         <div className="space-y-0.5">
                           <span className="block text-[11px] text-slate-400">Route & Location Info:</span>
                           <span className="font-medium text-white">
@@ -191,7 +191,7 @@ export function BookingTable({
                         <select
                           value={booking.assigned_driver || ''}
                           onChange={(e) => assignDriver(booking.id, e.target.value || null)}
-                          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-aurora focus:outline-none"
+                          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-white focus:border-[#33bbcf] focus:outline-none"
                         >
                           <option value="">Unassigned</option>
                           {driverOptions.map((d) => (
@@ -203,13 +203,13 @@ export function BookingTable({
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300">
-                            <Car className="h-3 w-3 text-aurora" />
+                            <Car className="h-3 w-3 text-[#33bbcf]" />
                             {booking.assigned_driver || 'Unassigned'}
                           </span>
                           {!booking.assigned_driver && (
                             <button
                               onClick={() => assignDriver(booking.id, currentUser.name)}
-                              className="rounded-xl border border-aurora/30 bg-aurora/10 px-3 py-1 text-xs font-semibold text-aurora transition-colors hover:bg-aurora hover:text-black"
+                              className="rounded-xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 px-3 py-1 text-xs font-semibold text-[#33bbcf] transition-colors hover:bg-[#33bbcf] hover:text-black"
                             >
                               Take Tour
                             </button>
@@ -231,7 +231,7 @@ export function BookingTable({
                           <button
                             onClick={() => updateStatus(booking.id, 'confirmed')}
                             title="Confirm Booking"
-                            className="rounded-xl border border-aurora/30 bg-aurora/10 p-2 text-aurora transition-colors hover:bg-aurora hover:text-black"
+                            className="rounded-xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 p-2 text-[#33bbcf] transition-colors hover:bg-[#33bbcf] hover:text-black"
                           >
                             <CheckCircle2 className="h-4 w-4" />
                           </button>

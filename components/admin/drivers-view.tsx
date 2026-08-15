@@ -31,7 +31,7 @@ export function DriversView({ driverOptions, bookings }: DriversViewProps) {
             return (
               <div key={driver.id} className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-aurora">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-[#33bbcf]">
                     <UserCog className="h-5 w-5" />
                   </span>
                   <div>
@@ -42,7 +42,7 @@ export function DriversView({ driverOptions, bookings }: DriversViewProps) {
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <Car className="h-3.5 w-3.5 text-aurora" />
+                      <Car className="h-3.5 w-3.5 text-[#33bbcf]" />
                       Assigned
                     </div>
                     <p className="mt-1 text-lg font-bold text-white">{assigned.length}</p>

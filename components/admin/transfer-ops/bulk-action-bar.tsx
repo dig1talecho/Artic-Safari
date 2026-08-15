@@ -57,8 +57,8 @@ export function BulkActionBar({
   const selectedBookings = bookings.filter((b) => selectedIds.has(b.id))
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-aurora/30 bg-aurora/10 p-3 sm:flex-row sm:items-center sm:justify-between">
-      <span className="text-xs font-semibold text-aurora">{selectedIds.size} selected</span>
+    <div className="flex flex-col gap-3 rounded-2xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs font-semibold text-[#33bbcf]">{selectedIds.size} selected</span>
 
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -66,7 +66,7 @@ export function BulkActionBar({
           onClick={() => selectedBookings.forEach((b) => updateStatus(b.id, 'confirmed'))}
           className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/10"
         >
-          <CheckCircle2 className="h-3.5 w-3.5 text-aurora" />
+          <CheckCircle2 className="h-3.5 w-3.5 text-[#33bbcf]" />
           Confirm
         </button>
         <button

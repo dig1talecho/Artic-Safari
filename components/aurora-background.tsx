@@ -24,20 +24,12 @@ export function AuroraBackground({ variant = 'dark' }: AuroraBackgroundProps) {
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* base obsidian */}
+      {/* base -- matches the homepage's #00040f */}
       <div className="absolute inset-0 bg-background" />
-      {/* violet glow top-left */}
-      <div className="animate-aurora-drift absolute -left-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-violet/25 blur-[120px]" />
-      {/* aurora green glow bottom-right */}
-      <div
-        className="animate-aurora-drift absolute -bottom-52 right-[-10rem] h-[40rem] w-[40rem] rounded-full bg-aurora/15 blur-[130px]"
-        style={{ animationDelay: '3s' }}
-      />
-      {/* soft center violet */}
-      <div
-        className="animate-aurora-drift absolute left-1/2 top-1/3 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-violet/10 blur-[140px]"
-        style={{ animationDelay: '6s' }}
-      />
+      {/* the same blurred ice-blue blob used on the homepage, echoed for
+          brand consistency across /dashboard */}
+      <div className="absolute -right-[10%] bottom-0 h-[60%] w-[60%] rounded-full bg-[linear-gradient(180deg,rgba(188,165,255,0)_0%,#214d76_100%)] blur-[123px]" />
+      <div className="absolute -left-[15%] -top-[10%] h-[45%] w-[45%] rounded-full bg-[linear-gradient(180deg,rgba(188,165,255,0)_0%,#214d76_100%)] opacity-60 blur-[140px]" />
       {/* subtle grid */}
       <div
         className="absolute inset-0 opacity-[0.04]"

@@ -30,7 +30,7 @@ import { AddonsView } from '@/components/admin/addons-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
-import type { Booking, DriverOption } from '@/components/admin/types'
+import type { Booking, DriverOption, AdminNotification } from '@/components/admin/types'
 import { Mail, Lock, ShieldAlert } from 'lucide-react'
 
 const viewTitles: Record<AdminView, string> = {
@@ -63,6 +63,7 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [driverOptions, setDriverOptions] = useState<DriverOption[]>([])
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('connecting')
+  const [notifications, setNotifications] = useState<AdminNotification[]>([])
 
   const [activeView, setActiveView] = useState<AdminView>('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -83,25 +84,45 @@ export default function AdminDashboard() {
     if (!currentUser) return
 
     const unsubscribe = subscribeToBookings((payload) => {
-      setBookings((prev) => {
-        if (payload.eventType === 'INSERT') {
-          const row = payload.new as unknown as Booking
+      if (payload.eventType === 'INSERT') {
+        const row = payload.new as unknown as Booking
+
+        setBookings((prev) => {
           if (prev.some((b) => b.id === row.id)) return prev
           return [
             { ...row, payment_status: row.payment_status || (row.status === 'confirmed' ? 'paid' : 'pending') },
             ...prev,
           ]
-        }
-        if (payload.eventType === 'UPDATE') {
-          const row = payload.new as unknown as Booking
-          return prev.map((b) => (b.id === row.id ? { ...b, ...row } : b))
-        }
-        if (payload.eventType === 'DELETE') {
-          const row = payload.old as Partial<Booking>
-          return prev.filter((b) => b.id !== row.id)
-        }
-        return prev
-      })
+        })
+
+        // Real notification, generated from the same live event -- not a
+        // decorative/mock feed.
+        setNotifications((prev) => {
+          if (prev.some((n) => n.id === row.id)) return prev
+          return [
+            {
+              id: row.id,
+              message: `New ${row.booking_type} booking — ${row.item_title} for ${row.customer_name}`,
+              createdAt: row.created_at || new Date().toISOString(),
+              read: false,
+              bookingType: row.booking_type,
+            },
+            ...prev,
+          ].slice(0, 20)
+        })
+        return
+      }
+
+      if (payload.eventType === 'UPDATE') {
+        const row = payload.new as unknown as Booking
+        setBookings((prev) => prev.map((b) => (b.id === row.id ? { ...b, ...row } : b)))
+        return
+      }
+
+      if (payload.eventType === 'DELETE') {
+        const row = payload.old as Partial<Booking>
+        setBookings((prev) => prev.filter((b) => b.id !== row.id))
+      }
     }, setSyncStatus)
 
     return unsubscribe
@@ -207,11 +228,22 @@ export default function AdminDashboard() {
     }
   }
 
-  const pendingCount = bookings.filter((b) => b.status === 'pending').length
+  const markNotificationRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
+
+  const markAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const handleNotificationClick = (notification: AdminNotification) => {
+    markNotificationRead(notification.id)
+    setActiveView(notification.bookingType === 'transfer' ? 'transfers' : 'tours')
+  }
 
   if (sessionLoading || (session && profileLoading)) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-[#00040f] text-slate-100 flex items-center justify-center p-4">
         <p className="text-sm text-slate-400">Loading...</p>
       </main>
     )
@@ -219,7 +251,7 @@ export default function AdminDashboard() {
 
   if (session && !profile) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-[#00040f] text-slate-100 flex items-center justify-center p-4">
         <SocialRail />
         <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl backdrop-blur-md text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400">
@@ -242,11 +274,11 @@ export default function AdminDashboard() {
 
   if (!currentUser) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-[#00040f] text-slate-100 flex items-center justify-center p-4">
         <SocialRail />
         <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-2xl backdrop-blur-md">
           <div className="flex flex-col items-center text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-aurora">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-[#33bbcf]">
               <Lock className="h-6 w-6" />
             </div>
             <h1 className="text-xl font-bold text-white">Artic Safari Operations</h1>
@@ -261,7 +293,7 @@ export default function AdminDashboard() {
                 placeholder="you@articsafaritour.com"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
             <div className="relative">
@@ -271,7 +303,7 @@ export default function AdminDashboard() {
                 placeholder="Password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-aurora focus:outline-none"
+                className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
             </div>
 
@@ -282,7 +314,7 @@ export default function AdminDashboard() {
             <button
               type="submit"
               disabled={loggingIn}
-              className="w-full rounded-xl bg-aurora py-2.5 text-sm font-semibold text-black transition-all hover:bg-aurora/90 disabled:opacity-50"
+              className="w-full rounded-xl bg-[#33bbcf] py-2.5 text-sm font-semibold text-black transition-all hover:bg-[#33bbcf]/90 disabled:opacity-50"
             >
               {loggingIn ? 'Signing in...' : 'Sign In'}
             </button>
@@ -296,7 +328,7 @@ export default function AdminDashboard() {
   const transferBookings = bookings.filter((b) => b.booking_type === 'transfer')
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-[#00040f] text-slate-100">
       <SocialRail />
       <CommandPalette
         bookings={bookings}
@@ -317,7 +349,10 @@ export default function AdminDashboard() {
           title={viewTitles[activeView]}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          pendingCount={pendingCount}
+          notifications={notifications}
+          onMarkNotificationRead={markNotificationRead}
+          onMarkAllNotificationsRead={markAllNotificationsRead}
+          onNotificationClick={handleNotificationClick}
           currentUser={currentUser}
           onSignOut={handleSignOut}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}

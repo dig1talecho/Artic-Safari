@@ -59,7 +59,7 @@ export function CalendarView({ bookings, onSelectBooking }: CalendarViewProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <CalendarIcon className="h-4 w-4 text-aurora" />
+          <CalendarIcon className="h-4 w-4 text-[#33bbcf]" />
           {viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h3>
         <div className="flex items-center gap-1">
@@ -104,11 +104,11 @@ export function CalendarView({ bookings, onSelectBooking }: CalendarViewProps) {
                 onClick={() => setSelectedDate(isSelected ? null : iso)}
                 className={`flex min-h-16 flex-col items-start gap-1 rounded-xl border p-1.5 text-left transition-colors ${
                   isSelected
-                    ? 'border-aurora bg-aurora/10'
+                    ? 'border-[#33bbcf] bg-[#33bbcf]/10'
                     : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'
                 }`}
               >
-                <span className={`text-xs ${isToday ? 'font-bold text-aurora' : 'text-slate-300'}`}>
+                <span className={`text-xs ${isToday ? 'font-bold text-[#33bbcf]' : 'text-slate-300'}`}>
                   {date.getDate()}
                 </span>
                 {dayBookings.length > 0 && (

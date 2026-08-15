@@ -85,7 +85,7 @@ export function GalleryView() {
           type="button"
           disabled={uploading}
           onClick={() => fileInputRef.current?.click()}
-          className="mt-4 flex items-center gap-2 rounded-xl bg-aurora px-4 py-2.5 text-sm font-semibold text-black hover:bg-aurora/90 disabled:opacity-50"
+          className="mt-4 flex items-center gap-2 rounded-xl bg-[#33bbcf] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50"
         >
           <Upload className="h-4 w-4" />
           {uploading ? 'Uploading…' : 'Choose Photo'}

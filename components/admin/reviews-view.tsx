@@ -95,7 +95,7 @@ export function ReviewsView() {
               placeholder="Customer name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+              className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
             <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -118,13 +118,13 @@ export function ReviewsView() {
             placeholder="What did they say?"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
           />
           {error && <p className="text-xs font-medium text-rose-400">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center gap-2 rounded-xl bg-aurora px-4 py-2.5 text-sm font-semibold text-black hover:bg-aurora/90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-[#33bbcf] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50"
           >
             <Plus className="h-4 w-4" />
             {submitting ? 'Adding…' : 'Add Review'}

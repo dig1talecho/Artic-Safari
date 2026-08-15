@@ -120,7 +120,7 @@ export function TransferOpsView({
               type="button"
               onClick={() => setView(id)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                view === id ? 'bg-aurora font-semibold text-black' : 'text-slate-400 hover:text-white'
+                view === id ? 'bg-[#33bbcf] font-semibold text-black' : 'text-slate-400 hover:text-white'
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -137,7 +137,7 @@ export function TransferOpsView({
               key={status}
               onClick={() => onFilterStatusChange(status)}
               className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium capitalize transition-colors ${
-                filterStatus === status ? 'bg-aurora font-semibold text-black' : 'text-slate-400 hover:text-white'
+                filterStatus === status ? 'bg-[#33bbcf] font-semibold text-black' : 'text-slate-400 hover:text-white'
               }`}
             >
               {status}
@@ -155,7 +155,7 @@ export function TransferOpsView({
               key={id}
               onClick={() => setQuickFilter(id)}
               className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                quickFilter === id ? 'bg-aurora/20 text-aurora' : 'text-slate-400 hover:text-white'
+                quickFilter === id ? 'bg-[#33bbcf]/20 text-[#33bbcf]' : 'text-slate-400 hover:text-white'
               }`}
             >
               {label}

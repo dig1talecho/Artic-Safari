@@ -24,3 +24,13 @@ export interface CurrentUser {
   name: string
   role: 'admin' | 'driver'
 }
+
+/** Generated live from the same Supabase Realtime bookings subscription
+ * that already keeps the booking list in sync -- not a mock feed. */
+export interface AdminNotification {
+  id: string
+  message: string
+  createdAt: string
+  read: boolean
+  bookingType: string
+}

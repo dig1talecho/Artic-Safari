@@ -112,21 +112,21 @@ export function PartnersView() {
             placeholder="Hotel / partner name"
             value={hotelName}
             onChange={(e) => setHotelName(e.target.value)}
-            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
           />
           <input
             type="text"
             placeholder="Contact name (optional)"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
           />
           <input
             type="email"
             placeholder="Contact email (optional)"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
           />
           <div className="flex gap-3">
             <input
@@ -138,7 +138,7 @@ export function PartnersView() {
               placeholder="Commission %"
               value={commissionRate}
               onChange={(e) => setCommissionRate(e.target.value)}
-              className="w-28 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-aurora focus:outline-none"
+              className="w-28 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
             />
             <input
               required
@@ -146,14 +146,14 @@ export function PartnersView() {
               placeholder="PROMOCODE"
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm font-mono text-white focus:border-aurora focus:outline-none"
+              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm font-mono text-white focus:border-[#33bbcf] focus:outline-none"
             />
           </div>
           {error && <p className="text-xs font-medium text-rose-400 sm:col-span-2">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center justify-center gap-2 rounded-xl bg-aurora px-4 py-2.5 text-sm font-semibold text-black hover:bg-aurora/90 disabled:opacity-50 sm:col-span-2"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#33bbcf] px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#33bbcf]/90 disabled:opacity-50 sm:col-span-2"
           >
             <Plus className="h-4 w-4" />
             {submitting ? 'Adding…' : 'Add Partner'}
@@ -182,13 +182,13 @@ export function PartnersView() {
               return (
                 <div key={partner.id} className="flex items-start justify-between gap-4 px-6 py-4">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-aurora">
+                    <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-[#33bbcf]">
                       <Building2 className="h-4 w-4" />
                     </span>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-white">{partner.hotel_name}</span>
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] text-aurora">
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] text-[#33bbcf]">
                           {partner.promo_code}
                         </span>
                         {!partner.active && (
@@ -215,7 +215,7 @@ export function PartnersView() {
                       title={partner.active ? 'Deactivate' : 'Activate'}
                       className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-300 hover:bg-white/10"
                     >
-                      {partner.active ? <ToggleRight className="h-4 w-4 text-aurora" /> : <ToggleLeft className="h-4 w-4" />}
+                      {partner.active ? <ToggleRight className="h-4 w-4 text-[#33bbcf]" /> : <ToggleLeft className="h-4 w-4" />}
                     </button>
                     <button
                       onClick={() => handleDelete(partner.id)}

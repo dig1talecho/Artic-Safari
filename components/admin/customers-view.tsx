@@ -80,14 +80,14 @@ export function CustomersView({ bookings }: CustomersViewProps) {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">
-                      <ListChecks className="h-3 w-3 text-aurora" />
+                      <ListChecks className="h-3 w-3 text-[#33bbcf]" />
                       {c.bookingsCount}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-400">{c.lastBookingDate}</td>
                   <td className="px-6 py-4 text-right font-mono font-semibold text-white">
                     <span className="inline-flex items-center gap-1.5">
-                      <Wallet className="h-3.5 w-3.5 text-aurora" />
+                      <Wallet className="h-3.5 w-3.5 text-[#33bbcf]" />
                       {c.lifetimeSpend.toLocaleString()} NOK
                     </span>
                   </td>
