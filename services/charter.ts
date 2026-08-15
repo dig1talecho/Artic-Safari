@@ -17,13 +17,11 @@ export interface CharterRequest {
 
 export type CharterRequestInput = z.infer<typeof charterRequestSchema>
 
-// NOT confirmed real pricing -- placeholder day-rate assumptions in the
-// same spirit as the original taximeter constants, so the instant-quote
-// formula has something concrete to compute with. Get the business's
-// actual charter day-rates before this quote is shown as final to a real
-// customer (same rule this project has followed for every other price:
-// present research/assumptions, get explicit sign-off, then treat as real).
-const VEHICLE_DAY_RATE: Record<CharterRequestInput['vehicle_type'], number> = {
+// Fallback day rates -- used only if supabase-charter-vehicles-setup.sql
+// hasn't been run yet or the row is momentarily unreachable. Once that
+// migration runs, live rates come from charter_vehicles and an admin's
+// price edit takes effect immediately without a code change.
+const FALLBACK_DAY_RATE: Record<CharterRequestInput['vehicle_type'], number> = {
   suv: 4500,
   van: 6000,
   luxury_sedan: 5500,
@@ -32,11 +30,10 @@ const VEHICLE_DAY_RATE: Record<CharterRequestInput['vehicle_type'], number> = {
 const PER_PAX_RATE = 150
 const CATERING_FLAT_FEE = 800
 
-export function calculateCharterQuote(input: Pick<CharterRequestInput, 'vehicle_type' | 'pax' | 'catering_preferences'>): number {
-  const base = VEHICLE_DAY_RATE[input.vehicle_type]
-  const paxCost = input.pax * PER_PAX_RATE
-  const cateringCost = input.catering_preferences?.trim() ? CATERING_FLAT_FEE : 0
-  return Math.round(base + paxCost + cateringCost)
+export function calculateCharterQuote(dayRate: number, pax: number, cateringPreferences?: string | null): number {
+  const paxCost = pax * PER_PAX_RATE
+  const cateringCost = cateringPreferences?.trim() ? CATERING_FLAT_FEE : 0
+  return Math.round(dayRate + paxCost + cateringCost)
 }
 
 export async function createCharterRequest(input: CharterRequestInput) {
@@ -45,7 +42,17 @@ export async function createCharterRequest(input: CharterRequestInput) {
     return { data: null, error: { message: parsed.error.issues[0]?.message ?? 'Invalid charter request' } }
   }
 
-  const total_quote = calculateCharterQuote(parsed.data)
+  // Re-reads the live day rate rather than trusting any client-computed
+  // total, so an admin's price edit is authoritative and can't be spoofed
+  // by a stale or tampered client-side quote.
+  const { data: vehicle } = await supabase
+    .from('charter_vehicles')
+    .select('day_rate')
+    .eq('vehicle_type', parsed.data.vehicle_type)
+    .maybeSingle()
+
+  const dayRate = vehicle?.day_rate ?? FALLBACK_DAY_RATE[parsed.data.vehicle_type]
+  const total_quote = calculateCharterQuote(dayRate, parsed.data.pax, parsed.data.catering_preferences)
 
   return supabase
     .from('charter_requests')

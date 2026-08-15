@@ -1,25 +1,44 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { Car, Bus, Users, UtensilsCrossed, User, Mail, Phone, Check } from 'lucide-react'
 import { calculateCharterQuote, createCharterRequest } from '@/services/charter'
+import { listCharterVehicles, type CharterVehicle, type CharterVehicleType } from '@/services/charter-vehicles.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
 
-type VehicleType = 'suv' | 'van' | 'luxury_sedan' | 'minibus'
+type VehicleType = CharterVehicleType
 
-const vehicles: { id: VehicleType; label: string; capacity: string; icon: React.ReactNode }[] = [
-  { id: 'luxury_sedan', label: 'Luxury Sedan', capacity: '1–3 guests', icon: <Car className="h-5 w-5" /> },
-  { id: 'suv', label: 'Premium SUV', capacity: '1–5 guests', icon: <Car className="h-5 w-5" /> },
-  { id: 'van', label: 'VIP Van', capacity: '4–8 guests', icon: <Bus className="h-5 w-5" /> },
-  { id: 'minibus', label: 'Minibus', capacity: '8–16 guests', icon: <Bus className="h-5 w-5" /> },
+const vehicleIcon: Record<VehicleType, React.ReactNode> = {
+  luxury_sedan: <Car className="h-5 w-5" />,
+  suv: <Car className="h-5 w-5" />,
+  van: <Bus className="h-5 w-5" />,
+  minibus: <Bus className="h-5 w-5" />,
+}
+
+// Shown immediately and while /admin's live charter_vehicles data loads (or
+// if supabase-charter-vehicles-setup.sql hasn't been run yet) -- matches
+// the same values services/charter.ts falls back to server-side.
+const FALLBACK_VEHICLES: CharterVehicle[] = [
+  { vehicle_type: 'luxury_sedan', label: 'Luxury Sedan', capacity_label: '1–3 guests', day_rate: 5500, image_url: null, updated_at: '' },
+  { vehicle_type: 'suv', label: 'Premium SUV', capacity_label: '1–5 guests', day_rate: 4500, image_url: null, updated_at: '' },
+  { vehicle_type: 'van', label: 'VIP Van', capacity_label: '4–8 guests', day_rate: 6000, image_url: null, updated_at: '' },
+  { vehicle_type: 'minibus', label: 'Minibus', capacity_label: '8–16 guests', day_rate: 8000, image_url: null, updated_at: '' },
 ]
 
 export function CharterForm() {
   const spamGuard = useSpamGuard()
 
+  const [vehicles, setVehicles] = useState<CharterVehicle[]>(FALLBACK_VEHICLES)
   const [vehicleType, setVehicleType] = useState<VehicleType>('luxury_sedan')
   const [pax, setPax] = useState(2)
   const [catering, setCatering] = useState('')
+
+  useEffect(() => {
+    listCharterVehicles().then(({ data, error }) => {
+      if (!error && data && data.length > 0) setVehicles(data as CharterVehicle[])
+    })
+  }, [])
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -29,9 +48,11 @@ export function CharterForm() {
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState<number | null>(null)
 
+  const selectedVehicle = vehicles.find((v) => v.vehicle_type === vehicleType) ?? vehicles[0]
+
   const quote = useMemo(
-    () => calculateCharterQuote({ vehicle_type: vehicleType, pax, catering_preferences: catering }),
-    [vehicleType, pax, catering],
+    () => calculateCharterQuote(selectedVehicle.day_rate, pax, catering),
+    [selectedVehicle, pax, catering],
   )
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,22 +128,27 @@ export function CharterForm() {
           <div className="grid grid-cols-2 gap-3">
             {vehicles.map((v) => (
               <button
-                key={v.id}
+                key={v.vehicle_type}
                 type="button"
-                onClick={() => setVehicleType(v.id)}
-                className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
-                  vehicleType === v.id
+                onClick={() => setVehicleType(v.vehicle_type)}
+                className={`flex flex-col items-start gap-2 overflow-hidden rounded-2xl border text-left transition-colors ${
+                  vehicleType === v.vehicle_type
                     ? 'border-[var(--home-accent)] bg-[var(--home-accent-soft)]'
                     : 'border-[var(--home-border)] bg-[var(--home-surface)] hover:border-[var(--home-accent)]/40'
                 }`}
               >
-                <span
-                  className={vehicleType === v.id ? 'text-[var(--home-accent)]' : 'text-[var(--home-muted)]'}
-                >
-                  {v.icon}
+                {v.image_url ? (
+                  <div className="relative h-24 w-full">
+                    <Image src={v.image_url} alt={v.label} fill className="object-cover" sizes="240px" />
+                  </div>
+                ) : null}
+                <span className="flex w-full flex-col items-start gap-2 p-4 pt-2">
+                  <span className={vehicleType === v.vehicle_type ? 'text-[var(--home-accent)]' : 'text-[var(--home-muted)]'}>
+                    {vehicleIcon[v.vehicle_type]}
+                  </span>
+                  <span className="text-sm font-semibold text-[var(--home-foreground)]">{v.label}</span>
+                  <span className="text-xs text-[var(--home-muted)]">{v.capacity_label}</span>
                 </span>
-                <span className="text-sm font-semibold text-[var(--home-foreground)]">{v.label}</span>
-                <span className="text-xs text-[var(--home-muted)]">{v.capacity}</span>
               </button>
             ))}
           </div>
@@ -233,7 +259,7 @@ export function CharterForm() {
             <span className="text-sm text-[var(--home-muted)]">kr</span>
           </div>
           <p className="mt-1 text-xs text-[var(--home-muted)]">
-            {vehicles.find((v) => v.id === vehicleType)?.label} · {pax} guest{pax === 1 ? '' : 's'}
+            {selectedVehicle.label} · {pax} guest{pax === 1 ? '' : 's'}
             {catering.trim() ? ' · catering' : ''}
           </p>
           <p className="mt-4 text-xs leading-relaxed text-[var(--home-muted)]">

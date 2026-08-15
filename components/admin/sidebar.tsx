@@ -16,6 +16,7 @@ import {
   BookImage,
   Building2,
   Tag,
+  Truck,
 } from 'lucide-react'
 
 export type AdminView =
@@ -30,6 +31,7 @@ export type AdminView =
   | 'gallery'
   | 'partners'
   | 'addons'
+  | 'charter-vehicles'
   | 'settings'
 
 interface NavItem {
@@ -51,6 +53,7 @@ const navItems: NavItem[] = [
   { id: 'gallery', label: 'Gallery', icon: Images, adminOnly: true },
   { id: 'partners', label: 'Partners', icon: Building2, adminOnly: true },
   { id: 'addons', label: 'Add-ons', icon: Tag, adminOnly: true },
+  { id: 'charter-vehicles', label: 'Charter Vehicles', icon: Truck, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 

@@ -9,13 +9,17 @@ import {
   deleteGalleryPhoto,
   type GalleryPhoto,
 } from '@/services/gallery.service'
+import { getTours, type Tour } from '@/services/tours.service'
 import { compressImage } from '@/lib/image-compress'
 
 export function GalleryView() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
+  const [tours, setTours] = useState<Tour[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [caption, setCaption] = useState('')
+  const [tourId, setTourId] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchPhotos = async () => {
@@ -33,6 +37,7 @@ export function GalleryView() {
 
   useEffect(() => {
     fetchPhotos()
+    getTours().then(({ data }) => setTours(data ?? []))
   }, [])
 
   const handleUpload = async (file: File) => {
@@ -40,7 +45,7 @@ export function GalleryView() {
     setError(null)
 
     const compressed = await compressImage(file)
-    const { error } = await uploadGalleryPhoto(compressed)
+    const { error } = await uploadGalleryPhoto(compressed, { caption, tourId: tourId || null })
 
     setUploading(false)
 
@@ -49,6 +54,8 @@ export function GalleryView() {
       return
     }
 
+    setCaption('')
+    setTourId('')
     fetchPhotos()
   }
 
@@ -59,6 +66,8 @@ export function GalleryView() {
     }
   }
 
+  const tourTitle = (id: string | null) => tours.find((t) => t.id === id)?.title
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
@@ -66,9 +75,32 @@ export function GalleryView() {
           Upload Customer Photos
         </h2>
         <p className="mt-1 text-xs text-slate-400">
-          Photos you upload here appear in the homepage &quot;From Our Guests&quot; gallery. Only
-          upload photos you have permission to share.
+          Photos you upload here appear in the homepage &quot;From Our Guests&quot; gallery and the
+          full /gallery page, grouped by the tour you tag them with. Only upload photos you have
+          permission to share.
         </p>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <input
+            type="text"
+            placeholder="Caption (optional)"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
+          />
+          <select
+            value={tourId}
+            onChange={(e) => setTourId(e.target.value)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white focus:border-[#33bbcf] focus:outline-none [&>option]:bg-slate-900"
+          >
+            <option value="">No specific tour</option>
+            {tours.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.title}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <input
           ref={fileInputRef}
@@ -125,6 +157,12 @@ export function GalleryView() {
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
+                {(photo.caption || photo.tour_id) && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {photo.caption && <p className="truncate">{photo.caption}</p>}
+                    {photo.tour_id && <p className="truncate text-[#33bbcf]">{tourTitle(photo.tour_id)}</p>}
+                  </div>
+                )}
               </div>
             ))}
           </div>
