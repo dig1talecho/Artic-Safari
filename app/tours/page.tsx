@@ -63,7 +63,8 @@ export default async function ToursIndexPage() {
             <Link
               key={tour.slug}
               href={`/tours/${tour.slug}`}
-              className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_2px_24px_-8px_rgba(0,0,0,0.3)] transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-[var(--home-accent)]/40 hover:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.5),0_0_40px_-18px_rgba(100,210,255,0.35)]"
+              className="group flex flex-col overflow-hidden rounded-[20px] border border-white/5 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.3)] transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-[var(--home-accent)]/40 hover:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.5),0_0_40px_-18px_rgba(51,187,207,0.35)]"
+              style={{ backgroundImage: 'var(--home-gradient-card)' }}
             >
               <div className="relative h-48 w-full overflow-hidden">
                 <Image

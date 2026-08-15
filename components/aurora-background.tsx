@@ -6,14 +6,17 @@ export function AuroraBackground({ variant = 'dark' }: AuroraBackgroundProps) {
   if (variant === 'light') {
     return (
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        {/* base ivory */}
+        {/* base -- #00040f, matched to the reference site's primary color */}
         <div className="absolute inset-0 bg-[var(--home-bg)]" />
-        {/* soft gold glow top-right */}
-        <div className="animate-aurora-drift absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-[var(--home-gold)]/10 blur-[140px]" />
-        {/* soft pine glow bottom-left */}
+        {/* the reference site's large blurred blue ambient blob, bottom-right */}
         <div
-          className="animate-aurora-drift absolute -bottom-52 left-[-10rem] h-[38rem] w-[38rem] rounded-full bg-[var(--home-accent)]/[0.06] blur-[150px]"
-          style={{ animationDelay: '3s' }}
+          className="absolute -right-[10%] bottom-0 h-[60%] w-[60%] rounded-full blur-[123px]"
+          style={{ backgroundImage: 'var(--home-gradient-blob)' }}
+        />
+        {/* a second, softer echo top-left for depth across taller pages */}
+        <div
+          className="absolute -left-[15%] -top-[10%] h-[45%] w-[45%] rounded-full opacity-60 blur-[140px]"
+          style={{ backgroundImage: 'var(--home-gradient-blob)' }}
         />
       </div>
     )

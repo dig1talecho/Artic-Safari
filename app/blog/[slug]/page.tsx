@@ -100,7 +100,7 @@ export default async function BlogPostPage({
 
         <Link
           href="/#tours"
-          className="group mt-10 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98]"
+          className="group mt-10 inline-flex items-center gap-2 rounded-[10px] bg-[image:var(--home-gradient-cta)] px-7 py-3.5 text-sm font-semibold text-[var(--home-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_28px_-10px_rgba(51,187,207,0.5)] active:translate-y-0 active:scale-[0.98]"
         >
           Browse Our Northern Lights Tours
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

@@ -77,7 +77,7 @@ export function FloatingActionBar() {
         <motion.a
           href="#tours"
           aria-label="Book now"
-          className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--home-gold)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white"
+          className="flex shrink-0 items-center gap-2 rounded-full bg-[image:var(--home-gradient-cta)] px-4 py-3 text-sm font-semibold text-[var(--home-bg)]"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}

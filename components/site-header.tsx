@@ -57,7 +57,7 @@ export function SiteHeader({ variant = 'dark' }: SiteHeaderProps) {
     ? 'border-[var(--home-border)] text-[var(--home-foreground)] hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]'
     : 'border-white/10 bg-white/[0.03] text-foreground hover:border-aurora/40 hover:text-aurora'
   const primaryBtnClass = isLight
-    ? 'bg-[var(--home-accent)] text-white'
+    ? 'bg-[image:var(--home-gradient-cta)] text-[var(--home-bg)]'
     : 'border border-white/10 bg-white/[0.03] text-foreground hover:border-aurora/40 hover:text-aurora'
   const mobilePanelClass = isLight
     ? 'border-[var(--home-glass-border)] bg-[var(--home-glass)]'

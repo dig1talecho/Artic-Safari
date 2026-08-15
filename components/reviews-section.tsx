@@ -24,7 +24,8 @@ export async function ReviewsSection() {
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="flex flex-col rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)]"
+            style={{ backgroundImage: 'var(--home-gradient-card)' }}
+            className="flex flex-col rounded-[20px] border border-white/5 p-6 shadow-[var(--home-card-shadow)]"
           >
             <Quote className="h-5 w-5 text-[var(--home-accent)]" />
             <div className="mt-3 flex items-center gap-0.5">
