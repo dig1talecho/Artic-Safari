@@ -19,7 +19,7 @@ function SplitHeadline() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-6xl lg:text-7xl">
+    <h1 className="mt-3 flex flex-wrap justify-center gap-x-3 text-balance font-[family-name:var(--font-display)] text-4xl font-semibold leading-[1.02] tracking-[-0.03em] text-[var(--home-foreground)] sm:text-6xl lg:text-7xl">
       {headline.map(({ word, accent }, i) => (
         <span key={word} className="overflow-hidden py-1">
           <motion.span
@@ -111,7 +111,7 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
 
       {/* Live status pill */}
       <div className="animate-float-up flex justify-center">
-        <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(38,36,31,0.04)]">
+        <div className="inline-flex items-center gap-2.5 rounded-full border-2 border-[var(--home-foreground)] bg-[var(--home-surface)] px-4 py-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <span className="live-dot h-2 w-2 rounded-full bg-[var(--home-gold)]" />
           <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--home-foreground)]">
             <Activity className="h-3.5 w-3.5 text-[var(--home-accent)]" />
@@ -143,7 +143,7 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
         >
           <a
             href="#tours"
-            className="group inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98]"
+            className="group inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98]"
           >
             Book VIP Tour
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

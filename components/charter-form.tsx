@@ -68,7 +68,7 @@ export function CharterForm() {
 
   if (submitted !== null) {
     return (
-      <div className="mx-auto max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-8 text-center shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)]">
+      <div className="mx-auto max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-8 text-center shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)]">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--home-accent-soft)] text-[var(--home-accent)]">
           <Check className="h-6 w-6" />
         </div>
@@ -224,7 +224,7 @@ export function CharterForm() {
       </form>
 
       <div className="lg:col-span-2">
-        <div className="sticky top-24 rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)]">
+        <div className="sticky top-24 rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)]">
           <p className="text-xs uppercase tracking-widest text-[var(--home-accent)]">Estimated Quote</p>
           <div className="mt-3 flex items-baseline gap-1.5">
             <span className="font-mono text-4xl font-semibold tracking-tight text-[var(--home-foreground)] tabular-nums">

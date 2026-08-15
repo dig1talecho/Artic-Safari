@@ -64,7 +64,7 @@ export default async function BlogPostPage({
           </span>
         </div>
 
-        <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl italic leading-[1.15] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+        <h1 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold leading-[1.1] tracking-[-0.02em] text-[var(--home-foreground)] sm:text-4xl">
           {post.title}
         </h1>
 
@@ -100,7 +100,7 @@ export default async function BlogPostPage({
 
         <Link
           href="/#tours"
-          className="group mt-10 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98]"
+          className="group mt-10 inline-flex items-center gap-2 rounded-xl bg-[var(--home-accent)] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98]"
         >
           Browse Our Northern Lights Tours
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

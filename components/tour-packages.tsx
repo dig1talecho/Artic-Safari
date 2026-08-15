@@ -58,8 +58,8 @@ function Card({
   const ring = glow === 'gold' ? 'hover:border-[var(--home-gold)]/50' : 'hover:border-[var(--home-accent)]/40'
   const glowShadow =
     glow === 'gold'
-      ? 'hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.12),0_0_40px_-14px_rgba(169,131,76,0.4)]'
-      : 'hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.12),0_0_40px_-14px_rgba(47,75,60,0.28)]'
+      ? 'hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12),0_0_40px_-14px_rgba(255,159,10,0.4)]'
+      : 'hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12),0_0_40px_-14px_rgba(100,210,255,0.28)]'
 
   return (
     <motion.div
@@ -67,7 +67,8 @@ function Card({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.4)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 ${glowShadow} ${ring} ${className}`}
+      whileHover={reduceMotion ? undefined : { y: -8, transition: { type: 'spring', stiffness: 320, damping: 22 } }}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.4)] transition-[box-shadow,border-color] duration-300 ${glowShadow} ${ring} ${className}`}
     >
       {children}
     </motion.div>
@@ -338,7 +339,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
     <section id="tours" className="relative z-10 mx-auto w-full max-w-7xl px-5 py-20">
       <div className="mb-12 max-w-2xl">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--home-accent)]">Tours &amp; Transfers</p>
-        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-normal tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-[var(--home-foreground)] sm:text-4xl">
           Choose your Arctic expedition
         </h2>
         <p className="mt-3 text-pretty leading-relaxed text-[var(--home-muted)]">
@@ -433,7 +434,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
                     t('northern-lights-private-group')?.id,
                   )
                 }
-                className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(38,36,31,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(47,75,60,0.45)] active:translate-y-0 active:scale-[0.98] sm:w-auto sm:px-8"
+                className="w-full rounded-xl bg-[var(--home-accent)] py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-[opacity,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:opacity-95 hover:shadow-[0_16px_28px_-10px_rgba(100,210,255,0.45)] active:translate-y-0 active:scale-[0.98] sm:w-auto sm:px-8"
               >
                 Reserve Private Group
               </button>
@@ -549,7 +550,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
       {/* Booking Modal */}
       {selectedPackage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--home-foreground)]/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(38,36,31,0.35)]">
+          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.35)]">
             <button
               onClick={() => setSelectedPackage(null)}
               className="absolute right-4 top-4 rounded-full p-2 text-[var(--home-muted)] hover:bg-[var(--home-surface-soft)] hover:text-[var(--home-foreground)]"

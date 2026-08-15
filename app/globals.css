@@ -1,13 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import 'leaflet/dist/leaflet.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --color-violet: var(--violet);
   --color-aurora: var(--aurora);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -169,24 +170,25 @@
   }
 }
 
-/* Homepage-only "Scandinavian Minimal" theme. Scoped entirely to
-   .home-theme so /dashboard and /admin (which use the :root tokens above)
-   are unaffected. Warm ivory ground, deep pine and muted brass as rare,
-   restrained accents -- generous whitespace over decoration. */
+/* Homepage-only "Apple-grade" theme. Scoped entirely to .home-theme so
+   /dashboard and /admin (which use the :root tokens above) are
+   unaffected. True-black layered depth, a single precise ice-blue accent
+   for interaction, and a sparing warm amber for "live" signal states --
+   restraint over decoration, depth over flatness. */
 .home-theme {
-  color-scheme: light;
-  --home-bg: #faf8f4;
-  --home-surface: #ffffff;
-  --home-surface-soft: #f2efe8;
-  --home-foreground: #26241f;
-  --home-muted: #7a7368;
-  --home-border: #e7e2d6;
-  --home-accent: #2f4b3c;
-  --home-accent-soft: #e7eee9;
-  --home-gold: #a9834c;
-  --home-gold-soft: #f1e9d8;
-  --home-glass: rgba(255, 255, 255, 0.72);
-  --home-glass-border: rgba(38, 36, 31, 0.08);
+  color-scheme: dark;
+  --home-bg: #050505;
+  --home-surface: #131315;
+  --home-surface-soft: #1c1c1f;
+  --home-foreground: #f5f5f7;
+  --home-muted: #98989d;
+  --home-border: rgba(255, 255, 255, 0.1);
+  --home-accent: #64d2ff;
+  --home-accent-soft: rgba(100, 210, 255, 0.12);
+  --home-gold: #ff9f0a;
+  --home-gold-soft: rgba(255, 159, 10, 0.12);
+  --home-glass: rgba(20, 20, 22, 0.6);
+  --home-glass-border: rgba(255, 255, 255, 0.09);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -205,6 +207,28 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
+}
+
+/* Live location pin (components/live-map.tsx) and a dark-mode-friendly
+   restyle of Leaflet's default attribution control, which otherwise
+   renders a stark white bar over the dark map tiles. */
+.live-map-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--home-accent, #64d2ff);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 6px rgba(100, 210, 255, 0.25);
+}
+
+.leaflet-control-attribution {
+  background: rgba(5, 5, 5, 0.6) !important;
+  color: rgba(245, 245, 247, 0.6) !important;
+  backdrop-filter: blur(6px);
+}
+
+.leaflet-control-attribution a {
+  color: rgba(245, 245, 247, 0.85) !important;
 }
 
 @keyframes aurora-pulse {

@@ -15,7 +15,7 @@ export async function ReviewsSection() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
           What Guests Say
         </p>
-        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
+        <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-4xl">
           Reviews from our guests
         </h2>
       </div>
@@ -24,7 +24,7 @@ export async function ReviewsSection() {
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="flex flex-col rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)]"
+            className="flex flex-col rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)]"
           >
             <Quote className="h-5 w-5 text-[var(--home-accent)]" />
             <div className="mt-3 flex items-center gap-0.5">

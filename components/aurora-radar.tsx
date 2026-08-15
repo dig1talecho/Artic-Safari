@@ -7,14 +7,14 @@ export async function AuroraRadar() {
 
   return (
     <section id="radar" className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-24">
-      <div className="overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)] sm:p-8">
+      <div className="overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] p-6 shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)] sm:p-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--home-accent)]">
               <Radar className="h-4 w-4" />
               Live Aurora Radar
             </p>
-            <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-2xl text-[var(--home-foreground)] sm:text-3xl">
+            <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[var(--home-foreground)] sm:text-3xl">
               Tonight&apos;s aurora forecast over Tromsø
             </h2>
           </div>

@@ -19,7 +19,7 @@ export default function BlogIndexPage() {
           <span className="inline-flex items-center rounded-full border border-[var(--home-accent)]/30 bg-[var(--home-accent-soft)] px-3 py-1 text-xs font-bold uppercase tracking-[0.15em] text-[var(--home-accent)]">
             Travel Guides
           </span>
-          <h1 className="mt-4 text-balance font-[family-name:var(--font-display)] text-4xl italic leading-[1.1] tracking-tight text-[var(--home-foreground)] sm:text-5xl">
+          <h1 className="mt-4 text-balance font-[family-name:var(--font-display)] text-4xl font-semibold leading-[1.05] tracking-[-0.025em] text-[var(--home-foreground)] sm:text-5xl">
             Aurora Guides &amp; Tips
           </h1>
           <p className="mt-5 text-pretty leading-relaxed text-[var(--home-muted)]">
@@ -35,7 +35,7 @@ export default function BlogIndexPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_2px_24px_-8px_rgba(38,36,31,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--home-accent)]/40 hover:shadow-[0_16px_40px_-12px_rgba(38,36,31,0.16)] sm:flex-row"
+              className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--home-border)] bg-[var(--home-surface)] shadow-[0_2px_24px_-8px_rgba(0,0,0,0.08)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--home-accent)]/40 hover:shadow-[0_16px_40px_-12px_rgba(0,0,0,0.16)] sm:flex-row"
             >
               <div className="relative h-44 w-full shrink-0 overflow-hidden sm:h-auto sm:w-64">
                 <Image

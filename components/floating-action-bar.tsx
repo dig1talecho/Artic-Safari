@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { MessageCircle, Phone, Headset, CalendarCheck } from 'lucide-react'
 
 /**
@@ -72,15 +73,18 @@ export function FloatingActionBar() {
         hidden ? 'pointer-events-none translate-y-[calc(100%+1.5rem)] opacity-0' : 'translate-y-0 opacity-100'
       }`}
     >
-      <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-[var(--home-glass-border)] bg-[var(--home-glass)] p-1.5 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl backdrop-saturate-150 sm:gap-1.5">
-        <a
+      <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-[var(--home-glass-border)] bg-[var(--home-glass)] p-1.5 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-2xl backdrop-saturate-150 sm:gap-1.5">
+        <motion.a
           href="#tours"
           aria-label="Book now"
-          className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--home-gold)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+          className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--home-gold)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-white"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         >
           <CalendarCheck className="h-4 w-4 shrink-0" />
           Book Now
-        </a>
+        </motion.a>
         <span className="mx-0.5 h-6 w-px shrink-0 bg-[var(--home-border)]" />
         <a
           href="https://wa.me/+4792997190"
