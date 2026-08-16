@@ -43,6 +43,11 @@ export const bookingInsertSchema = z.object({
   // partner_id/commission_amount are only ever set by the
   // resolve_booking_partner() DB trigger -- never trusted from here.
   promo_code: z.string().trim().max(50).nullable().optional(),
+  // Loyalty: a *request* to spend points, not an instruction. The
+  // apply_loyalty_redemption() trigger re-reads the real balance and
+  // decides points_redeemed/loyalty_discount server-side, so an inflated
+  // value here simply gets clamped rather than trusted.
+  points_requested: z.number().int().nonnegative().max(1_000_000).optional(),
 })
 
 export type BookingInsertInput = z.infer<typeof bookingInsertSchema>
@@ -136,4 +141,31 @@ export const pickupPointSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   geofence_radius_m: z.number().int().positive().max(5000).default(300),
+})
+
+// ---------------- Loyalty / reward points ----------------
+
+// Admin-editable earn/redeem rules. Mirrors pricing_rules: a single row,
+// validated the same way before it reaches Supabase.
+export const loyaltyRulesUpdateSchema = z.object({
+  points_per_100_kr: z.number().int().nonnegative().max(1000),
+  kr_per_point: z.number().nonnegative().max(100),
+  min_redeem_points: z.number().int().nonnegative().max(100_000),
+  max_redeem_percent: z.number().int().min(0).max(90),
+})
+
+// Admin goodwill credit/debit. `kind` is pinned to 'adjustment' because
+// the RLS policy only accepts that value from a client -- 'earned' and
+// 'redeemed' rows are written exclusively by DB triggers.
+export const loyaltyAdjustmentSchema = z.object({
+  user_id: z.string().uuid(),
+  points: z.number().int().refine((n) => n !== 0, 'Points must be non-zero'),
+  kind: z.literal('adjustment'),
+  reason: z.string().trim().min(1, 'A reason is required').max(500),
+})
+
+// Client-side preview only -- the authoritative number comes back on the
+// inserted booking row as points_redeemed / loyalty_discount.
+export const loyaltyRedeemRequestSchema = z.object({
+  points_requested: z.number().int().nonnegative().max(1_000_000),
 })
