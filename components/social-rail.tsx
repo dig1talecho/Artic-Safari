@@ -86,6 +86,16 @@ interface SocialRailProps {
   variant?: 'dark' | 'light'
 }
 
+/**
+ * Fixed left-edge social rail.
+ *
+ * Only rendered from 2xl (1536px) up. The rail occupies x: 16–82px, while
+ * page content starts at (viewport − 1280) / 2 + 20px — so on anything
+ * narrower than ~1450px it sat directly on top of the hero headline (it was
+ * previously shown from `sm`, i.e. 640px, which covered every laptop and
+ * tablet). Below 2xl the bottom floating bar already carries WhatsApp, Call
+ * Dispatch and Live Support, so no contact route is lost by hiding it.
+ */
 export function SocialRail({ variant = 'dark' }: SocialRailProps) {
   const isLight = variant === 'light'
 
@@ -94,7 +104,7 @@ export function SocialRail({ variant = 'dark' }: SocialRailProps) {
     : 'border-white/10 bg-[#0a0a0c]/70 shadow-2xl shadow-black/50'
 
   return (
-    <div className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 sm:block">
+    <div className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 2xl:block">
       <div
         className={`flex flex-col items-center gap-2.5 rounded-[22px] border p-2.5 backdrop-blur-2xl backdrop-saturate-150 ${containerClass}`}
       >
