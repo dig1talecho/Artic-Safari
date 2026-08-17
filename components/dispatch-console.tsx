@@ -24,6 +24,7 @@ import type { Tour } from '@/services/tours.service'
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
 import { PrivacyNotice } from '@/components/privacy-notice'
+import { tromsoToday, tromsoDatePlusYears } from '@/lib/dates'
 
 /**
  * Pickup text with a link the driver can actually tap.
@@ -132,12 +133,8 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
   // future date (e.g. year 0002) -- the server-side check in
   // bookingInsertSchema is the real gate, this is just so the picker
   // itself doesn't offer nonsense.
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
-  const maxDateStr = useMemo(() => {
-    const d = new Date()
-    d.setFullYear(d.getFullYear() + 2)
-    return d.toISOString().split('T')[0]
-  }, [])
+  const todayStr = useMemo(() => tromsoToday(), [])
+  const maxDateStr = useMemo(() => tromsoDatePlusYears(2), [])
 
   const discountAmount = appliedPromo ? Math.round((price * appliedPromo.customer_discount_percent) / 100) : 0
   const finalPrice = price - discountAmount
@@ -180,7 +177,7 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
         customer_phone: customerPhone.trim() || null,
         booking_type: mode === 'taxi' ? 'transfer' : 'tour',
         item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
-        booking_date: date || new Date().toISOString().split('T')[0],
+        booking_date: date || tromsoToday(),
         total_price: finalPrice,
         notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
         status: 'pending',

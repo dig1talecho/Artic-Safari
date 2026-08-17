@@ -5,6 +5,7 @@ import { MapPin, Navigation, Clock, Gauge, MessageCircle, Check } from 'lucide-r
 import { insertBooking } from '@/services/bookings.service'
 import { getPricingRules, calculateTransferPrice, isNightOrWeekendRate } from '@/services/pricing.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
+import { tromsoToday } from '@/lib/dates'
 import { AddressAutocomplete } from '@/components/address-autocomplete'
 
 
@@ -88,7 +89,7 @@ export function TaximeterWidget() {
       customer_phone: phone.trim() || null,
       booking_type: 'transfer',
       item_title: 'Custom Route Transfer',
-      booking_date: new Date().toISOString().split('T')[0],
+      booking_date: tromsoToday(),
       total_price: price,
       notes: `Pickup: ${result.originAddress} - Dropoff: ${result.destinationAddress} (${result.distanceKm} km, ~${result.durationMinutes} min)`,
       status: 'pending',

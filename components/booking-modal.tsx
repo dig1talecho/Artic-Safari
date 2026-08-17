@@ -7,6 +7,7 @@ import { listAddonsForTour, attachAddonsToBooking, calculateCartTotal, type Tour
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { PrivacyNotice } from '@/components/privacy-notice'
+import { tromsoToday, tromsoDatePlusYears } from '@/lib/dates'
 import { Check, X, Calendar, Clock, Mail, Phone, User, Minus, Plus, PackageOpen, Tag, Loader2 } from 'lucide-react'
 
 export interface BookingModalTour {
@@ -52,12 +53,8 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
   // Bounds the native date picker so it can't be set to a bogus past/far-
   // future date (e.g. year 0002) -- lib/validation.ts's bookingInsertSchema
   // is the real server-side gate, this just keeps the picker sane.
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
-  const maxDateStr = useMemo(() => {
-    const d = new Date()
-    d.setFullYear(d.getFullYear() + 2)
-    return d.toISOString().split('T')[0]
-  }, [])
+  const todayStr = useMemo(() => tromsoToday(), [])
+  const maxDateStr = useMemo(() => tromsoDatePlusYears(2), [])
 
   const [addons, setAddons] = useState<TourAddon[]>([])
   const [addonsLoading, setAddonsLoading] = useState(false)
@@ -143,7 +140,7 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
         customer_phone: phone.trim() || null,
         booking_type: tour.title.includes('Transfer') ? 'transfer' : 'tour',
         item_title: `${tour.title}${tour.option ? ` (${tour.option})` : ''}`,
-        booking_date: date || new Date().toISOString().split('T')[0],
+        booking_date: date || tromsoToday(),
         scheduled_time: time || null,
         total_price: totalPrice,
         notes: time ? `Preferred Time: ${time}` : 'Direct package booking',
