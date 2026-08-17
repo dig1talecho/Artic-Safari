@@ -92,6 +92,7 @@ export function AddressAutocomplete({
   placeholder,
   onCoordsChange,
   allowLiveLocation = false,
+  showMap = true,
 }: {
   value: string
   onChange: (value: string) => void
@@ -101,12 +102,18 @@ export function AddressAutocomplete({
   onCoordsChange?: (coords: { lat: number; lon: number } | null) => void
   /** Shows the optional "Use my location" button. Never auto-triggered. */
   allowLiveLocation?: boolean
+  /**
+   * Set false when the parent draws its own map. The taxi console shows
+   * one route map for both ends instead of a lonely pin under each field.
+   */
+  showMap?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(false)
   const [results, setResults] = useState<GeocodeResult[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedResult, setSelectedResult] = useState<GeocodeResult | null>(null)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const [geoStatus, setGeoStatus] = useState<'idle' | 'locating' | 'error'>('idle')
   const [geoError, setGeoError] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -126,6 +133,7 @@ export function AddressAutocomplete({
         const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
         const data = await res.json()
         setResults(res.ok ? (data.results ?? []) : [])
+        setActiveIndex(-1)
       } catch (err) {
         if ((err as Error).name !== 'AbortError') setResults([])
       } finally {
@@ -246,6 +254,24 @@ export function AddressAutocomplete({
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
+            onKeyDown={(e) => {
+              // Arrow keys move a highlight; Enter takes it. Without this
+              // the list was mouse-only, which fails a keyboard user and
+              // is slower for everyone else.
+              if (!open || results.length === 0) return
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setActiveIndex((i) => (i + 1) % results.length)
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1))
+              } else if (e.key === 'Enter' && activeIndex >= 0) {
+                e.preventDefault()
+                handleSelect(results[activeIndex])
+              } else if (e.key === 'Escape') {
+                setOpen(false)
+              }
+            }}
             placeholder={placeholder}
             role="combobox"
             aria-expanded={open}
@@ -270,19 +296,23 @@ export function AddressAutocomplete({
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]"
+          className="frost-menu absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 max-h-64 overflow-y-auto rounded-2xl py-1"
         >
-          {results.map((r) => (
-            <li key={r.id} role="option" aria-selected={value === r.name}>
+          {results.map((r, i) => (
+            <li key={r.id} role="option" aria-selected={i === activeIndex}>
               <button
                 type="button"
+                onMouseEnter={() => setActiveIndex(i)}
                 onClick={() => handleSelect(r)}
-                className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[var(--home-surface-soft)]"
+                className={`frost-menu__item flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors ${
+                  i === activeIndex ? 'frost-menu__item--active' : ''
+                }`}
+                data-active={i === activeIndex}
               >
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--home-accent)]" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#67e8f9]" />
                 <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm text-[var(--home-foreground)]">{r.name}</span>
-                  {r.address && <span className="truncate text-xs text-[var(--home-muted)]">{r.address}</span>}
+                  <span className="truncate text-sm text-white">{r.name}</span>
+                  {r.address && <span className="truncate text-xs text-white/45">{r.address}</span>}
                 </span>
               </button>
             </li>
@@ -306,7 +336,7 @@ export function AddressAutocomplete({
 
       {selectedResult ? (
         <div className="mt-2 space-y-2">
-          <LiveMap lat={selectedResult.lat} lon={selectedResult.lon} />
+          {showMap && <LiveMap lat={selectedResult.lat} lon={selectedResult.lon} />}
           <MapOpenButtons lat={selectedResult.lat} lon={selectedResult.lon} />
         </div>
       ) : (

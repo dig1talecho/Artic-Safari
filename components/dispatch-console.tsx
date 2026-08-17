@@ -26,6 +26,13 @@ import { useSpamGuard } from '@/lib/use-spam-guard'
 import { tromsoToday } from '@/lib/dates'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
 import { PrivacyNotice } from '@/components/privacy-notice'
+import dynamic from 'next/dynamic'
+
+// Leaflet touches window on import, so it can only load in the browser.
+const RouteMap = dynamic(() => import('@/components/route-map').then((m) => m.RouteMap), {
+  ssr: false,
+  loading: () => <div className="frost-field h-52 w-full animate-pulse rounded-2xl" />,
+})
 
 /**
  * The taxi console. One screen, one job.
@@ -350,6 +357,7 @@ Please confirm availability and dispatch driver.`
             placeholder="Search any address in Tromsø"
             onCoordsChange={setPickupCoords}
             allowLiveLocation
+            showMap={false}
           />
           <AddressAutocomplete
             value={dropoff}
@@ -358,8 +366,26 @@ Please confirm availability and dispatch driver.`
             fieldIcon={<Navigation className="h-4 w-4" />}
             placeholder="Search hotel, address, or landmark"
             onCoordsChange={setDropoffCoords}
+            showMap={false}
           />
         </div>
+
+        {/* One map for the journey, not a lonely pin under each field. */}
+        {(pickupCoords || dropoffCoords) && (
+          <div className="mt-3">
+            <RouteMap origin={pickupCoords} destination={dropoffCoords} />
+            <p className="mt-1.5 flex items-center gap-3 text-[10px] text-[#7dd3e8]">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-[#67e8f9]" />
+                Pickup
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full border-2 border-[#e0fcff]" />
+                Drop-off
+              </span>
+            </p>
+          </div>
+        )}
 
         {/* Vehicle class. Labels, capacities and multipliers all come from
             the admin panel, so a third class needs no code change here. */}
