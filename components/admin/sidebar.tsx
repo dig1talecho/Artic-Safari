@@ -17,6 +17,7 @@ import {
   Building2,
   Tag,
   Truck,
+  Gauge,
 } from 'lucide-react'
 
 export type AdminView =
@@ -32,6 +33,7 @@ export type AdminView =
   | 'partners'
   | 'addons'
   | 'charter-vehicles'
+  | 'taximeter'
   | 'settings'
 
 interface NavItem {
@@ -54,6 +56,7 @@ const navItems: NavItem[] = [
   { id: 'partners', label: 'Partners', icon: Building2, adminOnly: true },
   { id: 'addons', label: 'Add-ons', icon: Tag, adminOnly: true },
   { id: 'charter-vehicles', label: 'Charter Vehicles', icon: Truck, adminOnly: true },
+  { id: 'taximeter', label: 'Taximeter', icon: Gauge, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 

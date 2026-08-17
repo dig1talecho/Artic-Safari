@@ -66,11 +66,28 @@ export const distanceRequestSchema = z.object({
   destination: z.string().trim().min(3, 'Drop-off address is too short').max(300),
 })
 
+// Bounds are deliberately narrower than the database CHECK constraints so
+// a typo is caught with a readable message before it reaches Postgres.
 export const pricingRulesUpdateSchema = z.object({
-  base_fee: z.number().nonnegative().max(10000),
-  price_per_km: z.number().nonnegative().max(1000),
-  night_rate_multiplier: z.number().min(1).max(5),
-  min_price: z.number().nonnegative().max(50000),
+  base_fee: z.number().nonnegative('Base fee cannot be negative').max(10000),
+  price_per_km: z.number().nonnegative('Price per km cannot be negative').max(1000),
+  price_per_minute: z.number().nonnegative('Price per minute cannot be negative').max(1000),
+  night_rate_multiplier: z
+    .number()
+    .min(1, 'A night multiplier below 1 would make nights cheaper than days')
+    .max(5),
+  min_price: z.number().nonnegative('Minimum price cannot be negative').max(50000),
+})
+
+export const fleetClassUpdateSchema = z.object({
+  label: z.string().trim().min(1, 'Label is required').max(60),
+  capacity_hint: z.string().trim().min(1, 'Capacity is required').max(40),
+  multiplier: z
+    .number()
+    .gt(0, 'A multiplier of 0 would make every trip free')
+    .max(10, 'A multiplier above 10 is almost certainly a typo'),
+  sort_order: z.number().int().min(0).max(999),
+  active: z.boolean(),
 })
 
 // ---------------- B2B partners ----------------
