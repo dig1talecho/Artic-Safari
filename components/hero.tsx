@@ -125,7 +125,7 @@ export function Hero({ toursBySlug = {} }: HeroProps) {
 
       {/* Dispatch console */}
       <div className="relative z-10 mx-auto mt-14 max-w-4xl px-1">
-        <DispatchConsole toursBySlug={toursBySlug} />
+        <DispatchConsole />
       </div>
     </section>
   )

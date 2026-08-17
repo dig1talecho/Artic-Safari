@@ -54,6 +54,10 @@ export const bookingInsertSchema = z.object({
   dropoff_address: z.string().trim().max(300).nullable().optional(),
   dropoff_lat: z.number().min(-90).max(90).nullable().optional(),
   dropoff_lng: z.number().min(-180).max(180).nullable().optional(),
+  // Route facts. Bounds mirror bookings_route_facts_check in Postgres.
+  distance_km: z.number().min(0).max(2000).nullable().optional(),
+  duration_minutes: z.number().int().min(0).max(2880).nullable().optional(),
+  fleet_class: z.string().trim().min(1).max(40).nullable().optional(),
 })
 
 export type BookingInsertInput = z.infer<typeof bookingInsertSchema>

@@ -3,7 +3,6 @@ import { SiteHeader } from '@/components/site-header'
 import { Hero } from '@/components/hero'
 import { TrustFeatures } from '@/components/trust-features'
 import { TourPackages } from '@/components/tour-packages'
-import { TaximeterWidget } from '@/components/taximeter-widget'
 import { AuroraRadar } from '@/components/aurora-radar'
 import { ReviewsSection } from '@/components/reviews-section'
 import { CustomerGallerySection } from '@/components/customer-gallery-section'
@@ -89,7 +88,6 @@ export default async function Page() {
       <Hero toursBySlug={toursBySlug} />
       <TrustFeatures />
       <TourPackages toursBySlug={toursBySlug} />
-      <TaximeterWidget />
       <AuroraRadar />
       <ReviewsSection />
       <CustomerGallerySection />

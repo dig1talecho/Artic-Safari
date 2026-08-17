@@ -1,13 +1,10 @@
 'use client'
-import { insertBooking } from '@/services/bookings.service'
-import { useSpamGuard } from '@/lib/use-spam-guard'
-import { useMemo, useState } from 'react'
+
+import { useEffect, useMemo, useState } from 'react'
 import {
   MapPin,
-  CalendarDays,
-  Compass,
-  ArrowRight,
   Navigation,
+  ArrowRight,
   Users,
   User,
   Mail,
@@ -17,22 +14,55 @@ import {
   ShieldCheck,
   BadgeCheck,
   Tag,
-  ChevronDown,
   Check,
+  Route,
+  Snowflake,
 } from 'lucide-react'
-import type { Tour } from '@/services/tours.service'
+import { insertBooking } from '@/services/bookings.service'
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
+import { getPricingRules, calculateTransferFare, type PricingRules } from '@/services/pricing.service'
+import { listActiveFleetClasses, type FleetClass } from '@/services/fleet-classes.service'
+import { useSpamGuard } from '@/lib/use-spam-guard'
+import { tromsoToday } from '@/lib/dates'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
 import { PrivacyNotice } from '@/components/privacy-notice'
-import { tromsoToday, tromsoDatePlusYears } from '@/lib/dates'
 
 /**
- * Pickup text with a link the driver can actually tap.
+ * The taxi console. One screen, one job.
  *
- * Exact coordinates when the guest picked a geocoded result. When they
- * typed something the geocoder didn't match, this falls back to a map
- * *search* on that text instead of leaving the driver a bare string --
- * a hand-typed address should still be one tap from navigation.
+ * This used to be two competing panels: a tabbed console showing a flat
+ * fleet price, and a separate "Custom Route Taximeter" below it that was
+ * the only thing actually pricing by distance. The guest met the wrong
+ * number first — the console quoted 490 kr for any journey, whether that
+ * was four kilometres or forty. Tours were the console's second tab, which
+ * duplicated the tour cards further down the same page.
+ *
+ * Now tours are booked from the tour cards and their own pages, and this
+ * is the taxi. Distance pricing lives here, so the price a guest sees is
+ * the price of the route they actually asked for.
+ *
+ * The fare here is still an estimate. `trg_0_calculate_transfer_fare`
+ * recomputes it inside Postgres at insert time from the admin's own rates,
+ * because everything in this file runs in a browser holding a public key.
+ */
+
+const WHATSAPP_NUMBER = '4792997190'
+
+interface RouteInfo {
+  distanceKm: number
+  durationMinutes: number
+}
+
+type RouteStatus = 'idle' | 'calculating' | 'ready' | 'unavailable'
+
+function formatKr(value: number) {
+  return `${Math.round(value).toLocaleString('en-US')} kr`
+}
+
+/**
+ * Pickup text with a link the driver can tap. Exact coordinates when the
+ * guest picked a geocoded result, otherwise a map search on what they
+ * typed, so a hand-entered address is still one tap from navigation.
  */
 function pickupWithMapLink(address: string, coords: { lat: number; lon: number } | null) {
   const text = address.trim()
@@ -41,78 +71,24 @@ function pickupWithMapLink(address: string, coords: { lat: number; lon: number }
   return `${text} (https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(withTromsoContext(text))})`
 }
 
-// Audit fix: these used to be permanently hardcoded and drifted out of sync
-// with the Tour Catalog CMS (e.g. per-person stayed at 2,000 kr after the
-// live price moved to 2,250 kr). Falls back to the last-known-correct value
-// only when the CMS hasn't loaded/has no row for that tour yet.
-function parsePriceNumber(price: string | undefined, fallback: number): number {
-  if (!price) return fallback
-  const n = parseInt(price.replace(/[^0-9]/g, ''), 10)
-  return Number.isNaN(n) ? fallback : n
-}
-
-function getTourOptions(toursBySlug: Record<string, Tour>) {
-  return [
-    {
-      id: 'private-group',
-      label: 'Northern Lights (Private Group)',
-      price: parsePriceNumber(toursBySlug['northern-lights-private-group']?.price, 15000),
-    },
-    {
-      id: 'per-person',
-      label: 'Northern Lights (Per Person)',
-      price: parsePriceNumber(toursBySlug['northern-lights-per-person']?.price, 2250),
-    },
-    {
-      id: 'small-group',
-      label: 'Northern Lights (Private Small Group)',
-      price: parsePriceNumber(toursBySlug['northern-lights-small-group']?.price, 11000),
-    },
-    {
-      id: 'sommaroya',
-      label: 'Sommarøya Tour',
-      price: parsePriceNumber(toursBySlug['sommaroya-tour']?.price, 5000),
-    },
-  ]
-}
-
-const fleets = [
-  { id: 'small', label: 'Small', hint: '1–4', price: 490 },
-  { id: 'large', label: 'Large', hint: '4–8', price: 890 },
-]
-
-const modes = [
-  { id: 'taxi', label: 'VIP Taxi & Transfer' },
-  { id: 'tours', label: 'Northern Lights Tours' },
-] as const
-
-type Mode = (typeof modes)[number]['id']
-
-function formatKr(value: number) {
-  return `${value.toLocaleString('en-US')} kr`
-}
-
-
-interface DispatchConsoleProps {
-  toursBySlug?: Record<string, Tour>
-}
-
-export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
-  const tourOptions = useMemo(() => getTourOptions(toursBySlug), [toursBySlug])
-
+export function DispatchConsole() {
   const spamGuard = useSpamGuard()
-  const [mode, setMode] = useState<Mode>('taxi')
+
   const [pickup, setPickup] = useState('')
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [dropoff, setDropoff] = useState('')
-  const [fleet, setFleet] = useState(fleets[0].id)
-  const [date, setDate] = useState('')
-  const [tour, setTour] = useState(tourOptions[0].id)
+  const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lon: number } | null>(null)
 
-  // Müşteri bilgileri state'leri
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+
+  const [rules, setRules] = useState<PricingRules | null>(null)
+  const [fleetClasses, setFleetClasses] = useState<FleetClass[]>([])
+  const [fleetCode, setFleetCode] = useState('')
+
+  const [route, setRoute] = useState<RouteInfo | null>(null)
+  const [routeStatus, setRouteStatus] = useState<RouteStatus>('idle')
 
   const [reserving, setReserving] = useState(false)
   const [reserveError, setReserveError] = useState('')
@@ -122,22 +98,85 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
   const [promoError, setPromoError] = useState('')
   const [appliedPromo, setAppliedPromo] = useState<PromoCodeInfo | null>(null)
 
-  const price = useMemo(() => {
-    if (mode === 'taxi') {
-      return fleets.find((f) => f.id === fleet)?.price ?? 0
+  // Rates and vehicle classes both come from the admin panel. The classes
+  // used to be a hardcoded array in this file carrying their own prices,
+  // which is exactly how the tour price drifted out of sync before.
+  useEffect(() => {
+    Promise.all([getPricingRules(), listActiveFleetClasses()]).then(([r, f]) => {
+      if (r.data) setRules(r.data)
+      if (f.data?.length) {
+        setFleetClasses(f.data)
+        setFleetCode((current) => current || f.data[0].code)
+      }
+    })
+  }, [])
+
+  const selectedFleet = fleetClasses.find((f) => f.code === fleetCode) ?? null
+  const fleetMultiplier = selectedFleet ? Number(selectedFleet.multiplier) : 1
+
+  // Ask for the driving distance once both ends are known. Debounced, and
+  // aborted on change so a slow reply cannot overwrite a newer one.
+  useEffect(() => {
+    const from = pickup.trim()
+    const to = dropoff.trim()
+    if (!from || !to) {
+      setRoute(null)
+      setRouteStatus('idle')
+      return
     }
-    return tourOptions.find((t) => t.id === tour)?.price ?? 0
-  }, [mode, fleet, tour, tourOptions])
 
-  // Bounds the native date picker so it can't be set to a bogus past/far-
-  // future date (e.g. year 0002) -- the server-side check in
-  // bookingInsertSchema is the real gate, this is just so the picker
-  // itself doesn't offer nonsense.
-  const todayStr = useMemo(() => tromsoToday(), [])
-  const maxDateStr = useMemo(() => tromsoDatePlusYears(2), [])
+    const controller = new AbortController()
+    setRouteStatus('calculating')
 
-  const discountAmount = appliedPromo ? Math.round((price * appliedPromo.customer_discount_percent) / 100) : 0
-  const finalPrice = price - discountAmount
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/distance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ origin: from, destination: to }),
+          signal: controller.signal,
+        })
+        if (!res.ok) {
+          setRoute(null)
+          setRouteStatus('unavailable')
+          return
+        }
+        const data = await res.json()
+        setRoute({ distanceKm: data.distanceKm, durationMinutes: data.durationMinutes })
+        setRouteStatus('ready')
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return
+        setRoute(null)
+        setRouteStatus('unavailable')
+      }
+    }, 600)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [pickup, dropoff])
+
+  const basePrice = useMemo(() => {
+    if (!rules) return 0
+    if (route) {
+      return calculateTransferFare(rules, {
+        distanceKm: route.distanceKm,
+        durationMinutes: route.durationMinutes,
+        fleetMultiplier,
+      })
+    }
+    // No route yet: show the floor for this vehicle rather than inventing a
+    // number. It is a real figure from the admin's own rates, and it is
+    // labelled "From" so nobody reads it as a quote for their trip.
+    return Math.round(rules.min_price * fleetMultiplier)
+  }, [rules, route, fleetMultiplier])
+
+  const discountAmount = appliedPromo
+    ? Math.round((basePrice * appliedPromo.customer_discount_percent) / 100)
+    : 0
+  const finalPrice = basePrice - discountAmount
+  const priceIsQuote = routeStatus === 'ready' && route !== null
 
   const handleApplyPromo = async () => {
     if (!promoInput.trim()) return
@@ -154,51 +193,49 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
   }
 
   const handleReserve = async () => {
-    if (spamGuard.isSpam()) {
-      // Silently skip bot-like submissions — no insert, no WhatsApp redirect.
-      return
-    }
+    if (spamGuard.isSpam()) return
 
     setReserveError('')
     setReserving(true)
 
-    const phoneNumber = "4792997190"
+    const pickupText = pickupWithMapLink(pickup, pickupCoords)
 
-    // 1. Supabase Veritabanına Dinamik Kayıt ve Hata Yakalama
     try {
-      const selectedFleet = fleets.find((f) => f.id === fleet)
-      const selectedTour = tourOptions.find((t) => t.id === tour)
-
-      const pickupText = pickupWithMapLink(pickup, pickupCoords)
-
-      const { data, error } = await insertBooking({
+      const { error } = await insertBooking({
         customer_name: customerName.trim() || 'Guest User',
         customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
         customer_phone: customerPhone.trim() || null,
-        booking_type: mode === 'taxi' ? 'transfer' : 'tour',
-        item_title: mode === 'taxi' ? `${selectedFleet?.label} Fleet` : selectedTour?.label,
-        booking_date: date || tromsoToday(),
+        booking_type: 'transfer',
+        item_title: `${selectedFleet?.label ?? 'Transfer'} Transfer`,
+        booking_date: tromsoToday(),
         total_price: finalPrice,
-        notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
+        notes: `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}${
+          route ? ` (${route.distanceKm} km, ~${route.durationMinutes} min)` : ''
+        }`,
         status: 'pending',
         promo_code: appliedPromo?.promo_code ?? null,
-        // Structured alongside the notes sentence -- the notes text stays
-        // for humans, these columns are what the dispatch map reads.
         pickup_address: pickup || null,
         pickup_lat: pickupCoords?.lat ?? null,
         pickup_lng: pickupCoords?.lon ?? null,
         dropoff_address: dropoff || null,
+        dropoff_lat: dropoffCoords?.lat ?? null,
+        dropoff_lng: dropoffCoords?.lon ?? null,
+        // What the fare was calculated from. Postgres recalculates the
+        // price from these, so a tampered total_price cannot stick.
+        distance_km: route?.distanceKm ?? null,
+        duration_minutes: route?.durationMinutes ?? null,
+        fleet_class: fleetCode || null,
       })
 
       if (error) {
         console.error('Supabase detayli hata:', error)
         setReserving(false)
         setReserveError(
-          error.message || 'Could not save your reservation. Please try again or contact us on WhatsApp directly.',
+          error.message ||
+            'Could not save your reservation. Please try again or contact us on WhatsApp directly.',
         )
         return
       }
-      console.log('Supabase kayit basarili:', data)
     } catch (err) {
       console.error('Supabase beklenmeyen hata:', err)
       setReserving(false)
@@ -208,49 +245,31 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
 
     setReserving(false)
 
-    // 2. WhatsApp Mesajını Oluştur ve Gönder
-    let plainText = ""
-
-    if (mode === 'taxi') {
-      const selectedFleet = fleets.find((f) => f.id === fleet)
-
-      const pickupText = pickupWithMapLink(pickup, pickupCoords)
-
-      plainText =
-`*ARTIC SAFARI - VIP TRANSFER BOOKING*
+    const message = `*ARTIC SAFARI - VIP TRANSFER BOOKING*
 ----------------------------------------
 Customer: ${customerName || 'Guest'}
 Email: ${customerEmail || 'N/A'}
 Phone: ${customerPhone || 'N/A'}
 Pickup: ${pickupText}
 Dropoff: ${dropoff || 'Not specified'}
-Vehicle: ${selectedFleet?.label} Fleet (${selectedFleet?.hint} Passengers)
-${appliedPromo ? `Promo Code: ${appliedPromo.promo_code} (-${appliedPromo.customer_discount_percent}%)\n` : ''}Estimated Total: ${formatKr(finalPrice)}
+Vehicle: ${selectedFleet?.label ?? 'Transfer'} (${selectedFleet?.capacity_hint ?? '-'} passengers)
+${route ? `Route: ${route.distanceKm} km, ~${route.durationMinutes} min\n` : ''}${
+      appliedPromo
+        ? `Promo Code: ${appliedPromo.promo_code} (-${appliedPromo.customer_discount_percent}%)\n`
+        : ''
+    }Estimated Total: ${formatKr(finalPrice)}
 ----------------------------------------
 Please confirm availability and dispatch driver.`
-    } else {
-      const selectedTour = tourOptions.find((t) => t.id === tour)
 
-      plainText =
-`*ARTIC SAFARI - TOUR RESERVATION*
-----------------------------------------
-Customer: ${customerName || 'Guest'}
-Email: ${customerEmail || 'N/A'}
-Phone: ${customerPhone || 'N/A'}
-Tour Package: ${selectedTour?.label}
-Selected Date: ${date || 'Not specified'}
-${appliedPromo ? `Promo Code: ${appliedPromo.promo_code} (-${appliedPromo.customer_discount_percent}%)\n` : ''}Total Price: ${formatKr(finalPrice)}
-----------------------------------------
-Please confirm booking for this date.`
-    }
-
-    const encodedMessage = encodeURIComponent(plainText)
-    window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`, '_blank')
+    window.open(
+      `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`,
+      '_blank',
+    )
   }
 
   return (
     <div
-      className="animate-float-up rounded-3xl border border-[var(--home-glass-border)] bg-[var(--home-glass)] p-2 shadow-[0_20px_60px_-16px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-saturate-150 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.75)_0%,black_10%,black_90%,rgba(0,0,0,0.75)_100%)]"
+      className="animate-float-up frost frost-animate rounded-[28px] p-2"
       style={{ animationDelay: '0.3s' }}
     >
       <form
@@ -258,7 +277,7 @@ Please confirm booking for this date.`
           e.preventDefault()
           handleReserve()
         }}
-        className="rounded-[1.35rem] border border-[var(--home-border)] bg-[var(--home-surface-soft)] p-4 sm:p-5"
+        className="relative z-[2] rounded-[22px] p-4 sm:p-6"
       >
         <input
           type="text"
@@ -270,318 +289,220 @@ Please confirm booking for this date.`
           aria-hidden="true"
           className="sr-only"
         />
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--home-muted)]">
-            Dispatch Console
+
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#a5f3fc]">
+            <Snowflake className="h-3.5 w-3.5" />
+            VIP Taxi &amp; Transfer
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-[var(--home-accent)]">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--home-gold)]" />
-            Live pricing
+          <span className="flex items-center gap-1.5 text-[11px] text-[#7dd3e8]">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-[#67e8f9]" />
+            {priceIsQuote ? 'Route priced' : 'Live pricing'}
           </span>
         </div>
 
-        <div
-          role="tablist"
-          aria-label="Dispatch mode"
-          className="mb-4 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] p-1"
-        >
-          {modes.map((m) => (
-            <button
-              key={m.id}
-              role="tab"
-              type="button"
-              aria-selected={mode === m.id}
-              onClick={() => setMode(m.id)}
-              className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                mode === m.id
-                  ? 'bg-[var(--home-accent)] text-white'
-                  : 'text-[var(--home-muted)] hover:text-[var(--home-foreground)]'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Müşteri İletişim Bilgileri Alanı */}
-        <div className="mb-3 grid gap-3 md:grid-cols-3">
-          <Field icon={<User className="h-4 w-4" />} label="Full Name">
+        <div className="grid gap-3 md:grid-cols-3">
+          <FrostField icon={<User className="h-4 w-4" />} label="Full Name">
             <input
-              required
               type="text"
               autoComplete="name"
-              placeholder="John Doe"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
+              placeholder="John Doe"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
             />
-          </Field>
-
-          <Field icon={<Mail className="h-4 w-4" />} label="Email Address">
+          </FrostField>
+          <FrostField icon={<Mail className="h-4 w-4" />} label="Email Address">
             <input
-              required
               type="email"
               autoComplete="email"
-              placeholder="john@example.com"
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
-              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
+              placeholder="john@example.com"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
             />
-          </Field>
-
-          <Field icon={<Phone className="h-4 w-4" />} label="Phone Number">
+          </FrostField>
+          <FrostField icon={<Phone className="h-4 w-4" />} label="Phone Number">
             <input
-              required
               type="tel"
               autoComplete="tel"
-              placeholder="+47 000 00 000"
-              pattern="^[+]?[\d\s()-]{7,20}$"
-              title="Enter a valid phone number"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
+              placeholder="+47 000 00 000"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
             />
-          </Field>
+          </FrostField>
         </div>
 
-        {mode === 'taxi' ? (
-          <div className="grid gap-3 md:grid-cols-3">
-            <AddressAutocomplete
-              value={pickup}
-              onChange={(v) => setPickup(v)}
-              label="Pickup Point"
-              fieldIcon={<MapPin className="h-4 w-4" />}
-              placeholder="Search any address in Tromsø"
-              onCoordsChange={setPickupCoords}
-              allowLiveLocation
-            />
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <AddressAutocomplete
+            value={pickup}
+            onChange={setPickup}
+            label="Pickup Point"
+            fieldIcon={<MapPin className="h-4 w-4" />}
+            placeholder="Search any address in Tromsø"
+            onCoordsChange={setPickupCoords}
+            allowLiveLocation
+          />
+          <AddressAutocomplete
+            value={dropoff}
+            onChange={setDropoff}
+            label="Dropoff Destination"
+            fieldIcon={<Navigation className="h-4 w-4" />}
+            placeholder="Search hotel, address, or landmark"
+            onCoordsChange={setDropoffCoords}
+          />
+        </div>
 
-            <AddressAutocomplete
-              value={dropoff}
-              onChange={setDropoff}
-              label="Dropoff Destination"
-              fieldIcon={<Navigation className="h-4 w-4" />}
-              placeholder="Search hotel, address, or landmark"
-            />
-
-            <Field icon={<Users className="h-4 w-4" />} label="Fleet Size">
-              <div className="flex gap-1">
-                {fleets.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    aria-pressed={fleet === f.id}
-                    onClick={() => setFleet(f.id)}
-                    className={`flex-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors ${
-                      fleet === f.id
-                        ? 'bg-[var(--home-accent-soft)] text-[var(--home-foreground)] ring-1 ring-[var(--home-accent)]/40'
-                        : 'text-[var(--home-muted)] hover:text-[var(--home-foreground)]'
-                    }`}
-                  >
-                    {f.label}
-                    <span className="ml-1 text-[var(--home-muted)]">{f.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </Field>
+        {/* Vehicle class. Labels, capacities and multipliers all come from
+            the admin panel, so a third class needs no code change here. */}
+        <fieldset className="mt-3">
+          <legend className="mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#7dd3e8]">
+            <Users className="h-3.5 w-3.5" />
+            Vehicle
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {fleetClasses.map((f) => {
+              const active = f.code === fleetCode
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFleetCode(f.code)}
+                  aria-pressed={active}
+                  className={`frost-field flex items-center justify-between rounded-2xl px-4 py-3 text-left ${
+                    active ? 'frost-selected' : 'hover:border-[rgba(103,232,249,0.35)]'
+                  }`}
+                >
+                  <span>
+                    <span className="block text-sm font-semibold text-white">{f.label}</span>
+                    <span className="block text-[11px] text-[#7dd3e8]">
+                      {f.capacity_hint} passengers
+                    </span>
+                  </span>
+                  {active && <Check className="h-4 w-4 shrink-0 text-[#67e8f9]" />}
+                </button>
+              )
+            })}
           </div>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            <StyledSelect
-              icon={<Compass className="h-4 w-4" />}
-              label="Tour Selection"
-              value={tour}
-              options={tourOptions}
-              onChange={setTour}
-            />
+        </fieldset>
 
-            <Field icon={<CalendarDays className="h-4 w-4" />} label="Date">
-              <input
-                type="date"
-                value={date}
-                min={todayStr}
-                max={maxDateStr}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none [color-scheme:dark]"
-              />
-            </Field>
+        {/* Route readout, shown only once there is something real to say. */}
+        {routeStatus !== 'idle' && (
+          <div className="frost-field mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-2xl px-4 py-3 text-xs text-[#a5c9d6]">
+            <span className="flex items-center gap-1.5 font-medium text-[#a5f3fc]">
+              <Route className="h-3.5 w-3.5" />
+              Route
+            </span>
+            {routeStatus === 'calculating' && (
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Measuring your route…
+              </span>
+            )}
+            {routeStatus === 'ready' && route && (
+              <>
+                <span>{route.distanceKm} km</span>
+                <span>~{route.durationMinutes} min</span>
+              </>
+            )}
+            {routeStatus === 'unavailable' && (
+              <span>
+                Route pricing is unavailable right now — we&apos;ll confirm your exact fare on
+                WhatsApp.
+              </span>
+            )}
           </div>
         )}
 
         <div className="mt-4">
-          {appliedPromo ? (
-            <div className="flex items-center justify-between gap-2 rounded-xl border border-[var(--home-accent)]/25 bg-[var(--home-accent-soft)] px-3.5 py-2.5 text-xs">
-              <span className="flex items-center gap-1.5 font-medium text-[var(--home-accent)]">
-                <Tag className="h-3.5 w-3.5" />
-                {appliedPromo.customer_discount_percent}% off applied · {appliedPromo.hotel_name}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setAppliedPromo(null)
-                  setPromoInput('')
-                }}
-                className="font-medium text-[var(--home-muted)] underline underline-offset-2 hover:text-[var(--home-foreground)]"
-              >
-                Remove
-              </button>
+          <label className="mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#7dd3e8]">
+            <Tag className="h-3.5 w-3.5" />
+            Have a partner promo code?
+          </label>
+          <div className="flex gap-2">
+            <div className="frost-field flex flex-1 items-center rounded-2xl px-4 py-3">
+              <input
+                type="text"
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                placeholder="PROMO CODE (OPTIONAL)"
+                className="w-full bg-transparent text-sm uppercase tracking-wide text-white outline-none placeholder:text-white/25"
+              />
             </div>
-          ) : (
-            <div>
-              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--home-muted)]">
-                <Tag className="h-3 w-3 text-[var(--home-accent)]" />
-                Have a partner promo code? Enter it for an instant discount
-              </p>
-              <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Tag className="absolute left-3 top-3 h-4 w-4 text-[var(--home-muted)]" />
-                <input
-                  type="text"
-                  autoComplete="off"
-                  placeholder="Promo code (optional)"
-                  value={promoInput}
-                  onChange={(e) => {
-                    setPromoInput(e.target.value.toUpperCase())
-                    setPromoError('')
-                  }}
-                  className="w-full rounded-xl border border-[var(--home-border)] bg-[var(--home-surface)] py-2.5 pl-10 pr-4 text-sm uppercase text-[var(--home-foreground)] outline-none focus:border-[var(--home-accent)]"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleApplyPromo}
-                disabled={promoChecking || !promoInput.trim()}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--home-border)] px-4 py-2.5 text-sm font-semibold text-[var(--home-foreground)] transition-colors hover:bg-[var(--home-surface)] disabled:opacity-40"
-              >
-                {promoChecking && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Apply
-              </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={handleApplyPromo}
+              disabled={promoChecking || !promoInput.trim()}
+              className="frost-field rounded-2xl px-5 text-sm font-semibold text-[#a5f3fc] hover:border-[rgba(103,232,249,0.5)] disabled:opacity-40"
+            >
+              {promoChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+            </button>
+          </div>
+          {promoError && <p className="mt-2 text-xs font-medium text-rose-300">{promoError}</p>}
+          {appliedPromo && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-[#67e8f9]">
+              <BadgeCheck className="h-3.5 w-3.5" />
+              {appliedPromo.hotel_name} — {appliedPromo.customer_discount_percent}% off applied
+            </p>
           )}
-          {promoError && <p className="mt-1 text-xs font-medium text-rose-500">{promoError}</p>}
         </div>
 
-        <div className="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-baseline gap-2 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3">
-            <span className="text-xs text-[var(--home-muted)]">Instant estimate</span>
-            {appliedPromo && (
-              <span className="font-mono text-sm text-[var(--home-muted)] line-through">{formatKr(price)}</span>
-            )}
-            <span className="font-mono text-2xl font-semibold tracking-tight text-[var(--home-foreground)] tabular-nums">
-              {formatKr(finalPrice)}
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+          <div className="frost-field rounded-2xl px-5 py-3.5">
+            <span className="block text-[10px] uppercase tracking-[0.16em] text-[#7dd3e8]">
+              {priceIsQuote ? 'Your fare' : 'From'}
             </span>
+            <span className="mt-0.5 flex items-baseline gap-2">
+              <span className="font-mono text-3xl font-bold tracking-tight text-white">
+                {formatKr(finalPrice)}
+              </span>
+              {discountAmount > 0 && (
+                <span className="font-mono text-sm text-white/35 line-through">
+                  {formatKr(basePrice)}
+                </span>
+              )}
+            </span>
+            {!priceIsQuote && (
+              <span className="mt-1 block text-[10px] text-[#8fb4c2]">
+                Enter both addresses for your exact fare
+              </span>
+            )}
           </div>
+
           <button
             type="submit"
             disabled={reserving}
-            className="group inline-flex items-center justify-center gap-2 rounded-[10px] bg-[image:var(--home-gradient-cta)] px-6 py-3.5 text-sm font-semibold text-[var(--home-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_28px_-10px_rgba(51,187,207,0.5)] active:translate-y-0 active:scale-[0.98] disabled:opacity-60"
+            className="frost-cta flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-bold tracking-wide text-[#04212b] disabled:opacity-50"
           >
+            {reserving && <Loader2 className="h-4 w-4 animate-spin" />}
             {reserving ? 'Reserving…' : 'Reserve Dispatch'}
-            {!reserving && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+            {!reserving && <ArrowRight className="h-4 w-4" />}
           </button>
         </div>
-        {reserveError && (
-          <p className="mt-2 text-xs font-medium text-rose-500">{reserveError}</p>
-        )}
+
+        {reserveError && <p className="mt-3 text-xs font-medium text-rose-300">{reserveError}</p>}
 
         <PrivacyNotice className="mt-3 text-center" />
 
-        {/* Honest trust signals only -- no payment-network logos until a
-            real processor is actually connected. */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[var(--home-border)] pt-4">
-          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
-            <Lock className="h-3.5 w-3.5 text-[var(--home-accent)]" />
-            Encrypted Connection
-          </span>
-          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
-            <ShieldCheck className="h-3.5 w-3.5 text-[var(--home-accent)]" />
-            Secure Booking Request
-          </span>
-          <span className="flex items-center gap-1.5 text-[11px] text-[var(--home-muted)]">
-            <BadgeCheck className="h-3.5 w-3.5 text-[var(--home-accent)]" />
-            WhatsApp Confirmed
-          </span>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[rgba(148,226,245,0.12)] pt-4">
+          {[
+            { icon: Lock, label: 'Encrypted Connection' },
+            { icon: ShieldCheck, label: 'Secure Booking Request' },
+            { icon: BadgeCheck, label: 'WhatsApp Confirmed' },
+          ].map(({ icon: Icon, label }) => (
+            <span key={label} className="flex items-center gap-1.5 text-[11px] text-[#8fb4c2]">
+              <Icon className="h-3.5 w-3.5 text-[#67e8f9]" />
+              {label}
+            </span>
+          ))}
         </div>
       </form>
     </div>
   )
 }
 
-/**
- * Replaces a raw <select> -- browsers render its open dropdown with
- * unstyleable OS chrome (stark white box), which broke the dark
- * glassmorphic console. This renders the closed state AND the open list
- * entirely in our own markup instead.
- */
-function StyledSelect({
-  icon,
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  options: readonly { id: string; label: string }[]
-  onChange: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const selected = options.find((o) => o.id === value)
-
-  function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false)
-  }
-
-  return (
-    <div onBlur={handleBlur} className="relative">
-      <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)]">
-        <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
-          <span className="text-[var(--home-accent)]">{icon}</span>
-          {label}
-        </span>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          className="flex w-full items-center justify-between text-left text-sm text-[var(--home-foreground)] outline-none"
-        >
-          <span className="truncate">{selected?.label ?? 'Select…'}</span>
-          <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--home-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
-        </button>
-      </label>
-
-      {open && (
-        <ul
-          role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 max-h-64 overflow-y-auto rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] py-1 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]"
-        >
-          {options.map((o) => (
-            <li key={o.id} role="option" aria-selected={o.id === value}>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(o.id)
-                  setOpen(false)
-                }}
-                className={`flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-[var(--home-surface-soft)] ${
-                  o.id === value ? 'text-[var(--home-accent)]' : 'text-[var(--home-foreground)]'
-                }`}
-              >
-                {o.label}
-                {o.id === value && <Check className="h-3.5 w-3.5 shrink-0" />}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-function Field({
+function FrostField({
   icon,
   label,
   children,
@@ -591,9 +512,9 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)] focus-within:[background-image:radial-gradient(160px_60px_at_15%_50%,var(--home-accent-soft),transparent_70%)]">
-      <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[var(--home-muted)]">
-        <span className="text-[var(--home-accent)]">{icon}</span>
+    <label className="frost-field flex flex-col gap-1.5 rounded-2xl px-4 py-3">
+      <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#7dd3e8]">
+        <span className="text-[#67e8f9]">{icon}</span>
         {label}
       </span>
       {children}

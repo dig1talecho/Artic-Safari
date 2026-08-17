@@ -23,6 +23,12 @@ export interface BookingInsertPayload {
   dropoff_address?: string | null
   dropoff_lat?: number | null
   dropoff_lng?: number | null
+  // What the fare was calculated from. The trg_0_calculate_transfer_fare
+  // trigger recomputes total_price from these plus the admin's rates, so a
+  // total_price sent from a browser cannot stick on a priced route.
+  distance_km?: number | null
+  duration_minutes?: number | null
+  fleet_class?: string | null
 }
 
 export function listBookings() {
