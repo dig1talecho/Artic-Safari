@@ -206,6 +206,12 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
         notes: mode === 'taxi' ? `Pickup: ${pickupText} - Dropoff: ${dropoff || 'N/A'}` : '',
         status: 'pending',
         promo_code: appliedPromo?.promo_code ?? null,
+        // Structured alongside the notes sentence -- the notes text stays
+        // for humans, these columns are what the dispatch map reads.
+        pickup_address: pickup || null,
+        pickup_lat: pickupCoords?.lat ?? null,
+        pickup_lng: pickupCoords?.lon ?? null,
+        dropoff_address: dropoff || null,
       })
 
       if (error) {

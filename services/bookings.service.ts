@@ -17,6 +17,12 @@ export interface BookingInsertPayload {
   // Resolved server-side into partner_id/commission_amount by the
   // resolve_booking_partner() DB trigger -- never trusted client data.
   promo_code?: string | null
+  pickup_address?: string | null
+  pickup_lat?: number | null
+  pickup_lng?: number | null
+  dropoff_address?: string | null
+  dropoff_lat?: number | null
+  dropoff_lng?: number | null
 }
 
 export function listBookings() {

@@ -48,6 +48,15 @@ export const bookingInsertSchema = z.object({
   // decides points_redeemed/loyalty_discount server-side, so an inflated
   // value here simply gets clamped rather than trusted.
   points_requested: z.number().int().nonnegative().max(1_000_000).optional(),
+  // Structured pickup / drop-off. Optional so guest bookings that only ever
+  // had a typed address keep validating; the DB constraint enforces that a
+  // lat never arrives without its lng.
+  pickup_address: z.string().trim().max(300).nullable().optional(),
+  pickup_lat: z.number().min(-90).max(90).nullable().optional(),
+  pickup_lng: z.number().min(-180).max(180).nullable().optional(),
+  dropoff_address: z.string().trim().max(300).nullable().optional(),
+  dropoff_lat: z.number().min(-90).max(90).nullable().optional(),
+  dropoff_lng: z.number().min(-180).max(180).nullable().optional(),
 })
 
 export type BookingInsertInput = z.infer<typeof bookingInsertSchema>

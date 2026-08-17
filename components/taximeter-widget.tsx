@@ -124,6 +124,10 @@ export function TaximeterWidget() {
       total_price: price,
       notes: `Pickup: ${result.originAddress} - Dropoff: ${result.destinationAddress} (${result.distanceKm} km, ~${result.durationMinutes} min)`,
       status: 'pending',
+      pickup_address: result.originAddress,
+      pickup_lat: originCoords?.lat ?? null,
+      pickup_lng: originCoords?.lon ?? null,
+      dropoff_address: result.destinationAddress,
     })
     setSubmitting(false)
     setSubmitted(true)
