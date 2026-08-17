@@ -23,6 +23,7 @@ import {
 import type { Tour } from '@/services/tours.service'
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
+import { PrivacyNotice } from '@/components/privacy-notice'
 
 /**
  * Pickup text with a link the driver can actually tap.
@@ -486,6 +487,8 @@ Please confirm booking for this date.`
         {reserveError && (
           <p className="mt-2 text-xs font-medium text-rose-500">{reserveError}</p>
         )}
+
+        <PrivacyNotice className="mt-3 text-center" />
 
         {/* Honest trust signals only -- no payment-network logos until a
             real processor is actually connected. */}

@@ -6,6 +6,7 @@ import { insertBooking } from '@/services/bookings.service'
 import { listAddonsForTour, attachAddonsToBooking, calculateCartTotal, type TourAddon, type CartAddon } from '@/services/addons.service'
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
+import { PrivacyNotice } from '@/components/privacy-notice'
 import { Check, X, Calendar, Clock, Mail, Phone, User, Minus, Plus, PackageOpen, Tag, Loader2 } from 'lucide-react'
 
 export interface BookingModalTour {
@@ -630,6 +631,7 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                         {loading ? 'Saving…' : 'Confirm Booking'}
                       </button>
                     </div>
+                    <PrivacyNotice className="mt-3 text-center" />
                   </>
                 )}
               </form>

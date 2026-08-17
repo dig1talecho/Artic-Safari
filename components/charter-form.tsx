@@ -6,6 +6,7 @@ import { Car, Bus, Users, UtensilsCrossed, User, Mail, Phone, Check } from 'luci
 import { calculateCharterQuote, createCharterRequest } from '@/services/charter'
 import { listCharterVehicles, type CharterVehicle, type CharterVehicleType } from '@/services/charter-vehicles.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
+import { PrivacyNotice } from '@/components/privacy-notice'
 
 type VehicleType = CharterVehicleType
 
@@ -247,6 +248,8 @@ export function CharterForm() {
         >
           {submitting ? 'Sending…' : 'Request This Charter'}
         </button>
+
+        <PrivacyNotice className="text-center" />
       </form>
 
       <div className="lg:col-span-2">

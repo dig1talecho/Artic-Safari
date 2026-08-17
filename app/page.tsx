@@ -11,6 +11,7 @@ import { FaqSection } from '@/components/faq-section'
 import { faqs } from '@/components/faq-data'
 import { FloatingActionBar } from '@/components/floating-action-bar'
 import { SocialRail } from '@/components/social-rail'
+import { SiteFooter } from '@/components/site-footer'
 import { listPublishedReviewRatings } from '@/services/reviews.service'
 import { getTours } from '@/services/tours.service'
 import { siteUrl } from '@/lib/site-config'
@@ -95,12 +96,7 @@ export default async function Page() {
       <FaqSection />
       <FloatingActionBar />
       <SocialRail variant="light" />
-      <footer
-        id="site-footer"
-        className="relative z-10 mx-auto w-full max-w-7xl border-t border-[var(--home-border)] px-5 py-12 text-center text-sm text-[var(--home-muted)]"
-      >
-        Artic Safari — Nordic VIP Private Tours &amp; Transit · Tromsø, Northern Norway
-      </footer>
+      <SiteFooter />
     </main>
   )
 }
