@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Search, Loader2, LocateFixed, ExternalLink } from 'lucide-react'
+import { MapPin, Search, Loader2, LocateFixed, ExternalLink, X } from 'lucide-react'
 import type { GeocodeResult } from '@/app/api/geocode/search/route'
 
 const LiveMap = dynamic(() => import('./live-map').then((m) => m.LiveMap), {
@@ -10,35 +10,56 @@ const LiveMap = dynamic(() => import('./live-map').then((m) => m.LiveMap), {
   loading: () => <div className="h-36 w-full animate-pulse rounded-2xl bg-[var(--home-surface-soft)]" />,
 })
 
+const MAP_LINK_CLASS =
+  'flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-1.5 text-xs font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]'
+
 /**
  * One-tap navigation for whichever map app the viewer actually has --
  * Google Maps and Apple Maps both resolve to their native app via
  * universal links on mobile and fall back to the web viewer on desktop,
  * so this single pair of links covers "Google Maps, Apple Maps, or web."
+ *
+ * Takes either exact coordinates or a plain address string. The address
+ * form matters: a guest can type a place the geocoder doesn't know (a new
+ * cabin, a private address) and still needs a way to check it resolves
+ * before a driver is sent there.
  */
-export function MapOpenButtons({ lat, lon }: { lat: number; lon: number }) {
+export function MapOpenButtons(
+  props: { lat: number; lon: number; query?: never } | { query: string; lat?: never; lon?: never },
+) {
+  const google =
+    props.query !== undefined
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(props.query)}`
+      : `https://www.google.com/maps?q=${props.lat},${props.lon}`
+
+  const apple =
+    props.query !== undefined
+      ? `https://maps.apple.com/?q=${encodeURIComponent(props.query)}`
+      : `https://maps.apple.com/?ll=${props.lat},${props.lon}&q=Pickup+Location`
+
   return (
     <div className="flex flex-wrap gap-2">
-      <a
-        href={`https://www.google.com/maps?q=${lat},${lon}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-1.5 text-xs font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
-      >
+      <a href={google} target="_blank" rel="noopener noreferrer" className={MAP_LINK_CLASS}>
         <ExternalLink className="h-3.5 w-3.5" />
         Google Maps
       </a>
-      <a
-        href={`https://maps.apple.com/?ll=${lat},${lon}&q=Pickup+Location`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-full border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-1.5 text-xs font-medium text-[var(--home-foreground)] transition-colors hover:border-[var(--home-accent)] hover:text-[var(--home-accent)]"
-      >
+      <a href={apple} target="_blank" rel="noopener noreferrer" className={MAP_LINK_CLASS}>
         <ExternalLink className="h-3.5 w-3.5" />
         Apple Maps
       </a>
     </div>
   )
+}
+
+/**
+ * Adds "Tromsø, Norway" to a bare place name so a map search can't land on
+ * a same-named street in another country. Skipped when the text already
+ * says Tromsø, which is the common case for geocoder results.
+ */
+export function withTromsoContext(query: string) {
+  const q = query.trim()
+  if (!q) return q
+  return /troms[øo]/i.test(q) ? q : `${q}, Tromsø, Norway`
 }
 
 /**
@@ -49,6 +70,19 @@ export function MapOpenButtons({ lat, lon }: { lat: number; lon: number }) {
  * not a fixed local list. Selecting a result drops a live pin on an
  * inline map at its real coordinates. Shared by the dispatch console and
  * the custom-route taximeter so both address fields work identically.
+ *
+ * LIVE LOCATION IS OPT-IN AND OWNED HERE. It used to be driven from the
+ * parent through a `liveLocation` prop derived from the parent's pickup
+ * coords -- which meant that merely *picking a search result* set those
+ * coords, changed the prop, fired the adoption effect, and relabelled the
+ * guest's chosen address as "My Current Location". Both call sites made
+ * the same mistake, because the prop shape invited it.
+ *
+ * Geolocation now lives inside this component and is adopted
+ * synchronously in the button's own click handler. There is no derived
+ * state and no effect left to misfire, so typing or selecting an address
+ * can never trigger a location request. The device is only ever asked
+ * when the guest presses the button.
  */
 export function AddressAutocomplete({
   value,
@@ -57,10 +91,7 @@ export function AddressAutocomplete({
   fieldIcon,
   placeholder,
   onCoordsChange,
-  liveLocation,
-  onRequestLiveLocation,
-  liveLocating,
-  liveError,
+  allowLiveLocation = false,
 }: {
   value: string
   onChange: (value: string) => void
@@ -68,16 +99,16 @@ export function AddressAutocomplete({
   fieldIcon: React.ReactNode
   placeholder: string
   onCoordsChange?: (coords: { lat: number; lon: number } | null) => void
-  liveLocation?: { coords: { lat: number; lon: number }; nonce: number } | null
-  onRequestLiveLocation?: () => void
-  liveLocating?: boolean
-  liveError?: string
+  /** Shows the optional "Use my location" button. Never auto-triggered. */
+  allowLiveLocation?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(false)
   const [results, setResults] = useState<GeocodeResult[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedResult, setSelectedResult] = useState<GeocodeResult | null>(null)
+  const [geoStatus, setGeoStatus] = useState<'idle' | 'locating' | 'error'>('idle')
+  const [geoError, setGeoError] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -108,27 +139,6 @@ export function AddressAutocomplete({
     }
   }, [value, selected])
 
-  // Adopts a device-geolocation pickup ("Live" button) into this combobox
-  // exactly as if it were a chosen search result -- same map pin, same
-  // Open in Maps buttons -- instead of a separate hardcoded "live" mode.
-  useEffect(() => {
-    if (!liveLocation) return
-    const label = `My Current Location (${liveLocation.coords.lat.toFixed(4)}, ${liveLocation.coords.lon.toFixed(4)})`
-    onChange(label)
-    setSelected(true)
-    setSelectedResult({
-      id: 'live-location',
-      name: label,
-      address: '',
-      lat: liveLocation.coords.lat,
-      lon: liveLocation.coords.lon,
-      type: 'live',
-    })
-    setOpen(false)
-    // Only re-sync when a fresh location comes in, not on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveLocation?.nonce])
-
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setOpen(false)
@@ -143,6 +153,55 @@ export function AddressAutocomplete({
     setOpen(false)
   }
 
+  function clearField() {
+    onChange('')
+    setSelected(false)
+    setSelectedResult(null)
+    onCoordsChange?.(null)
+    setGeoStatus('idle')
+    setGeoError('')
+  }
+
+  /**
+   * Only ever runs from the button's onClick. Adopts the device fix as if
+   * it were a chosen search result -- same pin, same Open in Maps links --
+   * so there is one selection flow rather than a separate "live" mode.
+   */
+  function requestLiveLocation() {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setGeoStatus('error')
+      setGeoError('Location is not supported on this device.')
+      return
+    }
+
+    setGeoStatus('locating')
+    setGeoError('')
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude
+        const lon = position.coords.longitude
+        const name = `My Current Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`
+
+        onChange(name)
+        setSelected(true)
+        setSelectedResult({ id: 'live-location', name, address: '', lat, lon, type: 'live' })
+        onCoordsChange?.({ lat, lon })
+        setOpen(false)
+        setGeoStatus('idle')
+      },
+      (error) => {
+        setGeoStatus('error')
+        setGeoError(
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission denied. Type an address instead.'
+            : 'Could not get your location. Type an address instead.',
+        )
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    )
+  }
+
   return (
     <div ref={containerRef} onBlur={handleBlur} className="relative">
       <label className="flex flex-col gap-1.5 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-4 py-3 transition-[border-color,background-image] focus-within:border-[var(--home-accent)] focus-within:[background-image:radial-gradient(160px_60px_at_15%_50%,var(--home-accent-soft),transparent_70%)]">
@@ -151,15 +210,21 @@ export function AddressAutocomplete({
             <span className="text-[var(--home-accent)]">{fieldIcon}</span>
             {label}
           </span>
-          {onRequestLiveLocation && (
+          {allowLiveLocation && (
             <button
               type="button"
-              onClick={onRequestLiveLocation}
-              title="Use my current location"
-              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--home-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--home-accent)] transition-colors hover:bg-[var(--home-accent)] hover:text-white"
+              onClick={requestLiveLocation}
+              disabled={geoStatus === 'locating'}
+              title="Optional — use my current location instead of typing an address"
+              aria-label="Optional: use my current location"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--home-accent-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--home-accent)] transition-colors hover:bg-[var(--home-accent)] hover:text-white disabled:opacity-60"
             >
-              {liveLocating ? <Loader2 className="h-3 w-3 animate-spin" /> : <LocateFixed className="h-3 w-3" />}
-              Live
+              {geoStatus === 'locating' ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <LocateFixed className="h-3 w-3" />
+              )}
+              {geoStatus === 'locating' ? 'Locating' : 'Use my location'}
             </button>
           )}
         </span>
@@ -188,6 +253,17 @@ export function AddressAutocomplete({
             className="w-full bg-transparent text-sm text-[var(--home-foreground)] outline-none placeholder:text-[var(--home-muted)]/60"
           />
           {selected && value && <MapPin className="h-4 w-4 shrink-0 text-[var(--home-accent)]" />}
+          {value && (
+            <button
+              type="button"
+              onClick={clearField}
+              aria-label={`Clear ${label}`}
+              title="Clear"
+              className="shrink-0 rounded-full p-0.5 text-[var(--home-muted)] transition-colors hover:text-[var(--home-foreground)]"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </label>
 
@@ -218,21 +294,34 @@ export function AddressAutocomplete({
           No matches for “{value}” in the Tromsø area
         </div>
       )}
-      {liveError && !open && (
+      {geoStatus === 'error' && geoError && !open && (
         <button
           type="button"
-          onClick={onRequestLiveLocation}
+          onClick={requestLiveLocation}
           className="mt-1 text-left text-[11px] text-destructive underline underline-offset-2"
         >
-          {liveError} Retry
+          {geoError} Retry
         </button>
       )}
 
-      {selectedResult && (
+      {selectedResult ? (
         <div className="mt-2 space-y-2">
           <LiveMap lat={selectedResult.lat} lon={selectedResult.lon} />
           <MapOpenButtons lat={selectedResult.lat} lon={selectedResult.lon} />
         </div>
+      ) : (
+        // Typed something the geocoder didn't match, so there are no
+        // coordinates to pin -- but the guest can still check the text
+        // resolves to the right place before a driver is dispatched.
+        !open &&
+        value.trim().length > 2 && (
+          <div className="mt-2 space-y-1.5">
+            <p className="text-[11px] text-[var(--home-muted)]">
+              Using your typed address. Check it opens the right place:
+            </p>
+            <MapOpenButtons query={withTromsoContext(value)} />
+          </div>
+        )
       )}
     </div>
   )

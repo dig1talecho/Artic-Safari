@@ -22,7 +22,22 @@ import {
 } from 'lucide-react'
 import type { Tour } from '@/services/tours.service'
 import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.service'
-import { AddressAutocomplete } from '@/components/address-autocomplete'
+import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
+
+/**
+ * Pickup text with a link the driver can actually tap.
+ *
+ * Exact coordinates when the guest picked a geocoded result. When they
+ * typed something the geocoder didn't match, this falls back to a map
+ * *search* on that text instead of leaving the driver a bare string --
+ * a hand-typed address should still be one tap from navigation.
+ */
+function pickupWithMapLink(address: string, coords: { lat: number; lon: number } | null) {
+  const text = address.trim()
+  if (coords) return `${text || 'Pickup Location'} (https://maps.google.com/?q=${coords.lat},${coords.lon})`
+  if (!text) return 'Pickup Location'
+  return `${text} (https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(withTromsoContext(text))})`
+}
 
 // Audit fix: these used to be permanently hardcoded and drifted out of sync
 // with the Tour Catalog CMS (e.g. per-person stayed at 2,000 kr after the
@@ -75,7 +90,6 @@ function formatKr(value: number) {
   return `${value.toLocaleString('en-US')} kr`
 }
 
-type GeoStatus = 'idle' | 'locating' | 'success' | 'error'
 
 interface DispatchConsoleProps {
   toursBySlug?: Record<string, Tour>
@@ -98,9 +112,6 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
 
-  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
-  const [geoError, setGeoError] = useState('')
-  const [liveLocationNonce, setLiveLocationNonce] = useState(0)
   const [reserving, setReserving] = useState(false)
   const [reserveError, setReserveError] = useState('')
 
@@ -144,37 +155,6 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
     setAppliedPromo(info)
   }
 
-  function requestLiveLocation() {
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      setGeoStatus('error')
-      setGeoError('Geolocation is not supported on this device.')
-      return
-    }
-
-    setGeoStatus('locating')
-    setGeoError('')
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setPickupCoords({ lat: position.coords.latitude, lon: position.coords.longitude })
-        setGeoStatus('success')
-        // Bumps the sync effect inside the Pickup Point combobox so it
-        // adopts this as its selection, the same way picking a search
-        // result does -- one flow instead of a separate "live" mode.
-        setLiveLocationNonce((n) => n + 1)
-      },
-      (error) => {
-        setGeoStatus('error')
-        setGeoError(
-          error.code === error.PERMISSION_DENIED
-            ? 'Location permission denied. Please allow access or search a pickup address.'
-            : 'Unable to retrieve your location. Please try again.',
-        )
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    )
-  }
-
   const handleReserve = async () => {
     if (spamGuard.isSpam()) {
       // Silently skip bot-like submissions — no insert, no WhatsApp redirect.
@@ -191,9 +171,7 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
       const selectedFleet = fleets.find((f) => f.id === fleet)
       const selectedTour = tourOptions.find((t) => t.id === tour)
 
-      const pickupText = pickupCoords
-        ? `${pickup || 'Pickup Location'} (https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lon})`
-        : pickup
+      const pickupText = pickupWithMapLink(pickup, pickupCoords)
 
       const { data, error } = await insertBooking({
         customer_name: customerName.trim() || 'Guest User',
@@ -238,9 +216,7 @@ export function DispatchConsole({ toursBySlug = {} }: DispatchConsoleProps) {
     if (mode === 'taxi') {
       const selectedFleet = fleets.find((f) => f.id === fleet)
 
-      const pickupText = pickupCoords
-        ? `${pickup || 'Pickup Location'} (https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lon})`
-        : pickup
+      const pickupText = pickupWithMapLink(pickup, pickupCoords)
 
       plainText =
 `*ARTIC SAFARI - VIP TRANSFER BOOKING*
@@ -379,10 +355,7 @@ Please confirm booking for this date.`
               fieldIcon={<MapPin className="h-4 w-4" />}
               placeholder="Search any address in Tromsø"
               onCoordsChange={setPickupCoords}
-              onRequestLiveLocation={requestLiveLocation}
-              liveLocating={geoStatus === 'locating'}
-              liveError={geoStatus === 'error' ? geoError : undefined}
-              liveLocation={pickupCoords ? { coords: pickupCoords, nonce: liveLocationNonce } : null}
+              allowLiveLocation
             />
 
             <AddressAutocomplete

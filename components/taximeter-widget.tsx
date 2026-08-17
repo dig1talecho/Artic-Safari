@@ -7,7 +7,6 @@ import { getPricingRules, calculateTransferPrice, isNightOrWeekendRate } from '@
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { AddressAutocomplete } from '@/components/address-autocomplete'
 
-type GeoStatus = 'idle' | 'locating' | 'success' | 'error'
 
 interface DistanceResult {
   distanceKm: number
@@ -21,9 +20,6 @@ type Status = 'idle' | 'calculating' | 'ready' | 'not_configured' | 'error'
 export function TaximeterWidget() {
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
-  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
-  const [geoError, setGeoError] = useState('')
-  const [liveLocationNonce, setLiveLocationNonce] = useState(0)
   const [originCoords, setOriginCoords] = useState<{ lat: number; lon: number } | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -37,34 +33,6 @@ export function TaximeterWidget() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const spamGuard = useSpamGuard()
-
-  function requestLiveLocation() {
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      setGeoStatus('error')
-      setGeoError('Geolocation is not supported on this device.')
-      return
-    }
-
-    setGeoStatus('locating')
-    setGeoError('')
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setOriginCoords({ lat: position.coords.latitude, lon: position.coords.longitude })
-        setGeoStatus('success')
-        setLiveLocationNonce((n) => n + 1)
-      },
-      (error) => {
-        setGeoStatus('error')
-        setGeoError(
-          error.code === error.PERMISSION_DENIED
-            ? 'Location permission denied. Please allow access or search an address.'
-            : 'Unable to retrieve your location. Please try again.',
-        )
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    )
-  }
 
   const handleCalculate = async () => {
     if (!origin.trim() || !destination.trim()) return
@@ -157,10 +125,7 @@ export function TaximeterWidget() {
                 fieldIcon={<MapPin className="h-4 w-4" />}
                 placeholder="Search any address in Tromsø"
                 onCoordsChange={setOriginCoords}
-                onRequestLiveLocation={requestLiveLocation}
-                liveLocating={geoStatus === 'locating'}
-                liveError={geoStatus === 'error' ? geoError : undefined}
-                liveLocation={originCoords ? { coords: originCoords, nonce: liveLocationNonce } : null}
+                allowLiveLocation
               />
               <AddressAutocomplete
                 value={destination}
