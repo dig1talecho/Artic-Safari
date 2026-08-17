@@ -133,7 +133,14 @@ export function DispatchConsole() {
         const res = await fetch('/api/distance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ origin: from, destination: to }),
+          body: JSON.stringify({
+            origin: from,
+            destination: to,
+            // The pins the guest picked. Without these, route pricing
+            // needs a Google key; with them OSRM can answer for free.
+            originCoords: pickupCoords,
+            destinationCoords: dropoffCoords,
+          }),
           signal: controller.signal,
         })
         if (!res.ok) {
@@ -155,7 +162,7 @@ export function DispatchConsole() {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [pickup, dropoff])
+  }, [pickup, dropoff, pickupCoords, dropoffCoords])
 
   const basePrice = useMemo(() => {
     if (!rules) return 0

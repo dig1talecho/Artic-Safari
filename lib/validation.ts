@@ -62,9 +62,18 @@ export const bookingInsertSchema = z.object({
 
 export type BookingInsertInput = z.infer<typeof bookingInsertSchema>
 
+const coordsSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+})
+
 export const distanceRequestSchema = z.object({
   origin: z.string().trim().min(3, 'Pickup address is too short').max(300),
   destination: z.string().trim().min(3, 'Drop-off address is too short').max(300),
+  // Optional pins. Google routes from the text; OSRM needs coordinates,
+  // so sending these is what lets route pricing work without a map key.
+  originCoords: coordsSchema.nullable().optional(),
+  destinationCoords: coordsSchema.nullable().optional(),
 })
 
 // Bounds are deliberately narrower than the database CHECK constraints so
