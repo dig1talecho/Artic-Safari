@@ -125,6 +125,18 @@ export function DispatchConsole() {
   const [route, setRoute] = useState<RouteInfo | null>(null)
   const [routeStatus, setRouteStatus] = useState<RouteStatus>('idle')
 
+  /*
+    Two stages in one panel, the way a ride app does it: ask where you are
+    going, show what it costs, and only then ask who you are.
+
+    The old order put three contact fields in front of the price, so the
+    guest filled in a form before learning the fare -- which is both more
+    to read and a worse deal for them. Collapsing stage one to two address
+    boxes and a vehicle also makes the panel roughly a third of its height,
+    which is what a phone screen has room for above the fold.
+  */
+  const [stage, setStage] = useState<'route' | 'details'>('route')
+
   const [reserving, setReserving] = useState(false)
   const [reserveError, setReserveError] = useState('')
 
@@ -343,48 +355,7 @@ Please confirm availability and dispatch driver.`
           </span>
         </div>
 
-        {profile && (
-          <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#7dd3e8]">
-            <Check className="h-3.5 w-3.5 text-[#67e8f9]" />
-            Booking as <span className="font-semibold text-white">{profile.full_name}</span>
-            <span className="text-[#7dd3e8]/60">— edit any field below if tonight is different.</span>
-          </p>
-        )}
-
-        <div className="grid gap-3 md:grid-cols-3">
-          <FrostField icon={<User className="h-4 w-4" />} label="Full Name">
-            <input
-              type="text"
-              autoComplete="name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="John Doe"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-            />
-          </FrostField>
-          <FrostField icon={<Mail className="h-4 w-4" />} label="Email Address">
-            <input
-              type="email"
-              autoComplete="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              placeholder="john@example.com"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-            />
-          </FrostField>
-          <FrostField icon={<Phone className="h-4 w-4" />} label="Phone Number">
-            <input
-              type="tel"
-              autoComplete="tel"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="+47 000 00 000"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-            />
-          </FrostField>
-        </div>
-
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <AddressAutocomplete
             value={pickup}
             onChange={setPickup}
@@ -407,7 +378,7 @@ Please confirm availability and dispatch driver.`
         </div>
 
         {/* One map for the journey, not a lonely pin under each field. */}
-        {(pickupCoords || dropoffCoords) && (
+        {stage === 'details' && (pickupCoords || dropoffCoords) && (
           <div className="mt-3">
             <RouteMap origin={pickupCoords} destination={dropoffCoords} />
             <p className="mt-1.5 flex items-center gap-3 text-[10px] text-[#7dd3e8]">
@@ -484,6 +455,48 @@ Please confirm availability and dispatch driver.`
           </div>
         )}
 
+        {stage === 'details' && (
+          <div className="mt-4 space-y-4 border-t border-[rgba(148,226,245,0.12)] pt-4">
+        {profile && (
+          <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#7dd3e8]">
+            <Check className="h-3.5 w-3.5 text-[#67e8f9]" />
+            Booking as <span className="font-semibold text-white">{profile.full_name}</span>
+            <span className="text-[#7dd3e8]/60">— edit any field below if tonight is different.</span>
+          </p>
+        )}
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <FrostField icon={<User className="h-4 w-4" />} label="Full Name">
+            <input
+              type="text"
+              autoComplete="name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="John Doe"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+            />
+          </FrostField>
+          <FrostField icon={<Mail className="h-4 w-4" />} label="Email Address">
+            <input
+              type="email"
+              autoComplete="email"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              placeholder="john@example.com"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+            />
+          </FrostField>
+          <FrostField icon={<Phone className="h-4 w-4" />} label="Phone Number">
+            <input
+              type="tel"
+              autoComplete="tel"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="+47 000 00 000"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+            />
+          </FrostField>
+        </div>
         <div className="mt-4">
           <label className="mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#7dd3e8]">
             <Tag className="h-3.5 w-3.5" />
@@ -516,6 +529,8 @@ Please confirm availability and dispatch driver.`
             </p>
           )}
         </div>
+          </div>
+        )}
 
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div className="frost-field rounded-2xl px-5 py-3.5">
@@ -539,20 +554,45 @@ Please confirm availability and dispatch driver.`
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={reserving}
-            className="frost-cta flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-bold tracking-wide text-[#04212b] disabled:opacity-50"
-          >
-            {reserving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {reserving ? 'Reserving…' : 'Reserve Dispatch'}
-            {!reserving && <ArrowRight className="h-4 w-4" />}
-          </button>
+          {stage === 'route' ? (
+            <button
+              // Not a submit: this reveals the rest of the form rather than
+              // sending anything, and a stray Enter in an address box must
+              // not book a car.
+              type="button"
+              onClick={() => setStage('details')}
+              disabled={!pickup.trim() || !dropoff.trim()}
+              className="frost-cta flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-bold tracking-wide text-[#04212b] disabled:opacity-40"
+            >
+              {priceIsQuote ? 'Continue' : 'See price'}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={reserving}
+              className="frost-cta flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-bold tracking-wide text-[#04212b] disabled:opacity-50"
+            >
+              {reserving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {reserving ? 'Reserving…' : 'Reserve Dispatch'}
+              {!reserving && <ArrowRight className="h-4 w-4" />}
+            </button>
+          )}
         </div>
+
+        {stage === 'details' && (
+          <button
+            type="button"
+            onClick={() => setStage('route')}
+            className="mt-3 text-[11px] font-medium text-[#7dd3e8] underline underline-offset-2 hover:text-[#a5f3fc]"
+          >
+            ← Change pickup or drop-off
+          </button>
+        )}
 
         {reserveError && <p className="mt-3 text-xs font-medium text-rose-300">{reserveError}</p>}
 
-        <PrivacyNotice className="mt-3 text-center" />
+        {stage === 'details' && <PrivacyNotice className="mt-3 text-center" />}
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[rgba(148,226,245,0.12)] pt-4">
           {[
