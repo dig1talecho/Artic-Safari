@@ -296,7 +296,7 @@ export function AddressAutocomplete({
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="frost-menu absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 max-h-64 overflow-y-auto rounded-2xl py-1"
+          className="frost-menu absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-64 overflow-y-auto rounded-2xl py-1"
         >
           {results.map((r, i) => (
             <li key={r.id} role="option" aria-selected={i === activeIndex}>
@@ -320,7 +320,7 @@ export function AddressAutocomplete({
         </ul>
       )}
       {open && !loading && value.trim() && results.length === 0 && (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-30 rounded-2xl border border-[var(--home-border)] bg-[var(--home-surface)] px-3 py-2.5 text-xs text-[var(--home-muted)] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]">
+        <div className="frost-menu absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 rounded-2xl px-3.5 py-2.5 text-xs text-white/55">
           No matches for “{value}” in the Tromsø area
         </div>
       )}

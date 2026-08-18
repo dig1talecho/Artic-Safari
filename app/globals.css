@@ -475,6 +475,20 @@
 /* ---------- Route map: ice-cast tiles, two distinct pins ---------- */
 
 .home-theme .route-map {
+  /*
+    Leaflet gives its own panes z-index 400-700 (tiles 400, markers 500,
+    popups 600, controls 800). Those numbers live in whatever stacking
+    context the map finds itself in -- and with no z-index of its own the
+    map had none, so its panes competed directly with the page and buried
+    the address suggestions underneath it.
+
+    z-index 0 + isolation makes the map a stacking context of its own.
+    Everything Leaflet does is now capped inside this box, whatever
+    numbers a future Leaflet version picks.
+  */
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
   height: 13rem;
   border: 1px solid rgba(148, 226, 245, 0.16);
   box-shadow:
