@@ -202,6 +202,8 @@ const emptyTour: TourInsertPayload = {
   intro: '',
   price: '',
   price_note: '',
+  capacity: null as number | null,
+  exclusive: false,
   duration: '',
   meeting_point: '',
   highlights: [],
@@ -324,6 +326,46 @@ function TourForm({
                 onChange={(e) => set('price_note', e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/*
+            Capacity lives here rather than in SQL so a seasonal change --
+            a bigger van, a night with two vehicles -- does not need a
+            developer. Blank means unlimited, which is what every tour
+            starts as: nothing is refused until a real number is set.
+          */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-slate-400">Seats per date</label>
+              <input
+                type="number"
+                min={1}
+                max={200}
+                value={form.capacity ?? ''}
+                placeholder="Leave blank for unlimited"
+                onChange={(e) => set('capacity', e.target.value === '' ? null : Number(e.target.value))}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-[#33bbcf] focus:outline-none"
+              />
+              <p className="mt-1 text-[11px] text-slate-500">
+                Enforced by the database, under a lock, so two guests cannot take the same last seat.
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-slate-400">Booking style</label>
+              <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white">
+                <input
+                  type="checkbox"
+                  checked={form.exclusive}
+                  onChange={(e) => set('exclusive', e.target.checked)}
+                  className="h-4 w-4 accent-[#33bbcf]"
+                />
+                Private — one booking takes the date
+              </label>
+              <p className="mt-1 text-[11px] text-slate-500">
+                On for flat-rate private tours. Off when seats are sold individually and can be
+                shared between separate bookings.
+              </p>
             </div>
           </div>
 

@@ -30,6 +30,7 @@ export interface BookingInsertPayload {
   distance_km?: number | null
   duration_minutes?: number | null
   fleet_class?: string | null
+  party_size?: number
 }
 
 export function listBookings() {

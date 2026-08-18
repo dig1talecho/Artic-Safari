@@ -11,6 +11,10 @@ export interface Tour {
   intro: string
   price: string
   price_note: string
+  /** Seats per date. null means unlimited -- nothing is enforced. */
+  capacity: number | null
+  /** True when one booking takes the whole night (flat-rate private tours). */
+  exclusive: boolean
   duration: string
   meeting_point: string
   highlights: string[]

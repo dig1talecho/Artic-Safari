@@ -8,6 +8,7 @@ import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.servi
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { PrivacyNotice } from '@/components/privacy-notice'
 import { tromsoToday, tromsoDatePlusYears } from '@/lib/dates'
+import { getTourAvailability, type TourAvailability } from '@/services/availability.service'
 import { Check, X, Calendar, Clock, Mail, Phone, User, Minus, Plus, PackageOpen, Tag, Loader2 } from 'lucide-react'
 
 export interface BookingModalTour {
@@ -33,6 +34,9 @@ const stepLabels = ['Date & Time', 'Extras', 'Your Details', 'Confirm'] as const
  */
 export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModalProps) {
   const spamGuard = useSpamGuard()
+  // One definition of the booking's title: the capacity lookup and the
+  // insert must agree, or availability is read for a different product.
+  const itemTitle = `${tour.title}${tour.option ? ` (${tour.option})` : ''}`
 
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -48,6 +52,13 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
   // other than editing their whole profile outside the flow.
   const [editingContact, setEditingContact] = useState(false)
   const [date, setDate] = useState('')
+  /*
+    Nobody was ever asked how many people were coming, so `bookings` had
+    no party size and "is this tour full?" was a question the data could
+    not answer. Capacity is meaningless without it.
+  */
+  const [partySize, setPartySize] = useState(1)
+  const [availability, setAvailability] = useState<TourAvailability | null>(null)
   const [time, setTime] = useState('')
 
   // Bounds the native date picker so it can't be set to a bogus past/far-
@@ -81,6 +92,21 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
     }
   }, [tour.id])
 
+  useEffect(() => {
+    if (!date) {
+      setAvailability(null)
+      return
+    }
+    let cancelled = false
+    getTourAvailability(itemTitle, date).then((a) => {
+      if (!cancelled) setAvailability(a)
+    })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, tour.title, tour.option])
+
   const addonQuantity = (addonId: string) => cart.find((c) => c.addon_id === addonId)?.quantity ?? 0
 
   const setAddonQuantity = (addon: TourAddon, quantity: number) => {
@@ -94,13 +120,47 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
   }
 
   const cartTotal = calculateCartTotal(cart)
-  const basePrice = parseInt(tour.price.replace(/[^0-9]/g, '')) || 0
+  const unitPrice = parseInt(tour.price.replace(/[^0-9]/g, '')) || 0
+  /*
+    A per-person tour multiplies; a flat-rate private tour does not.
+    Detected from the tour's own price note rather than a hardcoded slug
+    list, so a new per-person product priced in the CMS works without a
+    code change.
+  */
+  const isPerPerson = /per\s*person|kişi|person/i.test(`${tour.price} ${tour.option ?? ''}`)
+  const basePrice = isPerPerson ? unitPrice * partySize : unitPrice
   const subtotal = basePrice + cartTotal
 
   const [promoInput, setPromoInput] = useState('')
   const [promoChecking, setPromoChecking] = useState(false)
   const [promoError, setPromoError] = useState('')
   const [appliedPromo, setAppliedPromo] = useState<PromoCodeInfo | null>(null)
+
+  /*
+    How high the stepper may go. The exclusive case is the tour's own
+    capacity; the shared case is whatever is left. 20 when nothing is
+    known, which is the schema's own party_size ceiling territory rather
+    than an invented number.
+  */
+  const seatCeiling = availability
+    ? availability.is_exclusive
+      ? (availability.capacity ?? 20)
+      : Math.max(1, availability.free ?? 20)
+    : 20
+
+  /** True when this date cannot take this party at all. */
+  const dateIsFull = Boolean(
+    availability &&
+      (availability.is_exclusive
+        ? availability.taken > 0
+        : (availability.free ?? 0) <= 0),
+  )
+
+  useEffect(() => {
+    // Availability arrives after the date is picked; a party chosen while
+    // it was unknown must not survive as an impossible number.
+    setPartySize((n) => Math.min(n, seatCeiling))
+  }, [seatCeiling])
 
   const discountAmount = appliedPromo ? Math.round((subtotal * appliedPromo.customer_discount_percent) / 100) : 0
   const totalPrice = subtotal - discountAmount
@@ -139,10 +199,11 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
         customer_email: email.trim() || 'pending@articsafaritour.com',
         customer_phone: phone.trim() || null,
         booking_type: tour.title.includes('Transfer') ? 'transfer' : 'tour',
-        item_title: `${tour.title}${tour.option ? ` (${tour.option})` : ''}`,
+        item_title: itemTitle,
         booking_date: date || tromsoToday(),
         scheduled_time: time || null,
         total_price: totalPrice,
+        party_size: partySize,
         notes: time ? `Preferred Time: ${time}` : 'Direct package booking',
         status: 'pending',
         promo_code: appliedPromo?.promo_code ?? null,
@@ -315,9 +376,73 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
                       </div>
                     </div>
 
+                    {/* Guests, and what the tour has left for that date. */}
+                    <div className="mt-4">
+                      <label className="mb-1 block text-xs font-medium text-[var(--home-muted)]">
+                        Guests
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+                          <button
+                            type="button"
+                            onClick={() => setPartySize((n) => Math.max(1, n - 1))}
+                            disabled={partySize <= 1}
+                            aria-label="One fewer guest"
+                            className="grid h-8 w-8 place-items-center rounded-lg text-[var(--home-foreground)] transition-colors hover:bg-white/10 disabled:opacity-30"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-semibold tabular-nums text-[var(--home-foreground)]">
+                            {partySize}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setPartySize((n) => Math.min(seatCeiling, n + 1))}
+                            disabled={partySize >= seatCeiling}
+                            aria-label="One more guest"
+                            className="grid h-8 w-8 place-items-center rounded-lg text-[var(--home-foreground)] transition-colors hover:bg-white/10 disabled:opacity-30"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        {/*
+                          Advisory. The database refuses an overfill under a
+                          lock; this only stops a guest filling in the whole
+                          form before being told the night is gone.
+                        */}
+                        {availability && (
+                          availability.is_exclusive ? (
+                            availability.taken > 0 ? (
+                              <span className="text-xs font-medium text-rose-400">
+                                Already booked for this date
+                              </span>
+                            ) : (
+                              <span className="text-xs text-[var(--home-muted)]">
+                                Private — up to {availability.capacity} guests
+                              </span>
+                            )
+                          ) : (availability.free ?? 0) <= 0 ? (
+                            <span className="text-xs font-medium text-rose-400">
+                              Fully booked for this date
+                            </span>
+                          ) : (
+                            <span className="text-xs text-[var(--home-muted)]">
+                              {availability.free} of {availability.capacity} seats left
+                            </span>
+                          )
+                        )}
+                      </div>
+                      {isPerPerson && partySize > 1 && (
+                        <p className="mt-1.5 text-[11px] text-[var(--home-muted)]">
+                          {unitPrice.toLocaleString()} kr × {partySize} guests
+                        </p>
+                      )}
+                    </div>
+
                     <button
                       type="button"
-                      disabled={!date}
+                      disabled={!date || dateIsFull}
                       onClick={() => setStep(2)}
                       style={{ backgroundImage: 'var(--home-gradient-cta)' }}
                       className="mt-2 w-full rounded-[10px] py-3 text-sm font-semibold text-[var(--home-bg)] transition-opacity hover:opacity-90 disabled:opacity-40"

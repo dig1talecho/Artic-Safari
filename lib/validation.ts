@@ -58,6 +58,9 @@ export const bookingInsertSchema = z.object({
   distance_km: z.number().min(0).max(2000).nullable().optional(),
   duration_minutes: z.number().int().min(0).max(2880).nullable().optional(),
   fleet_class: z.string().trim().min(1).max(40).nullable().optional(),
+  // Bound mirrors bookings_party_size_check. Capacity is enforced by the
+  // database under a lock; this only rejects obvious nonsense early.
+  party_size: z.number().int().min(1).max(60).optional(),
 })
 
 export type BookingInsertInput = z.infer<typeof bookingInsertSchema>

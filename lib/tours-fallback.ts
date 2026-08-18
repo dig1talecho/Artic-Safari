@@ -25,6 +25,8 @@ export const FALLBACK_TOURS: Tour[] = [
       'A direct, chauffeured transfer between Tromsø Airport and your hotel -- no shared shuttles, no waiting.',
     price: '145 kr',
     price_note: '1 to 4 persons · from',
+    capacity: null,
+    exclusive: false,
     duration: '20–30 minutes',
     meeting_point: 'Tromsø Airport (TOS) or your hotel',
     highlights: [],
@@ -49,6 +51,8 @@ export const FALLBACK_TOURS: Tour[] = [
       'An exclusive private group expedition for 2 to 8 guests. Your own heated vehicle and a route customized in real time to hunt the clearest, most active skies.',
     price: '15,000 kr',
     price_note: 'Flat rate · up to 8 guests',
+    capacity: null,
+    exclusive: false,
     duration: '5–7 hours (evening departure)',
     meeting_point: 'Hotel pickup in central Tromsø',
     highlights: [
@@ -86,6 +90,8 @@ export const FALLBACK_TOURS: Tour[] = [
       'Join a small shared-group chase with an expert aurora guide -- ideal for solo travelers and couples who want the full experience without booking a private vehicle.',
     price: '2,250 kr',
     price_note: 'per person',
+    capacity: null,
+    exclusive: false,
     duration: '5–6 hours (evening departure)',
     meeting_point: 'Central Tromsø meeting point',
     highlights: [
@@ -115,6 +121,8 @@ export const FALLBACK_TOURS: Tour[] = [
       'A private vehicle for your group of up to 4, with flexible timing and a chauffeur who chases the clearest skies just for you.',
     price: '11,000 kr',
     price_note: '1 to 4 persons',
+    capacity: null,
+    exclusive: false,
     duration: '5–7 hours (evening departure)',
     meeting_point: 'Hotel pickup in central Tromsø',
     highlights: [
@@ -144,6 +152,8 @@ export const FALLBACK_TOURS: Tour[] = [
       'A scenic daytime drive along the fjords to the island of Sommarøy, with curated photo stops along the way.',
     price: '5,000 kr',
     price_note: 'Small car',
+    capacity: null,
+    exclusive: false,
     duration: '4–5 hours',
     meeting_point: 'Hotel pickup in central Tromsø',
     highlights: [
