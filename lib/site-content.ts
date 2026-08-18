@@ -43,27 +43,46 @@ export interface ContentGroup {
 export const CONTENT_GROUPS: Record<string, ContentGroup> = {
   hero: {
     title: 'Homepage hero',
-    description: 'The first thing a visitor reads, above the taxi console.',
+    description: 'The first screen a visitor sees. Defaults below are the wording live today.',
     fields: {
-      'hero.eyebrow': {
-        label: 'Small label above the headline',
-        default: 'Tromsø · 69°N',
-        hint: 'Keep it short — it sits on one line on a phone.',
+      'hero.statusBadge': {
+        label: 'Status pill (top left)',
+        default: 'High Aurora Activity Tonight',
+        hint: 'The KP number beside it is live NOAA data and is not editable.',
       },
       'hero.headline': {
-        label: 'Headline',
-        default: 'Chase the northern lights in a private, heated car.',
+        label: 'Main headline',
+        default: 'Chase the Northern Lights, in First-Class Comfort',
         kind: 'multiline',
-        hint: 'The single most important sentence on the site.',
+        hint: 'Animates in word by word, so it is split on spaces — no line breaks.',
       },
-      'hero.subheadline': {
-        label: 'Supporting sentence',
+      'hero.ctaPrimary': { label: 'Button under the headline', default: 'Get Started' },
+      'hero.rightEyebrow': { label: 'Small label, right column', default: 'VIP Private Tours' },
+      'hero.rightHeading': {
+        label: 'Heading, right column',
+        default: 'A private guide, a heated vehicle, and the clearest sky we can find.',
+        kind: 'multiline',
+      },
+      'hero.rightBody': {
+        label: 'Paragraph, right column',
         default:
-          'Small groups, local guides who know where the sky is clearest tonight, and a driver who waits with you.',
+          "Exclusive private Northern Lights tours and VIP airport transfers in Tromsø, Northern Norway -- routed in real time around tonight's forecast.",
         kind: 'multiline',
       },
-      'hero.ctaPrimary': { label: 'Main button', default: 'Book a tour' },
-      'hero.ctaSecondary': { label: 'Second button', default: 'Call a taxi' },
+      'hero.rightCta': { label: 'Button, right column', default: 'Book VIP Tour' },
+      'hero.statExperiences': {
+        label: 'Stat 3 label',
+        default: 'Arctic Circle',
+        hint: 'The other two stats are live figures (tour count, cheapest fare) and are not editable.',
+      },
+    },
+  },
+
+  tours: {
+    title: 'Tours section',
+    description: 'The heading above the tour cards. The cards themselves come from Tour Catalog.',
+    fields: {
+      'tours.heading': { label: 'Section heading', default: 'Tours & Transfers' },
     },
   },
 

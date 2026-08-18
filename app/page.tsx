@@ -14,6 +14,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { listPublishedReviewRatings } from '@/services/reviews.service'
 import { getTours } from '@/services/tours.service'
 import { getPricingRules } from '@/services/pricing.service'
+import { getSiteContent } from '@/lib/get-site-content'
 import { listActiveFleetClasses } from '@/services/fleet-classes.service'
 import { siteUrl } from '@/lib/site-config'
 
@@ -51,6 +52,23 @@ export default async function Page() {
     follows. null when pricing has not loaded, and the hero then omits the
     figure rather than inventing one.
   */
+  /*
+    Hero and TourPackages are Client Components, so they cannot await the
+    copy themselves and a reader function cannot cross that boundary.
+    Resolved here and passed as plain strings.
+  */
+  const content = await getSiteContent()
+  const heroCopy = {
+    statusBadge: content('hero.statusBadge'),
+    headline: content('hero.headline'),
+    ctaPrimary: content('hero.ctaPrimary'),
+    rightEyebrow: content('hero.rightEyebrow'),
+    rightHeading: content('hero.rightHeading'),
+    rightBody: content('hero.rightBody'),
+    rightCta: content('hero.rightCta'),
+    statExperiences: content('hero.statExperiences'),
+  }
+
   const [{ data: rules }, { data: fleet }] = await Promise.all([
     getPricingRules(),
     listActiveFleetClasses(),
@@ -108,9 +126,14 @@ export default async function Page() {
       />
       <AuroraBackground variant="light" />
       <SiteHeader variant="light" />
-      <Hero toursBySlug={toursBySlug} startingFrom={startingFrom} tourCount={liveTours?.length ?? null} />
+      <Hero
+        toursBySlug={toursBySlug}
+        startingFrom={startingFrom}
+        tourCount={liveTours?.length ?? null}
+        copy={heroCopy}
+      />
       <TrustFeatures />
-      <TourPackages toursBySlug={toursBySlug} />
+      <TourPackages toursBySlug={toursBySlug} heading={content('tours.heading')} />
       <AuroraRadar />
       <ReviewsSection />
       <CustomerGallerySection />

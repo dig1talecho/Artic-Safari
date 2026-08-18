@@ -178,10 +178,12 @@ const KNOWN_SLUGS = [
 ]
 
 interface TourPackagesProps {
+  /** Editable from the admin Site Text screen. */
+  heading?: string
   toursBySlug?: Record<string, Tour>
 }
 
-export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
+export function TourPackages({ toursBySlug = {}, heading = 'Tours & Transfers' }: TourPackagesProps) {
   // CMS content (title/price/image) overrides the hardcoded fallback below when
   // an admin has edited that tour in /admin -> Tour Catalog. Per-option pricing
   // (small/large, small/big car) and the feature bullet icons stay hand-authored
@@ -212,7 +214,7 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
   return (
     <section id="tours" className="relative z-10 mx-auto w-full max-w-7xl px-5 py-20">
       <div className="mb-12 max-w-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--home-accent)]">Tours &amp; Transfers</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--home-accent)]">{heading}</p>
         <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-[var(--home-foreground)] sm:text-4xl">
           Choose your Arctic expedition
         </h2>
