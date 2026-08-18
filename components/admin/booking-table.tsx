@@ -1,5 +1,6 @@
 'use client'
 
+import { allowedStatuses, STATUS_LABEL, type BookingStatus, type PaymentStatus } from '@/lib/booking-lifecycle'
 import {
   Calendar,
   Mail,
@@ -23,8 +24,10 @@ interface BookingTableProps {
   searchTerm: string
   filterStatus: string
   onFilterStatusChange: (status: string) => void
-  updateStatus: (id: string, status: 'confirmed' | 'cancelled' | 'pending') => void
-  updatePaymentStatus: (id: string, status: 'paid' | 'pending' | 'refunded') => void
+  updateStatus: (id: string, status: BookingStatus) => void
+  updatePaymentStatus: (id: string, status: PaymentStatus) => void
+  /** Admins get the correction moves; drivers do not. */
+  isAdmin?: boolean
   assignDriver: (id: string, driverName: string | null) => void
 }
 
@@ -39,6 +42,7 @@ export function BookingTable({
   onFilterStatusChange,
   updateStatus,
   updatePaymentStatus,
+  isAdmin = false,
   assignDriver,
 }: BookingTableProps) {
   const filteredBookings = bookings.filter((b) => {
@@ -151,7 +155,7 @@ export function BookingTable({
                         <select
                           value={booking.payment_status || 'pending'}
                           onChange={(e) =>
-                            updatePaymentStatus(booking.id, e.target.value as 'paid' | 'pending' | 'refunded')
+                            updatePaymentStatus(booking.id, e.target.value as PaymentStatus)
                           }
                           className={`rounded-lg border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider focus:outline-none ${
                             booking.payment_status === 'paid'
@@ -227,24 +231,41 @@ export function BookingTable({
                     {/* İşlemler */}
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {booking.status !== 'confirmed' && (
-                          <button
-                            onClick={() => updateStatus(booking.id, 'confirmed')}
-                            title="Confirm Booking"
-                            className="rounded-xl border border-[#33bbcf]/30 bg-[#33bbcf]/10 p-2 text-[#33bbcf] transition-colors hover:bg-[#33bbcf] hover:text-black"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                          </button>
-                        )}
-                        {booking.status !== 'cancelled' && (
-                          <button
-                            onClick={() => updateStatus(booking.id, 'cancelled')}
-                            title="Cancel Booking"
-                            className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 text-rose-400 transition-colors hover:bg-rose-500/20"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        )}
+                        {/*
+                          Was two fixed buttons, Confirm and Cancel, shown
+                          by !== comparison. With a lifecycle that offered
+                          moves the database would refuse -- confirming an
+                          already-completed trip, for one. The options are
+                          now whatever the state machine actually allows
+                          from here, for this role.
+                        */}
+                        {(() => {
+                          const next = allowedStatuses(booking.status, isAdmin)
+                          if (next.length === 0) {
+                            return (
+                              <span className="text-[11px] text-slate-600" title="No further moves from this state">
+                                —
+                              </span>
+                            )
+                          }
+                          return (
+                            <select
+                              value=""
+                              onChange={(e) => {
+                                if (e.target.value) updateStatus(booking.id, e.target.value as BookingStatus)
+                              }}
+                              aria-label={`Change status for ${booking.customer_name}`}
+                              className="rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-white focus:border-[#33bbcf] focus:outline-none"
+                            >
+                              <option value="">Move to…</option>
+                              {next.map((s) => (
+                                <option key={s} value={s} className="bg-slate-900">
+                                  {STATUS_LABEL[s]}
+                                </option>
+                              ))}
+                            </select>
+                          )
+                        })()}
                       </div>
                     </td>
                   </tr>

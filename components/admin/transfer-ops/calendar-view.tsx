@@ -1,5 +1,6 @@
 'use client'
 
+import { STATUS_TONE, type StatusTone } from '@/lib/booking-lifecycle'
 import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
 import type { Booking } from '@/components/admin/types'
@@ -9,11 +10,20 @@ interface CalendarViewProps {
   onSelectBooking: (booking: Booking) => void
 }
 
-const statusDot: Record<Booking['status'], string> = {
-  confirmed: 'bg-emerald-400',
-  pending: 'bg-amber-400',
-  cancelled: 'bg-rose-400',
+/*
+  Derived from the lifecycle's semantic tone rather than listed per
+  status. Adding a status to the state machine used to break this file at
+  compile time and need a colour invented on the spot; now it inherits the
+  meaning already assigned to it.
+*/
+const toneDot: Record<StatusTone, string> = {
+  attention: 'bg-amber-400',
+  active: 'bg-[#33bbcf]',
+  done: 'bg-emerald-400',
+  bad: 'bg-rose-400',
+  muted: 'bg-slate-500',
 }
+const statusDot = (status: Booking['status']) => toneDot[STATUS_TONE[status]]
 
 function toIsoDate(date: Date) {
   return date.toISOString().split('T')[0]
@@ -114,7 +124,7 @@ export function CalendarView({ bookings, onSelectBooking }: CalendarViewProps) {
                 {dayBookings.length > 0 && (
                   <div className="flex flex-wrap gap-0.5">
                     {dayBookings.slice(0, 6).map((b) => (
-                      <span key={b.id} className={`h-1.5 w-1.5 rounded-full ${statusDot[b.status]}`} />
+                      <span key={b.id} className={`h-1.5 w-1.5 rounded-full ${statusDot(b.status)}`} />
                     ))}
                   </div>
                 )}
@@ -142,7 +152,7 @@ export function CalendarView({ bookings, onSelectBooking }: CalendarViewProps) {
                   className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2 text-left hover:bg-white/[0.05]"
                 >
                   <span className="flex items-center gap-2 text-sm text-white">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDot[b.status]}`} />
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDot(b.status)}`} />
                     {b.customer_name} — {b.item_title}
                   </span>
                   <span className="font-mono text-xs text-slate-400">

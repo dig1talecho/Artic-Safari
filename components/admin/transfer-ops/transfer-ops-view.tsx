@@ -1,5 +1,6 @@
 'use client'
 
+import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
 import { useMemo, useState } from 'react'
 import { Table2, Calendar as CalendarIcon, Map as MapIcon, Radio, RadioOff } from 'lucide-react'
 import type { Booking, DriverOption, CurrentUser } from '@/components/admin/types'
@@ -19,8 +20,9 @@ interface TransferOpsViewProps {
   filterStatus: string
   onFilterStatusChange: (status: string) => void
   syncStatus: SyncStatus
-  updateStatus: (id: string, status: 'confirmed' | 'cancelled' | 'pending') => void
-  updatePaymentStatus: (id: string, status: 'paid' | 'pending' | 'refunded') => void
+  updateStatus: (id: string, status: BookingStatus) => void
+  updatePaymentStatus: (id: string, status: PaymentStatus) => void
+  isAdmin?: boolean
   assignDriver: (id: string, driverName: string | null) => void
 }
 
@@ -44,6 +46,7 @@ export function TransferOpsView({
   syncStatus,
   updateStatus,
   updatePaymentStatus,
+  isAdmin = false,
   assignDriver,
 }: TransferOpsViewProps) {
   const [view, setView] = useState<View>('table')

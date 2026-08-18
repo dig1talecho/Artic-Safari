@@ -29,6 +29,7 @@ import { PartnersView } from '@/components/admin/partners-view'
 import { AddonsView } from '@/components/admin/addons-view'
 import { CharterVehiclesView } from '@/components/admin/charter-vehicles-view'
 import { TaximeterView } from '@/components/admin/taximeter-view'
+import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
 import { ContentView } from '@/components/admin/content-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
@@ -170,7 +171,7 @@ export default function AdminDashboard() {
     setLoading(false)
   }
 
-  const updateStatus = async (id: string, newStatus: 'confirmed' | 'cancelled' | 'pending') => {
+  const updateStatus = async (id: string, newStatus: BookingStatus) => {
     const previous = bookings.find((b) => b.id === id)?.status
     setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)))
 
@@ -190,7 +191,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const updatePaymentStatus = async (id: string, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
+  const updatePaymentStatus = async (id: string, newPaymentStatus: PaymentStatus) => {
     const previous = bookings.find((b) => b.id === id)?.payment_status
     setBookings((prev) =>
       prev.map((b) => (b.id === id ? { ...b, payment_status: newPaymentStatus } : b)),
@@ -379,6 +380,7 @@ export default function AdminDashboard() {
               onFilterStatusChange={setFilterStatus}
               updateStatus={updateStatus}
               updatePaymentStatus={updatePaymentStatus}
+              isAdmin={currentUser.role === 'admin'}
               assignDriver={assignDriver}
             />
           )}
@@ -395,6 +397,7 @@ export default function AdminDashboard() {
               syncStatus={syncStatus}
               updateStatus={updateStatus}
               updatePaymentStatus={updatePaymentStatus}
+              isAdmin={currentUser.role === 'admin'}
               assignDriver={assignDriver}
             />
           )}

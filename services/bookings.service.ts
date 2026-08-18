@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import { bookingInsertSchema } from '@/lib/validation'
+import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
 
 export interface BookingInsertPayload {
   id?: string
@@ -58,12 +59,38 @@ export async function insertBooking(payload: BookingInsertPayload) {
   return supabase.from('bookings').insert([parsed.data]).select()
 }
 
-export function updateBookingStatus(id: string, status: 'confirmed' | 'cancelled' | 'pending') {
+/**
+ * Moves a booking along its lifecycle.
+ *
+ * Legality is decided by trg_enforce_booking_status_transition in
+ * Postgres, not here -- this signature only stops a typo at compile time.
+ * An illegal move comes back as a normal Supabase error with the reason
+ * in `message`, which is worth surfacing verbatim: "Cannot move a booking
+ * from pending to completed" says more than "Update failed".
+ */
+export function updateBookingStatus(id: string, status: BookingStatus) {
   return supabase.from('bookings').update({ status }).eq('id', id)
 }
 
-export function updateBookingPaymentStatus(id: string, paymentStatus: 'paid' | 'pending' | 'refunded') {
+export function updateBookingPaymentStatus(id: string, paymentStatus: PaymentStatus) {
   return supabase.from('bookings').update({ payment_status: paymentStatus }).eq('id', id)
+}
+
+/**
+ * A driver taking a job: claim and advance in one statement.
+ *
+ * `.is('assigned_driver', null)` makes it race-safe -- two drivers tapping
+ * together produce one winner and one empty result, rather than one
+ * silently overwriting the other. Setting status in the same update means
+ * a claimed job can never sit in `confirmed` with a driver attached.
+ */
+export function claimBooking(id: string, driverName: string) {
+  return supabase
+    .from('bookings')
+    .update({ assigned_driver: driverName, status: 'assigned' satisfies BookingStatus })
+    .eq('id', id)
+    .is('assigned_driver', null)
+    .select()
 }
 
 export function assignBookingDriver(id: string, driverName: string | null) {

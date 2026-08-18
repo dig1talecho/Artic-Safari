@@ -1,3 +1,5 @@
+import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
+
 export interface Booking {
   id: string
   created_at: string
@@ -10,9 +12,9 @@ export interface Booking {
   scheduled_time: string | null
   total_price: number
   notes: string
-  status: 'pending' | 'confirmed' | 'cancelled'
+  status: BookingStatus
   assigned_driver: string | null
-  payment_status?: 'paid' | 'pending' | 'refunded'
+  payment_status?: PaymentStatus
 }
 
 export interface DriverOption {
