@@ -23,7 +23,7 @@ export const FALLBACK_TOURS: Tour[] = [
       'Direct, chauffeured airport transfer between Tromsø Airport (TOS) and your hotel, with free Wi-Fi and generous luggage space.',
     intro:
       'A direct, chauffeured transfer between Tromsø Airport and your hotel -- no shared shuttles, no waiting.',
-    price: '490 kr',
+    price: '145 kr',
     price_note: '1 to 4 persons · from',
     duration: '20–30 minutes',
     meeting_point: 'Tromsø Airport (TOS) or your hotel',

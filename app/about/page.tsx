@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const stats = [
   { value: '5', label: 'Experiences' },
-  { value: '490 kr', label: 'Starting From' },
+  { value: '145 kr', label: 'Starting From' },
   { value: '69.65°N', label: 'Arctic Circle' },
 ]
 

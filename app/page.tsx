@@ -13,6 +13,8 @@ import { SocialRail } from '@/components/social-rail'
 import { SiteFooter } from '@/components/site-footer'
 import { listPublishedReviewRatings } from '@/services/reviews.service'
 import { getTours } from '@/services/tours.service'
+import { getPricingRules } from '@/services/pricing.service'
+import { listActiveFleetClasses } from '@/services/fleet-classes.service'
 import { siteUrl } from '@/lib/site-config'
 
 // Same reasoning as app/tours/page.tsx -- the homepage's tour cards read
@@ -37,6 +39,27 @@ export default async function Page() {
   const { data: liveTours } = await getTours()
   const toursBySlug = Object.fromEntries((liveTours ?? []).map((tour) => [tour.slug, tour]))
 
+  /*
+    The hero's "starting from" figure used to be the string '490 kr',
+    typed in by hand. The taxi rates moved to Tromso Taxi + 10% and the
+    real floor became 145 kr, so the homepage spent that time quoting a
+    price three times too high -- exactly the drift that already caught
+    the per-person tour price at 2,000 kr.
+
+    Derived here instead: the cheapest vehicle's minimum fare, straight
+    from the rates you set on the Taximeter screen. Change a rate and this
+    follows. null when pricing has not loaded, and the hero then omits the
+    figure rather than inventing one.
+  */
+  const [{ data: rules }, { data: fleet }] = await Promise.all([
+    getPricingRules(),
+    listActiveFleetClasses(),
+  ])
+  const cheapestMultiplier = fleet?.length
+    ? Math.min(...fleet.map((f) => Number(f.multiplier)))
+    : 1
+  const startingFrom = rules ? Math.round(Number(rules.min_price) * cheapestMultiplier) : null
+
   const reviewCount = reviewRatings?.length ?? 0
   const averageRating =
     reviewCount > 0
@@ -53,7 +76,7 @@ export default async function Page() {
     description:
       'Private VIP Northern Lights tours and airport transfers in Tromsø, Northern Norway.',
     telephone: '+4792997190',
-    priceRange: '490 kr - 15000 kr',
+    priceRange: '145 kr - 15000 kr',
     areaServed: {
       '@type': 'City',
       name: 'Tromsø',
@@ -85,7 +108,7 @@ export default async function Page() {
       />
       <AuroraBackground variant="light" />
       <SiteHeader variant="light" />
-      <Hero toursBySlug={toursBySlug} />
+      <Hero toursBySlug={toursBySlug} startingFrom={startingFrom} tourCount={liveTours?.length ?? null} />
       <TrustFeatures />
       <TourPackages toursBySlug={toursBySlug} />
       <AuroraRadar />

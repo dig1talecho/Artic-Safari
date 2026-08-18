@@ -201,7 +201,8 @@ export function TourPackages({ toursBySlug = {} }: TourPackagesProps) {
 
   const [selectedPackage, setSelectedPackage] = useState<BookingModalTour | null>(null)
 
-  const transferPrice = transfer === 'small' ? '490 kr' : '850 kr'
+  // Minimum fares from the Taximeter screen. The real fare is the route's.
+  const transferPrice = transfer === 'small' ? 'from 145 kr' : 'from 218 kr'
   const sommaroyaPrice = sommaroya === 'small' ? '5,000 kr' : '9,000 kr'
 
   const handleBooking = (title: string, price: string, option?: string, tourId?: string) => {

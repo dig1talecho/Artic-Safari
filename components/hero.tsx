@@ -32,17 +32,29 @@ function SplitHeadline() {
 // Real, verifiable numbers only -- no invented "10,000+ happy guests"
 // style stats. 5 live products, the lowest published rate, and Tromsø's
 // actual coordinates.
-const stats = [
-  { value: '5', label: 'Experiences' },
-  { value: '490 kr', label: 'Starting From' },
-  { value: '69.65°N', label: 'Arctic Circle' },
-] as const
+/**
+ * Only the latitude is a constant -- it is a fact about Tromso. The other
+ * two are live figures passed in from the server, because a hardcoded
+ * price on a homepage goes stale the first time you change a rate and
+ * nobody notices for months.
+ */
+function buildStats(startingFrom: number | null, tourCount: number | null) {
+  return [
+    tourCount ? { value: String(tourCount), label: 'Experiences' } : null,
+    startingFrom ? { value: `${startingFrom} kr`, label: 'Starting From' } : null,
+    { value: '69.65°N', label: 'Arctic Circle' },
+  ].filter((s): s is { value: string; label: string } => s !== null)
+}
 
 interface HeroProps {
+  /** Cheapest possible fare, from the live pricing rules. */
+  startingFrom?: number | null
+  tourCount?: number | null
   toursBySlug?: Record<string, Tour>
 }
 
-export function Hero({ toursBySlug = {} }: HeroProps) {
+export function Hero({ toursBySlug = {}, startingFrom = null, tourCount = null }: HeroProps) {
+  const stats = buildStats(startingFrom, tourCount)
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-8 sm:pt-14">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-6">

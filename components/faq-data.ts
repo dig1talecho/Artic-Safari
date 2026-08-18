@@ -12,7 +12,7 @@ export const faqs = [
   {
     question: 'Does Artic Safari provide airport transfers in Tromsø?',
     answer:
-      'Yes. We offer private VIP airport transfers starting at 490 kr for a small vehicle (1–4 passengers), including chauffeur service and free Wi-Fi.',
+      'Yes. We offer private VIP airport transfers, priced by the actual route with a minimum of 145 kr for a small vehicle (1–4 passengers), including chauffeur service and free Wi-Fi.',
   },
   {
     question: 'What is included in an Artic Safari Northern Lights tour?',

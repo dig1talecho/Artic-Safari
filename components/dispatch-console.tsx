@@ -539,7 +539,12 @@ Please confirm availability and dispatch driver.`
             </span>
             <span className="mt-0.5 flex items-baseline gap-2">
               <span className="font-mono text-3xl font-bold tracking-tight text-white">
-                {formatKr(finalPrice)}
+                {/*
+                  Until the rates load there is no price, and "0 kr" is a
+                  worse answer than none -- it renders on the server, so a
+                  visitor really did see a free taxi for a moment.
+                */}
+                {rules ? formatKr(finalPrice) : '—'}
               </span>
               {discountAmount > 0 && (
                 <span className="font-mono text-sm text-white/35 line-through">
