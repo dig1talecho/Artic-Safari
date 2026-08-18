@@ -1,45 +1,37 @@
 import { ShieldIcon, BoltIcon, WhatsAppIcon } from '@/components/trust-icons'
+import { getSiteContent } from '@/lib/get-site-content'
 
-const features: {
-  Icon: (props: { className?: string }) => React.ReactElement
-  title: string
-  description: string
-}[] = [
-  {
-    Icon: ShieldIcon,
-    title: 'Secure Booking',
-    description:
-      'Every reservation is confirmed directly with our dispatch team — no third-party resellers.',
-  },
-  {
-    Icon: BoltIcon,
-    title: 'Instant Confirmation',
-    description:
-      'Submit a request and hear back fast, with real-time pricing calculated on the spot.',
-  },
-  {
-    Icon: WhatsAppIcon,
-    title: 'WhatsApp Support',
-    description: 'Reach a real person before, during, and after your tour — no ticket queues.',
-  },
-]
+/**
+ * Icons stay in code; only the words are editable. An icon is a design
+ * decision, and putting it behind a text box invites a broken layout the
+ * first time somebody pastes an emoji into it.
+ */
+const cards = [
+  { Icon: ShieldIcon, titleKey: 'trust.card1.title', bodyKey: 'trust.card1.body' },
+  { Icon: BoltIcon, titleKey: 'trust.card2.title', bodyKey: 'trust.card2.body' },
+  { Icon: WhatsAppIcon, titleKey: 'trust.card3.title', bodyKey: 'trust.card3.body' },
+] as const
 
-export function TrustFeatures() {
+// Server Component: the copy is fetched during render, so a visitor's
+// browser never waits on it and the text is in the HTML for Google.
+export async function TrustFeatures() {
+  const content = await getSiteContent()
+
   return (
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 py-16">
       <div className="max-w-xl">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
-          Why Artic Safari
+          {content('trust.eyebrow')}
         </p>
         <h2 className="mt-3 text-balance font-[family-name:var(--font-display)] text-3xl font-semibold tracking-[-0.01em] text-white sm:text-4xl">
-          Built around a smoother way to chase the lights.
+          {content('trust.heading')}
         </h2>
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {features.map(({ Icon, title, description }) => (
+        {cards.map(({ Icon, titleKey, bodyKey }) => (
           <div
-            key={title}
+            key={titleKey}
             className="group flex flex-col rounded-[20px] p-6 shadow-[var(--home-card-shadow)] transition-transform duration-300 hover:-translate-y-1"
             style={{ backgroundImage: 'var(--home-gradient-card)' }}
           >
@@ -60,9 +52,9 @@ export function TrustFeatures() {
               <Icon className="relative h-7 w-7" />
             </span>
             <h3 className="mt-5 font-[family-name:var(--font-display)] text-lg font-semibold text-white">
-              {title}
+              {content(titleKey)}
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/60">{description}</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/60">{content(bodyKey)}</p>
           </div>
         ))}
       </div>

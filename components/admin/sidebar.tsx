@@ -18,6 +18,7 @@ import {
   Tag,
   Truck,
   Gauge,
+  PencilLine,
 } from 'lucide-react'
 
 export type AdminView =
@@ -34,6 +35,7 @@ export type AdminView =
   | 'addons'
   | 'charter-vehicles'
   | 'taximeter'
+  | 'content'
   | 'settings'
 
 interface NavItem {
@@ -57,6 +59,7 @@ const navItems: NavItem[] = [
   { id: 'addons', label: 'Add-ons', icon: Tag, adminOnly: true },
   { id: 'charter-vehicles', label: 'Charter Vehicles', icon: Truck, adminOnly: true },
   { id: 'taximeter', label: 'Taximeter', icon: Gauge, adminOnly: true },
+  { id: 'content', label: 'Site Text', icon: PencilLine, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 

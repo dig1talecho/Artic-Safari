@@ -29,6 +29,7 @@ import { PartnersView } from '@/components/admin/partners-view'
 import { AddonsView } from '@/components/admin/addons-view'
 import { CharterVehiclesView } from '@/components/admin/charter-vehicles-view'
 import { TaximeterView } from '@/components/admin/taximeter-view'
+import { ContentView } from '@/components/admin/content-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
@@ -49,6 +50,7 @@ const viewTitles: Record<AdminView, string> = {
   addons: 'Add-ons',
   'charter-vehicles': 'Charter Vehicles',
   taximeter: 'Taximeter',
+  content: 'Site Text',
   settings: 'Settings',
 }
 
@@ -420,6 +422,7 @@ export default function AdminDashboard() {
           {activeView === 'addons' && currentUser.role === 'admin' && <AddonsView />}
           {activeView === 'charter-vehicles' && currentUser.role === 'admin' && <CharterVehiclesView />}
           {activeView === 'taximeter' && currentUser.role === 'admin' && <TaximeterView />}
+          {activeView === 'content' && currentUser.role === 'admin' && <ContentView />}
 
           {activeView === 'settings' && (
             <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />
