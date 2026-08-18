@@ -59,7 +59,8 @@ export function Hero({ toursBySlug = {}, startingFrom = null, tourCount = null }
     <section className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-8 pt-8 sm:pt-14">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-6">
         {/* Left column */}
-        <div className="animate-float-up">
+        {/* order-1 on a phone: headline first, as it should be. */}
+        <div className="animate-float-up order-1 lg:order-none">
           <div className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 backdrop-blur-md">
             <span className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--home-gold)]" />
             <span className="flex items-center gap-1.5 text-xs font-medium text-white/80">
@@ -100,7 +101,15 @@ export function Hero({ toursBySlug = {}, startingFrom = null, tourCount = null }
         </div>
 
         {/* Right column */}
-        <div className="animate-float-up flex flex-col" style={{ animationDelay: '0.15s' }}>
+        {/*
+          order-3 on a phone, so the taxi panel comes before the tour pitch
+          and its photo. Below lg the grid collapses to one column, which
+          put the console under both columns -- and the person who needs a
+          taxi is on a phone, at the airport, in the cold. On lg and up the
+          two-column layout is unaffected: order only matters while these
+          are stacked.
+        */}
+        <div className="animate-float-up order-3 flex flex-col lg:order-none" style={{ animationDelay: '0.15s' }}>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--home-accent)]">
             VIP Private Tours
           </p>
@@ -133,11 +142,19 @@ export function Hero({ toursBySlug = {}, startingFrom = null, tourCount = null }
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>
-      </div>
+        {/*
+          Inside the grid, not after it, so `order` can do its job. Below
+          lg the grid is a single column and this sits second: headline,
+          taxi panel, then the tour pitch and its photo. Previously it came
+          after both columns, which on a phone meant scrolling past a
+          220px image to reach the thing an arriving guest needs most.
 
-      {/* Dispatch console */}
-      <div className="relative z-10 mx-auto mt-14 max-w-4xl px-1">
-        <DispatchConsole />
+          On lg and up it spans both columns and drops back to source
+          order, so the desktop layout is exactly as before.
+        */}
+        <div className="order-2 mx-auto mt-14 w-full max-w-4xl px-1 lg:order-none lg:col-span-2">
+          <DispatchConsole />
+        </div>
       </div>
     </section>
   )
