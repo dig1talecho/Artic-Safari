@@ -23,6 +23,8 @@ import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.servi
 import { getPricingRules, calculateTransferFare, type PricingRules } from '@/services/pricing.service'
 import { listActiveFleetClasses, type FleetClass } from '@/services/fleet-classes.service'
 import { useSpamGuard } from '@/lib/use-spam-guard'
+import { useSession } from '@/lib/use-session'
+import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { tromsoToday } from '@/lib/dates'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
 import { PrivacyNotice } from '@/components/privacy-notice'
@@ -89,6 +91,32 @@ export function DispatchConsole() {
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+
+  /*
+    Signing in is NOT required to call a taxi and must never become
+    required. Someone standing outside at minus eight wants a car, not a
+    registration form, and a signup wall in front of a taxi button is the
+    cheapest way to lose the booking.
+
+    What an account is good for is not typing your own phone number again.
+    If the guest happens to be signed in already, their details fill
+    themselves in -- and stay editable, because the number on the account
+    is not always the number they want the driver to ring tonight.
+  */
+  const { session } = useSession()
+  const { profile } = useCustomerProfile(session)
+  const [prefilled, setPrefilled] = useState(false)
+
+  useEffect(() => {
+    // Only once, and never over something already typed: the profile
+    // arrives after a round trip, and clobbering a half-filled form at
+    // that moment is maddening.
+    if (!profile || prefilled) return
+    setCustomerName((v) => v || profile.full_name)
+    setCustomerEmail((v) => v || profile.email)
+    setCustomerPhone((v) => v || profile.phone)
+    setPrefilled(true)
+  }, [profile, prefilled])
 
   const [rules, setRules] = useState<PricingRules | null>(null)
   const [fleetClasses, setFleetClasses] = useState<FleetClass[]>([])
@@ -314,6 +342,14 @@ Please confirm availability and dispatch driver.`
             {priceIsQuote ? 'Route priced' : 'Live pricing'}
           </span>
         </div>
+
+        {profile && (
+          <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#7dd3e8]">
+            <Check className="h-3.5 w-3.5 text-[#67e8f9]" />
+            Booking as <span className="font-semibold text-white">{profile.full_name}</span>
+            <span className="text-[#7dd3e8]/60">— edit any field below if tonight is different.</span>
+          </p>
+        )}
 
         <div className="grid gap-3 md:grid-cols-3">
           <FrostField icon={<User className="h-4 w-4" />} label="Full Name">
