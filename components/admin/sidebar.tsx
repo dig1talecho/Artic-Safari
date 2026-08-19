@@ -19,6 +19,7 @@ import {
   Truck,
   Gauge,
   PencilLine,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 export type AdminView =
@@ -36,6 +37,7 @@ export type AdminView =
   | 'charter-vehicles'
   | 'taximeter'
   | 'content'
+  | 'accounting'
   | 'settings'
 
 interface NavItem {
@@ -60,6 +62,7 @@ const navItems: NavItem[] = [
   { id: 'charter-vehicles', label: 'Charter Vehicles', icon: Truck, adminOnly: true },
   { id: 'taximeter', label: 'Taximeter', icon: Gauge, adminOnly: true },
   { id: 'content', label: 'Site Text', icon: PencilLine, adminOnly: true },
+  { id: 'accounting', label: 'Accounting', icon: FileSpreadsheet, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
 

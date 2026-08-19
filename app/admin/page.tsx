@@ -31,6 +31,7 @@ import { CharterVehiclesView } from '@/components/admin/charter-vehicles-view'
 import { TaximeterView } from '@/components/admin/taximeter-view'
 import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
 import { ContentView } from '@/components/admin/content-view'
+import { AccountingView } from '@/components/admin/accounting-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
@@ -52,6 +53,7 @@ const viewTitles: Record<AdminView, string> = {
   'charter-vehicles': 'Charter Vehicles',
   taximeter: 'Taximeter',
   content: 'Site Text',
+  accounting: 'Accounting',
   settings: 'Settings',
 }
 
@@ -426,6 +428,7 @@ export default function AdminDashboard() {
           {activeView === 'charter-vehicles' && currentUser.role === 'admin' && <CharterVehiclesView />}
           {activeView === 'taximeter' && currentUser.role === 'admin' && <TaximeterView />}
           {activeView === 'content' && currentUser.role === 'admin' && <ContentView />}
+          {activeView === 'accounting' && currentUser.role === 'admin' && <AccountingView />}
 
           {activeView === 'settings' && (
             <SettingsView currentUser={currentUser} email={session?.user?.email} onSignOut={handleSignOut} />
