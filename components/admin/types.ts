@@ -15,6 +15,13 @@ export interface Booking {
   status: BookingStatus
   assigned_driver: string | null
   payment_status?: PaymentStatus
+  party_size?: number
+  // Written by stamp_booking_cancellation() when status becomes cancelled.
+  cancelled_at?: string | null
+  cancelled_by?: string | null
+  cancellation_reason?: string | null
+  /** What the policy owed at the moment of cancelling, frozen. */
+  refund_due?: number | null
 }
 
 export interface DriverOption {

@@ -226,6 +226,31 @@ export function BookingTable({
                     <td className="px-6 py-4 text-right font-mono font-semibold text-white">
                       {Number(booking.total_price || 0).toLocaleString()}{' '}
                       <span className="text-xs text-slate-400">NOK</span>
+                      {/*
+                        Answers the question a red row always raises: why,
+                        and what do we owe. Without it the only way to find
+                        out is to open the database.
+                      */}
+                      {booking.status === 'cancelled' && (
+                        <span className="mt-1 block text-right">
+                          {Number(booking.refund_due ?? 0) > 0 && (
+                            <span className="block font-mono text-[11px] font-semibold text-amber-300">
+                              refund {Number(booking.refund_due).toLocaleString()} NOK
+                            </span>
+                          )}
+                          {(booking.cancellation_reason || booking.cancelled_by) && (
+                            <span
+                              className="block max-w-[190px] truncate font-sans text-[10px] font-normal text-slate-500"
+                              title={`${booking.cancellation_reason ?? ''}${
+                                booking.cancelled_by ? ` — ${booking.cancelled_by}` : ''
+                              }`}
+                            >
+                              {booking.cancellation_reason || 'no reason given'}
+                              {booking.cancelled_by ? ` · ${booking.cancelled_by}` : ''}
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </td>
 
                     {/* İşlemler */}

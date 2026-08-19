@@ -413,7 +413,7 @@ export default function AdminDashboard() {
           )}
 
           {activeView === 'finance' && currentUser.role === 'admin' && (
-            <FinanceView bookings={bookings} />
+            <FinanceView bookings={bookings} updatePaymentStatus={updatePaymentStatus} />
           )}
 
           {activeView === 'reviews' && currentUser.role === 'admin' && <ReviewsView />}

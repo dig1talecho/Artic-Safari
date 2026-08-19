@@ -1,11 +1,14 @@
+import type { PaymentStatus } from '@/lib/booking-lifecycle'
 import { DollarSign, TrendingUp, AlertCircle } from 'lucide-react'
 import type { Booking } from './types'
 
 interface FinanceViewProps {
   bookings: Booking[]
+  /** Moves payment_status paid -> refunded. The transition is validated in Postgres. */
+  updatePaymentStatus?: (id: string, status: PaymentStatus) => void
 }
 
-export function FinanceView({ bookings }: FinanceViewProps) {
+export function FinanceView({ bookings, updatePaymentStatus }: FinanceViewProps) {
   const active = bookings.filter((b) => b.status !== 'cancelled')
   const totalRevenue = active.reduce((acc, b) => acc + (Number(b.total_price) || 0), 0)
   const paidRevenue = active
@@ -14,14 +17,86 @@ export function FinanceView({ bookings }: FinanceViewProps) {
   const pendingRevenue = active
     .filter((b) => (b.payment_status ?? 'pending') === 'pending')
     .reduce((acc, b) => acc + (Number(b.total_price) || 0), 0)
-  const refundedRevenue = active
+  /*
+    Counted across ALL bookings, not just active ones. A refunded booking
+    is almost always a cancelled one, so filtering cancellations out first
+    meant this figure was very nearly always zero -- the one number on the
+    screen that could never be right.
+  */
+  const refundedRevenue = bookings
     .filter((b) => b.payment_status === 'refunded')
     .reduce((acc, b) => acc + (Number(b.total_price) || 0), 0)
+
+  /*
+    The question an operator actually has after a cancellation: who am I
+    holding money for? A booking owes a refund when the policy calculated
+    one, the guest had paid, and it has not been sent back yet.
+  */
+  const refundsOwed = bookings
+    .filter(
+      (b) =>
+        b.status === 'cancelled' &&
+        Number(b.refund_due ?? 0) > 0 &&
+        b.payment_status === 'paid',
+    )
+    .sort((a, b) => Number(b.refund_due ?? 0) - Number(a.refund_due ?? 0))
+
+  const refundsOwedTotal = refundsOwed.reduce((acc, b) => acc + Number(b.refund_due ?? 0), 0)
 
   const transactions = [...bookings].sort((a, b) => (a.payment_status === 'pending' ? -1 : 1))
 
   return (
     <div className="space-y-6">
+      {refundsOwed.length > 0 && (
+        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div>
+              <p className="font-semibold text-white">Refunds owed</p>
+              <p className="mt-1 text-xs text-amber-200/80">
+                Cancelled, already paid, and not yet sent back. Marking one refunded records that
+                you sent it — it does not move money, because no processor is connected.
+              </p>
+            </div>
+            <p className="font-mono text-xl font-bold text-amber-300">
+              {refundsOwedTotal.toLocaleString()} NOK
+            </p>
+          </div>
+
+          <div className="mt-5 space-y-2">
+            {refundsOwed.map((b) => (
+              <div
+                key={b.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-white">
+                    {b.customer_name} — {b.item_title}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">
+                    {b.booking_date}
+                    {b.cancelled_by ? ` · cancelled by ${b.cancelled_by}` : ''}
+                    {b.cancellation_reason ? ` · "${b.cancellation_reason}"` : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-semibold text-amber-300">
+                    {Number(b.refund_due ?? 0).toLocaleString()} NOK
+                  </span>
+                  {updatePaymentStatus && (
+                    <button
+                      type="button"
+                      onClick={() => updatePaymentStatus(b.id, 'refunded')}
+                      className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-emerald-400/50 hover:text-emerald-300"
+                    >
+                      Mark refunded
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
           <div className="flex items-center justify-between">
