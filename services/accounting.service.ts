@@ -66,12 +66,14 @@ export interface AccountingReport {
 interface RawBooking {
   item_title: string
   booking_type: string
-  party_size: number | null
-  total_price: number | null
-  loyalty_discount: number | null
-  commission_amount: number | null
   status: BookingStatus
+  total_price: number | null
   payment_status: PaymentStatus | null
+  // Optional: these columns only exist once their migration has been run.
+  // Typed as possibly-undefined so the code cannot forget that.
+  party_size?: number | null
+  loyalty_discount?: number | null
+  commission_amount?: number | null
 }
 
 const COMMITTED: BookingStatus[] = ['pending', 'confirmed', 'assigned', 'in_progress']
@@ -130,11 +132,18 @@ export async function getAccountingReport(
   // booking made after midnight on the last day of the period.
   const upperBound = basis === 'trip' ? to : `${to}T23:59:59.999Z`
 
+  /*
+    `select('*')` rather than a column list on purpose.
+    loyalty_discount and commission_amount come from optional migrations,
+    and naming a column that does not exist makes Postgres reject the whole
+    query -- so the accounting screen died completely because the rewards
+    module had never been installed. Selecting everything and reading each
+    field defensively means a missing optional feature costs you that
+    column, not the report.
+  */
   const { data, error } = await supabase
     .from('bookings')
-    .select(
-      'item_title, booking_type, party_size, total_price, loyalty_discount, commission_amount, status, payment_status',
-    )
+    .select('*')
     .gte(dateColumn, from)
     .lte(dateColumn, upperBound)
 
