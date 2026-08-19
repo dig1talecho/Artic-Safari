@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { STATUS_LABEL, STATUS_TONE, type BookingStatus, type StatusTone } from '@/lib/booking-lifecycle'
 import {
   Mail,
   Lock,
@@ -25,6 +26,8 @@ import {
 
 import { signInWithPassword, signUpCustomer, signOut } from '@/services/auth.service'
 import { createCustomerProfile } from '@/services/customers.service'
+import { CancelBookingPanel } from '@/components/cancel-booking-panel'
+import { daysUntil as tromsoDaysUntil } from '@/lib/dates'
 import { listBookingsByCustomerEmail } from '@/services/bookings.service'
 import {
   listReviewsForCustomer,
@@ -50,39 +53,43 @@ interface Booking {
   booking_date: string
   total_price: number
   notes: string | null
-  status: 'pending' | 'confirmed' | 'cancelled'
+  // The lifecycle vocabulary, not the old three. A dashboard that cannot
+  // name 'assigned' or 'completed' renders an unstyled badge for a state
+  // the database considers perfectly normal.
+  status: BookingStatus
+  scheduled_time: string | null
+}
+
+/**
+ * Every lifecycle state gets its own badge.
+ *
+ * This used to fall through to "Pending" for anything it did not recognise,
+ * which meant a completed trip -- and an assigned one, and a no-show --
+ * all read as "Pending" to the customer once the vocabulary grew.
+ */
+const BADGE_VARIANT: Record<StatusTone, 'aurora' | 'warning' | 'destructive' | 'default'> = {
+  attention: 'warning',
+  active: 'aurora',
+  done: 'aurora',
+  bad: 'destructive',
+  muted: 'default',
 }
 
 function statusBadge(status: Booking['status']) {
-  if (status === 'confirmed') {
-    return (
-      <Badge variant="aurora">
-        <CheckCircle2 className="h-3 w-3" />
-        Confirmed
-      </Badge>
-    )
-  }
-  if (status === 'cancelled') {
-    return (
-      <Badge variant="destructive">
-        <XCircle className="h-3 w-3" />
-        Cancelled
-      </Badge>
-    )
-  }
+  const tone = STATUS_TONE[status] ?? 'attention'
+  const Icon = tone === 'done' ? CheckCircle2 : tone === 'bad' || tone === 'muted' ? XCircle : Clock3
   return (
-    <Badge variant="warning">
-      <Clock3 className="h-3 w-3" />
-      Pending
+    <Badge variant={BADGE_VARIANT[tone]}>
+      <Icon className="h-3 w-3" />
+      {STATUS_LABEL[status] ?? status}
     </Badge>
   )
 }
 
-function daysUntil(dateStr: string): number {
-  const target = new Date(`${dateStr}T00:00:00`)
-  const today = new Date(new Date().toDateString())
-  return Math.round((target.getTime() - today.getTime()) / 86_400_000)
-}
+// Was comparing a parsed date against browser-local midnight -- the same
+// mismatch that rejected every booking made after 22:00. Uses the shared
+// Tromso-anchored helper now.
+const daysUntil = tromsoDaysUntil
 
 function CountdownBadge({ bookingDate }: { bookingDate: string }) {
   const days = daysUntil(bookingDate)
@@ -659,6 +666,19 @@ function BookingsList({ session }: { session: Session }) {
                 booking={booking}
                 existingReview={reviewByBooking[booking.id]}
                 onSubmitted={(review) => setReviews((prev) => [...prev, review])}
+              />
+
+              <CancelBookingPanel
+                bookingId={booking.id}
+                status={booking.status}
+                totalPrice={Number(booking.total_price || 0)}
+                bookingDate={booking.booking_date}
+                scheduledTime={booking.scheduled_time ?? null}
+                onCancelled={() =>
+                  setBookings((prev) =>
+                    prev.map((b) => (b.id === booking.id ? { ...b, status: 'cancelled' } : b)),
+                  )
+                }
               />
             </Card>
           ))}

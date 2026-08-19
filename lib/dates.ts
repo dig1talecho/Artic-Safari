@@ -66,3 +66,18 @@ export function isBookableDate(value: string, now: Date = new Date()): boolean {
   if (!isRealCalendarDate(value)) return false
   return value >= tromsoToday(now) && value <= tromsoDatePlusYears(2, now)
 }
+
+/**
+ * Whole days from today (Tromsø) to a booking date. Negative means past.
+ *
+ * Pure calendar arithmetic on UTC midnights: the inputs are plain dates, so
+ * this must not pick up an hour from a daylight-saving change and report 6
+ * days where there are 7.
+ */
+export function daysUntil(bookingDate: string, now: Date = new Date()): number {
+  const toUtc = (s: string) => {
+    const [y, m, d] = s.split('-').map(Number)
+    return Date.UTC(y, m - 1, d)
+  }
+  return Math.round((toUtc(bookingDate) - toUtc(tromsoToday(now))) / 86_400_000)
+}
