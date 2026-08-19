@@ -88,34 +88,78 @@ export const CONTENT_GROUPS: Record<string, ContentGroup> = {
 
   trust: {
     title: 'Why Artic Safari',
-    description: 'The three cards under the hero.',
+    description: 'The section under the hero. Its job is to answer "what if we see nothing?"',
     fields: {
       'trust.eyebrow': { label: 'Small label', default: 'Why Artic Safari' },
       'trust.heading': {
         label: 'Section heading',
-        default: 'Built around a smoother way to chase the lights.',
+        default: 'The lights do not wait. Neither do we.',
         kind: 'multiline',
       },
-      'trust.card1.title': { label: 'Card 1 — title', default: 'Secure Booking' },
+      'trust.intro': {
+        label: 'Intro sentence',
+        default:
+          'Nobody can promise an aurora. What we can promise is that we spend the night looking for the clearest sky within reach of Tromsø, in a warm car, with a driver who has done this a thousand times.',
+        kind: 'multiline',
+        hint: 'Do not promise a sighting here. Guests know it is weather, and the honesty is what earns the booking.',
+      },
+
+      'trust.lead.eyebrow': { label: 'Lead panel — small label', default: 'We chase the clear sky' },
+      'trust.lead.title': {
+        label: 'Lead panel — headline',
+        default: 'Your route is decided the night you travel, not the week you book.',
+        kind: 'multiline',
+      },
+      'trust.lead.body': {
+        label: 'Lead panel — text',
+        default:
+          'We read the same aurora and cloud forecasts you see here, then drive to wherever the sky is open — sometimes twenty minutes away, sometimes two hours. A fixed itinerary cannot do that.',
+        kind: 'multiline',
+      },
+      'trust.lead.liveLabel': { label: 'Live panel — label', default: 'Over Tromsø right now' },
+      'trust.lead.peakLabel': {
+        label: 'Live panel — label for the forecast peak',
+        default: 'Strongest in the next 24h',
+        hint: 'Shown only when the forecast feed returns a peak.',
+      },
+      'trust.lead.liveNote': {
+        label: 'Live panel — note under the numbers',
+        default:
+          'Live from NOAA and Open-Meteo, updated continuously. Conditions change hour to hour — a quiet reading now says nothing about the night you travel.',
+        kind: 'multiline',
+      },
+      'trust.lead.liveUnavailable': {
+        label: 'Live panel — when the feeds are down',
+        default:
+          'Live conditions are unavailable at the moment. Our drivers check them again before every departure.',
+        kind: 'multiline',
+      },
+
+      'trust.card1.title': { label: 'Reason 1 — title', default: 'A private car, not a coach' },
       'trust.card1.body': {
-        label: 'Card 1 — text',
+        label: 'Reason 1 — text',
         default:
-          'Every reservation is confirmed directly with our dispatch team — no third-party resellers.',
+          'Your group and your guide. No waiting for forty strangers to board, and no compromise on where the night goes.',
         kind: 'multiline',
       },
-      'trust.card2.title': { label: 'Card 2 — title', default: 'Instant Confirmation' },
+      'trust.card2.title': { label: 'Reason 2 — title', default: 'Warm the whole night' },
       'trust.card2.body': {
-        label: 'Card 2 — text',
+        label: 'Reason 2 — text',
         default:
-          'Submit a request and hear back fast, with real-time pricing calculated on the spot.',
+          'Heated vehicle, thermal suits, and somewhere to get out of the wind between stops. Cold is what ends most aurora hunts early.',
         kind: 'multiline',
       },
-      'trust.card3.title': { label: 'Card 3 — title', default: 'WhatsApp Support' },
+      'trust.card3.title': { label: 'Reason 3 — title', default: 'A real person on WhatsApp' },
       'trust.card3.body': {
-        label: 'Card 3 — text',
-        default: 'Reach a real person before, during, and after your tour — no ticket queues.',
+        label: 'Reason 3 — text',
+        default:
+          'Before, during and after your trip. Not a ticket queue, and not a chatbot — the same people who will be driving.',
         kind: 'multiline',
       },
+
+      'trust.hygiene.direct': { label: 'Small print 1', default: 'Booked directly with us' },
+      'trust.hygiene.fast': { label: 'Small print 2', default: 'Confirmed fast, by a human' },
+      'trust.hygiene.noResellers': { label: 'Small print 3', default: 'No third-party resellers' },
     },
   },
 
