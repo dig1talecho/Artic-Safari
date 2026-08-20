@@ -98,14 +98,14 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
       return
     }
     let cancelled = false
-    getTourAvailability(itemTitle, date).then((a) => {
+    getTourAvailability(itemTitle, date, tour.id).then((a) => {
       if (!cancelled) setAvailability(a)
     })
     return () => {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, tour.title, tour.option])
+  }, [date, tour.title, tour.option, tour.id])
 
   const addonQuantity = (addonId: string) => cart.find((c) => c.addon_id === addonId)?.quantity ?? 0
 
@@ -200,6 +200,8 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
         customer_phone: phone.trim() || null,
         booking_type: tour.title.includes('Transfer') ? 'transfer' : 'tour',
         item_title: itemTitle,
+        // The link capacity actually counts on. Names drift; ids do not.
+        tour_id: tour.id ?? null,
         booking_date: date || tromsoToday(),
         scheduled_time: time || null,
         total_price: totalPrice,

@@ -31,6 +31,8 @@ export interface BookingInsertPayload {
   duration_minutes?: number | null
   fleet_class?: string | null
   party_size?: number
+  /** Catalogue tour this booking is for. Null for taxi work. */
+  tour_id?: string | null
 }
 
 export function listBookings() {

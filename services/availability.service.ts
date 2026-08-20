@@ -24,12 +24,20 @@ export interface TourAvailability {
 export async function getTourAvailability(
   itemTitle: string,
   date: string,
+  tourId?: string,
 ): Promise<TourAvailability | null> {
-  if (!itemTitle || !date) return null
+  if (!date) return null
+  if (!itemTitle && !tourId) return null
 
-  const { data, error } = await supabase
-    .rpc('tour_availability', { p_item_title: itemTitle, p_date: date })
-    .maybeSingle()
+  /*
+    By id when we have one. The title path is a fallback and a known
+    liability: the catalogue holds "Northern Lights Tour - Private Group"
+    while real bookings carry "Northern Lights (Private Group)", so name
+    matching silently found nothing and capacity quietly did not apply.
+  */
+  const { data, error } = tourId
+    ? await supabase.rpc('tour_availability_by_id', { p_tour_id: tourId, p_date: date }).maybeSingle()
+    : await supabase.rpc('tour_availability', { p_item_title: itemTitle, p_date: date }).maybeSingle()
 
   if (error || !data) return null
 
