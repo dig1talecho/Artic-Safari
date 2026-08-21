@@ -32,6 +32,7 @@ import { TaximeterView } from '@/components/admin/taximeter-view'
 import type { BookingStatus, PaymentStatus } from '@/lib/booking-lifecycle'
 import { ContentView } from '@/components/admin/content-view'
 import { AccountingView } from '@/components/admin/accounting-view'
+import { TonightView } from '@/components/admin/tonight-view'
 import { SettingsView } from '@/components/admin/settings-view'
 import { TransferOpsView } from '@/components/admin/transfer-ops/transfer-ops-view'
 import { CommandPalette } from '@/components/admin/transfer-ops/command-palette'
@@ -54,6 +55,7 @@ const viewTitles: Record<AdminView, string> = {
   taximeter: 'Taximeter',
   content: 'Site Text',
   accounting: 'Accounting',
+  tonight: 'Tonight',
   settings: 'Settings',
 }
 
@@ -369,6 +371,7 @@ export default function AdminDashboard() {
 
         <div className="p-4 sm:p-6 lg:p-8">
           {activeView === 'overview' && <OverviewView bookings={bookings} />}
+          {activeView === 'tonight' && <TonightView bookings={bookings} />}
 
           {activeView === 'tours' && (
             <BookingTable

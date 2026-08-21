@@ -16,6 +16,11 @@ export interface Booking {
   assigned_driver: string | null
   payment_status?: PaymentStatus
   party_size?: number
+  // Present on the row and used by the Tonight view; the admin query
+  // selects * so these arrive whether or not the type mentioned them.
+  pickup_address?: string | null
+  dropoff_address?: string | null
+  tour_id?: string | null
   // Written by stamp_booking_cancellation() when status becomes cancelled.
   cancelled_at?: string | null
   cancelled_by?: string | null

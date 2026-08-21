@@ -20,10 +20,12 @@ import {
   Gauge,
   PencilLine,
   FileSpreadsheet,
+  Moon,
 } from 'lucide-react'
 
 export type AdminView =
   | 'overview'
+  | 'tonight'
   | 'tours'
   | 'transfers'
   | 'tour-catalog'
@@ -49,6 +51,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'tonight', label: 'Tonight', icon: Moon },
   { id: 'tours', label: 'Tours & Activities', icon: Map },
   { id: 'transfers', label: 'Transfers', icon: Car },
   { id: 'tour-catalog', label: 'Tour Catalog', icon: BookImage, adminOnly: true },
