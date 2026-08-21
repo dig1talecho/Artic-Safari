@@ -26,6 +26,7 @@ import { useSpamGuard } from '@/lib/use-spam-guard'
 import { useSession } from '@/lib/use-session'
 import { useCustomerProfile } from '@/lib/use-customer-profile'
 import { tromsoToday } from '@/lib/dates'
+import { notifyBookingCreated } from '@/lib/notify-booking'
 import { AddressAutocomplete, withTromsoContext } from '@/components/address-autocomplete'
 import { PrivacyNotice } from '@/components/privacy-notice'
 import dynamic from 'next/dynamic'
@@ -137,6 +138,12 @@ export function DispatchConsole() {
   */
   const [stage, setStage] = useState<'route' | 'details'>('route')
 
+  /*
+    Generated up front rather than read back from the insert: anon callers
+    cannot select a booking under RLS, so the id has to be ours to know if
+    anything downstream is going to refer to this row.
+  */
+  const [bookingId] = useState(() => crypto.randomUUID())
   const [reserving, setReserving] = useState(false)
   const [reserveError, setReserveError] = useState('')
 
@@ -256,6 +263,7 @@ export function DispatchConsole() {
 
     try {
       const { error } = await insertBooking({
+        id: bookingId,
         customer_name: customerName.trim() || 'Guest User',
         customer_email: customerEmail.trim() || 'pending@articsafaritour.com',
         customer_phone: customerPhone.trim() || null,
@@ -298,6 +306,11 @@ export function DispatchConsole() {
     }
 
     setReserving(false)
+
+    // A written record of what they just asked for, in case the WhatsApp
+    // handover never happens. Fire-and-forget: the booking is saved, and a
+    // failed email must not read as a failed booking.
+    notifyBookingCreated(bookingId)
 
     const message = `*ARTIC SAFARI - VIP TRANSFER BOOKING*
 ----------------------------------------

@@ -8,6 +8,7 @@ import { validatePromoCode, type PromoCodeInfo } from '@/services/partners.servi
 import { useSpamGuard } from '@/lib/use-spam-guard'
 import { PrivacyNotice } from '@/components/privacy-notice'
 import { tromsoToday, tromsoDatePlusYears } from '@/lib/dates'
+import { notifyBookingCreated } from '@/lib/notify-booking'
 import { getTourAvailability, type TourAvailability } from '@/services/availability.service'
 import { Check, X, Calendar, Clock, Mail, Phone, User, Minus, Plus, PackageOpen, Tag, Loader2 } from 'lucide-react'
 
@@ -222,6 +223,11 @@ export function BookingModal({ tour, isSignedIn, prefill, onClose }: BookingModa
       }
 
       console.log('Booking insert success:', data)
+
+      // The guest gets a written record of what they just asked for.
+      // Fire-and-forget: the booking is already saved, so a failed email
+      // must not turn a successful booking into an error on screen.
+      notifyBookingCreated(bookingId)
 
       if (cart.length > 0) {
         const { error: addonError } = await attachAddonsToBooking(bookingId, cart)
